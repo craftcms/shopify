@@ -15,4 +15,8 @@ class ShopifyVariables
 	{
 		return \shopify\Shopify::getInstance()->service->getProductById($options);
 	}
+
+	public function getSettings() {
+        return \shopify\Shopify::getInstance()->getSettings();
+    }
 }
