@@ -1,0 +1,30 @@
+{% import "_includes/forms" as forms %}
+
+{{ forms.textField({
+    first: true,
+    label: "Api Key",
+    name: 'apiKey',
+    value: settings.apiKey,
+    required: true
+}) }}
+
+{{ forms.textField({
+    label: "Password",
+    name: 'password',
+    value: settings.password,
+    required: true
+}) }}
+
+{{ forms.textField({
+    label: "Shared Secret",
+    name: 'secret',
+    value: settings.secret,
+    required: true
+}) }}
+
+{{ forms.textField({
+    label: "Hostname",
+    name: 'hostname',
+    value: settings.hostname,
+    required: true
+}) }}

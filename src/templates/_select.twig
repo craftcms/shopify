@@ -1,0 +1,8 @@
+<div class="select">
+	<select name="{{ name }}" id="{{ name }}">
+		<option value=""></option>
+		{% for option in products %}
+			<option value="{{ option.productId }}"{% if value == option.productId %} selected{% endif %}>{{ option.label }}</option>
+		{% endfor %}
+	</select>
+</div>
