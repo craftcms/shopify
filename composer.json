@@ -8,7 +8,10 @@
         "cms",
         "craftcms",
         "craft-plugin",
-        "shopify"
+        "shopify", 
+        "fetch-products",
+        "integrate shopify",
+        "product sync"
     ],
     "license": "MIT",
     "authors": [
