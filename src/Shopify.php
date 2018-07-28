@@ -34,7 +34,7 @@ use yii\base\Event;
  *
  * @author    niklas
  * @package   Shopify
- * @since     1.0.0
+ * @since     1.0.1
  *
  */
 class Shopify extends Plugin
@@ -58,7 +58,7 @@ class Shopify extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '1.0.0';
+    public $schemaVersion = '1.0.1';
 
 
     /**
