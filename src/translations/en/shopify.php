@@ -18,9 +18,10 @@
  *
  * @author    niklas
  * @package   Shopify
- * @since     1.0.0
+ * @since     1.0.1
  */
 return [
     'shopify plugin loaded' => 'shopify plugin loaded',
-    'Shopify Product' => 'Shopify Product'
+    'Shopify Product' => 'Shopify Product',
+    'None' => 'None'
 ];

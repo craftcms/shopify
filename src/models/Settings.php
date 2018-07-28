@@ -18,7 +18,7 @@ class Settings extends Model
 
     public $secret;
 
-    public $hostname;
+    public $hostname; // valid-sample: craftintegration.myshopify.com //TODO validate user input to match format from sample
 
     public $allProductsEndpoint = 'admin/products.json';
 
