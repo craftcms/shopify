@@ -22,5 +22,6 @@
  */
 return [
     'shopify plugin loaded' => 'shopify plugin loaded',
-    'Shopify Product' => 'Shopify Product'
+    'Shopify Product' => 'Shopify Product',
+    'None' => 'None'
 ];
