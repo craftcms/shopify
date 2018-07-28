@@ -8,7 +8,6 @@
 
 namespace shopify\services;
 
-use Craft;
 use yii\base\Component;
 
 class ShopifyService extends Component
