@@ -1,1 +1,24 @@
-{"pluginName":"shopify","pluginDescription":"load your shopify-products into your craft3 cms instance","pluginVersion":"1.0.0","pluginAuthorName":"niklas maier","pluginVendorName":"","pluginAuthorUrl":"https://maier-niklas.de/","pluginAuthorGithub":"https://github.com/nmaier95","codeComments":"yes","pluginComponents":"","consolecommandName":"","controllerName":"","cpsectionName":"","elementName":"","fieldName":"","modelName":"","purchasableName":"","recordName":"","serviceName":"","taskName":"","utilityName":"","widgetName":"","apiVersion":"api_version_3_0"}
+{
+    "pluginName":"nmaier95/shopify-product-fetcher",
+    "pluginDescription":"load your shopify-products into your craft3 cms instance",
+    "pluginVersion":"1.0.1",
+    "pluginAuthorName":"niklas maier",
+    "pluginVendorName":"nmaier95",
+    "pluginAuthorUrl":"https://maier-niklas.de/",
+    "pluginAuthorGithub":"https://github.com/nmaier95",
+    "codeComments":"yes",
+    "pluginComponents":"",
+    "consolecommandName":"",
+    "controllerName":"",
+    "cpsectionName":"",
+    "elementName":"",
+    "fieldName":"",
+    "modelName":"",
+    "purchasableName":"",
+    "recordName":"",
+    "serviceName":"",
+    "taskName":"",
+    "utilityName":"",
+    "widgetName":"",
+    "apiVersion":"api_version_3_0"
+}
