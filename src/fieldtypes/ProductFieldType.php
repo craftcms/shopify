@@ -40,11 +40,13 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
         $products = Shopify::getInstance()->service->getProducts($productOptions);
 
         $options = array();
-        foreach ($products as $product) {
-            $options[] = array(
-                'label' => $product['title'],
-                'productId' => $product['id']
-            );
+        if($products) {
+            foreach ($products as $product) {
+                $options[] = array(
+                    'label' => $product['title'],
+                    'productId' => $product['id']
+                );
+            }
         }
 
         return Craft::$app->getView()->renderTemplate('shopify/_select',
