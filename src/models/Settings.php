@@ -29,6 +29,22 @@ class Settings extends Model
     {
         return [
             [['apiKey', 'password', 'secret', 'hostname'], 'required'],
+            ['hostname', 'validateHostname']
         ];
     }
+
+
+    /**
+     * @param $attribute
+     * @param $params
+     */
+    public function validateHostname($attributeName)
+    {
+        if(strpos($this->hostname, '//') !== false ||
+            strpos($this->hostname, 'http://') !== false ||
+            strpos($this->hostname, 'https://') !== false) {
+            $this->addError($attributeName, 'Please do not use http://, https:// or // at the beginning of the hostname.');
+        }
+    }
+
 }
