@@ -26,5 +26,7 @@
     label: "Hostname",
     name: 'hostname',
     value: settings.hostname,
-    required: true
+    required: true,
+    placeholder: 'yourdomain.com or yourshopifydomain.myshopify.com',
+    errors: settings.getErrors('hostname')
 }) }}
