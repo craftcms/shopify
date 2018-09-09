@@ -2,7 +2,6 @@
 
 namespace shopify\variables;
 
-use Craft;
 
 class ShopifyVariables
 {
