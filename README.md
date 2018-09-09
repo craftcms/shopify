@@ -1,7 +1,7 @@
 # Shopify plugin for Craft CMS 3.x
 
 
-![Screenshot](src/img/plugin-logo.jpg)
+![Screenshot](resources/img/readme-header.jpg)
 
 ## Requirements
 
@@ -9,7 +9,7 @@ This plugin requires Craft CMS 3.0.0-beta.23 or later.
 
 ## Installation
 
-#### VIA Composer
+#### Composer
 Install the plugin via composer into your craft 3 project:
 
     composer require nmaier95/shopify-product-fetcher
@@ -30,9 +30,9 @@ https://docs.craftcms.com/v3/extend/plugin-guide.html#loading-your-plugin-into-a
 
 Once the plugin is installed successfully, a new icon with this' plugins logo on the settings-page appeared. Clicking it takes you to the settings of the plugin. 
 
-![Screenshot](src/img/settings.png)
+![Screenshot](resources/img/settings.png)
 
-Please stick to the format of the "Hostname" field like in the example above.
+!! Please stick to the format of the "Hostname" field like in the example above !!
 
 ## Using shopify
 
