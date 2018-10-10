@@ -60,3 +60,5 @@ Via the saved product-id you are then able to fetch specific products inside of 
 The variants parameter is documented inside of official shopify-api-docs.
 
 Brought to you by [niklas maier](https://maier-niklas.de/)
+<br>
+You may also find me inside of the official [Craft Slack](https://craftcms.com/slack).
