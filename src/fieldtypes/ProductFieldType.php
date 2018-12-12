@@ -120,6 +120,8 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
     {
         $settings = Shopify::getInstance()->getSettings();
         $products = $this->getProducts();
+
+        $value = json_decode($value);
         $value = is_array($value) ? $value : [$value];
 
         $selected = [];
