@@ -84,7 +84,8 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
           return Craft::$app->getView()->renderTemplateMacro('_includes/forms', 'selectField',
               [
                   [
-                      'name' => $this->handle,
+                      'id' => $this->handle,
+                      'name' => $this->handle.'[]',
                       'value' => $value,
                       'options' => $options,
                   ]
