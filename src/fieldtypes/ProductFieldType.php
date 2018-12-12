@@ -6,6 +6,7 @@ use Craft;
 use craft\base\Field;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\helpers\Json;
 use shopify\Shopify;
 
 class ProductFieldType extends Field implements PreviewableFieldInterface
@@ -100,8 +101,12 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
                     ]
                 ]
             );
-        } else {
-            array_unshift($options, '');
+          } else {
+            if (is_array($value)) {
+              $value = $value[0];
+            }
+
+            $options = ['' => ''] + $options;
             return Craft::$app->getView()->renderTemplateMacro('_includes/forms', 'selectField',
                 [
                     [
@@ -118,13 +123,29 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
     /**
      * @inheritdoc
      */
+    public function normalizeValue($value, ElementInterface $element = null)
+    {
+        if (is_string($value)) {
+            $value = Json::decodeIfJson($value);
+        }
+
+        // Normalize to an array
+        $value = (array)$value;
+
+        if (!$this->multi) {
+            $value = array_slice($value, 0, 1);
+        }
+
+        return (array)$value;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getTableAttributeHtml($value, ElementInterface $element): string
     {
         $settings = Shopify::getInstance()->getSettings();
         $products = $this->getProducts();
-
-        $value = json_decode($value);
-        $value = is_array($value) ? $value : [$value];
 
         $selected = [];
         foreach ($products as $product) {
