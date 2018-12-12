@@ -1,8 +1,0 @@
-<div class="multiselect">
-	<select name="{{ name }}" id="{{ name }}" multiple>
-		<option value="">{{ "None"|t }}</option>
-		{% for option in products %}
-			<option value="{{ option.productId }}"{% if value == option.productId %} selected{% endif %}>{{ option.label }}</option>
-		{% endfor %}
-	</select>
-</div>

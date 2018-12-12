@@ -10,6 +10,14 @@ use shopify\Shopify;
 
 class ProductFieldType extends Field implements PreviewableFieldInterface
 {
+    // Properties
+    // =========================================================================
+
+    /**
+     * @var bool Whether the field should support multiple selections
+     */
+    public $multi = false;
+
     // Static Methods
     // =========================================================================
 
@@ -24,6 +32,22 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
         return Craft::t('shopify', 'Shopify Product');
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getSettingsHtml()
+    {
+        return Craft::$app->getView()->renderTemplateMacro('_includes/forms', 'lightswitchField',
+            [
+                [
+                    'label' => Craft::t('shopify', 'Allow multiple selections?'),
+                    'id' => 'multi',
+                    'name' => 'multi',
+                    'on' => $this->multi,
+                ]
+            ]
+        );
+    }
 
     /**
      * returns the template-partial an editor sees when editing plugin-content on a page
@@ -36,26 +60,33 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
      */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
-        $productOptions = array('limit' => 250);
+        $productOptions = ['limit' => 250];
         $products = Shopify::getInstance()->service->getProducts($productOptions);
 
-        $options = array();
-        if($products) {
+        $options = [];
+        if ($products) {
             foreach ($products as $product) {
-                $options[] = array(
-                    'label' => $product['title'],
-                    'productId' => $product['id']
-                );
+                $options[$product['id']] = $product['title'];
             }
         }
 
-        return Craft::$app->getView()->renderTemplate('shopify/_select',
-            [
-                'name' => $this->handle,
-                'value' => $value,
-                'field' => $this,
-                'products' => $options
-            ]);
+        if ($this->multi) {
+            return Craft::$app->getView()->renderTemplate('_includes/forms/multiselect',
+                [
+                    'name' => $this->handle,
+                    'values' => $value,
+                    'options' => $options,
+                ]
+            );
+        } else {
+          return Craft::$app->getView()->renderTemplate('_includes/forms/select',
+              [
+                  'name' => $this->handle,
+                  'value' => $value,
+                  'options' => $options,
+              ]
+          );
+        }
     }
 
 }

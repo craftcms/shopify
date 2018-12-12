@@ -23,5 +23,6 @@
 return [
     'shopify plugin loaded' => 'shopify plugin loaded',
     'Shopify Product' => 'Shopify Product',
+    'Allow multiple selections?' => 'Allow multiple selections?',
     'None' => 'None'
 ];
