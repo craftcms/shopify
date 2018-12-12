@@ -18,7 +18,12 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
      */
     public $multi = false;
 
-    // Static Methods
+    /**
+     * @var bool Array of products from Shopify API
+     */
+    public $products = false;
+
+    // Public Methods
     // =========================================================================
 
     /**
@@ -50,7 +55,23 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
     }
 
     /**
-     * returns the template-partial an editor sees when editing plugin-content on a page
+     * Returns an array of all products from the Shopify API
+     *
+     * @return array
+     */
+    public function getProducts()
+    {
+        if (!$this->products) {
+          $this->products = Shopify::getInstance()->service->getProducts([
+              'limit' => 250,
+          ]);
+        }
+
+        return $this->products;
+    }
+
+    /**
+     * Returns the template-partial an editor sees when editing plugin-content on a page
      *
      * @param $value
      * @param ElementInterface|null $element
@@ -60,8 +81,7 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
      */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
-        $productOptions = ['limit' => 250];
-        $products = Shopify::getInstance()->service->getProducts($productOptions);
+        $products = $this->getProducts();
 
         $options = [];
         if ($products) {
@@ -93,4 +113,23 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
         }
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getTableAttributeHtml($value, ElementInterface $element): string
+    {
+        $settings = Shopify::getInstance()->getSettings();
+        $products = $this->getProducts();
+        $value = is_array($value) ? $value : [$value];
+
+        $selected = [];
+        foreach ($products as $product) {
+            if (in_array($product['id'], $value)) {
+                $link = "https://{$settings->hostname}/admin/products/{$product['id']}";
+                $selected[] = "<a href=\"{$link}\" target=\"_blank\">{$product['title']}</a>";
+            }
+        }
+
+        return implode(', ', $selected);
+    }
 }
