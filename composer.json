@@ -1,6 +1,6 @@
 {
-    "name": "nmaier95/shopify-product-fetcher",
-    "description": "load your shopify-products into your craft3 cms instance",
+    "name": "elivz/shopify-product-fetcher",
+    "description": "Load your Shopify products into your craft3 cms instance",
     "type": "craft-plugin",
     "version": "1.0.3",
     "keywords": [
@@ -30,7 +30,7 @@
         }
     },
     "extra": {
-        "name": "shopify",
+        "name": "Shopify",
         "handle": "shopify",
         "class": "\\shopify\\Shopify"
     }

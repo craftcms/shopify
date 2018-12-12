@@ -71,19 +71,23 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
         }
 
         if ($this->multi) {
-            return Craft::$app->getView()->renderTemplate('_includes/forms/multiselect',
+            return Craft::$app->getView()->renderTemplateMacro('_includes/forms', 'multiselectField',
                 [
-                    'name' => $this->handle,
-                    'values' => $value,
-                    'options' => $options,
+                    [
+                        'name' => $this->handle,
+                        'values' => $value,
+                        'options' => $options,
+                    ]
                 ]
             );
         } else {
-          return Craft::$app->getView()->renderTemplate('_includes/forms/select',
+          return Craft::$app->getView()->renderTemplateMacro('_includes/forms', 'selectField',
               [
-                  'name' => $this->handle,
-                  'value' => $value,
-                  'options' => $options,
+                  [
+                      'name' => $this->handle,
+                      'value' => $value,
+                      'options' => $options,
+                  ]
               ]
           );
         }
