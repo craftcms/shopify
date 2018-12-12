@@ -101,7 +101,7 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
                 ]
             );
         } else {
-            array_prepend($options, '');
+            array_unshift($options, '');
             return Craft::$app->getView()->renderTemplateMacro('_includes/forms', 'selectField',
                 [
                     [
