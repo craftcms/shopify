@@ -101,16 +101,17 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
                 ]
             );
         } else {
-          return Craft::$app->getView()->renderTemplateMacro('_includes/forms', 'selectField',
-              [
-                  [
-                      'id' => $this->handle,
-                      'name' => $this->handle.'[]',
-                      'value' => $value,
-                      'options' => $options,
-                  ]
-              ]
-          );
+            array_prepend($options, '');
+            return Craft::$app->getView()->renderTemplateMacro('_includes/forms', 'selectField',
+                [
+                    [
+                        'id' => $this->handle,
+                        'name' => $this->handle.'[]',
+                        'value' => $value,
+                        'options' => $options,
+                    ]
+                ]
+            );
         }
     }
 
