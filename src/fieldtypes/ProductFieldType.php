@@ -103,7 +103,7 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
             );
           } else {
             if (is_array($value)) {
-              $value = $value[0];
+              $value = reset($value);
             }
 
             $options = ['' => ''] + $options;
