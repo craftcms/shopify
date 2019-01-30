@@ -120,6 +120,17 @@ class Shopify extends Plugin
         });
 
 
+        if (class_exists('\verbb\feedme\services\Fields')) {
+            // Register fieldtype with Feed Me
+            Event::on(
+                \verbb\feedme\services\Fields::class,
+                \verbb\feedme\services\Fields::EVENT_REGISTER_FEED_ME_FIELDS,
+                function(\verbb\feedme\events\RegisterFeedMeFieldsEvent $event) {
+                    $event->fields[] = utilities\feedme\Shopify::class;
+                }
+            );
+        }
+
         /**
          * Logging in Craft involves using one of the following methods:
          *
