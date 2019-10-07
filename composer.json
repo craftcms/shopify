@@ -2,7 +2,7 @@
     "name": "nmaier95/shopify-product-fetcher",
     "description": "load your shopify-products into your craft3 cms instance",
     "type": "craft-plugin",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "keywords": [
         "craft",
         "cms",
@@ -21,17 +21,17 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^3.0.0-RC1",
+        "craftcms/cms": "^3.0.0",
         "guzzlehttp/guzzle": "^6.3"
     },
     "autoload": {
         "psr-4": {
-            "\\shopify\\": "src/"
+            "shopify\\": "src/"
         }
     },
     "extra": {
         "name": "shopify",
         "handle": "shopify",
-        "class": "\\shopify\\Shopify"
+        "class": "shopify\\Shopify"
     }
 }

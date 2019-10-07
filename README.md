@@ -42,21 +42,38 @@ When editing the section it´ll now automatically fetch products from your store
 In the background only the product id gets saved into your database. 
 Via the saved product-id you are then able to fetch specific products inside of your templates.
 
+### Samples
+#### Usage of products selected inside of an entry
 ```twig
-{% set shopify = craft.shopify.getProductById({ id: entry.productId, fields: 'variants' }) %}
-{# Or all products: #}
-{% set shopify = craft.shopify.getProducts({ fields: 'variants' }) %}
+{% for productId in entry.products %}
+
+    {% set shopifyProduct = craft.shopify.getProductById({ id: productId }) %}
+
+    {{ dump(shopifyProduct) }}
+
+{% endfor %}
+```
+
+
+#### Get all products of my shop
+```twig
+{% set products = craft.shopify.getProducts() %}
 
 <form action="//{{craft.shopify.getSettings().hostname}}/cart/add" method="post">
     <select name="id">
-        {% for variant in shopify.variants %}
-            <option value="{{ variant.id }}">{{ variant.title }} - ${{ variant.price }}</option>
+        {% for product in products %}
+            <option value="{{ product.variants[0].id }}">{{ product.title }} - ${{ product.variants[0].price }}</option>
         {% endfor %}
     </select>
     <input type="hidden" name="return_to" value="back">
     <button type="submit">Add to Cart</button>
 </form>
 ```
-The variants parameter is documented inside of official shopify-api-docs.
+
+Both ```craft.shopify.getProductById()``` and ```craft.shopify.getProducts()``` support an optional 'options' parameter which takes shopify-api options for requests. For further documentation please use official shopify api docs.
+For example ```craft.shopify.getProducts({fields: 'variants'})```
+
 
 Brought to you by [niklas maier](https://maier-niklas.de/)
+<br>
+You may also find me inside of the official [Craft Slack](https://craftcms.com/slack).

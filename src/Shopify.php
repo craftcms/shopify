@@ -34,7 +34,7 @@ use yii\base\Event;
  *
  * @author    niklas
  * @package   Shopify
- * @since     1.0.3
+ * @since     1.0.4
  *
  */
 class Shopify extends Plugin
@@ -58,7 +58,7 @@ class Shopify extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '1.0.3';
+    public $schemaVersion = '4';
 
 
     /**
@@ -102,7 +102,7 @@ class Shopify extends Plugin
 
         //register to init-fields-event to add products-field to the list
         Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, function(RegisterComponentTypesEvent $event) {
-            $event->types[] = fieldtypes\ProductFieldType::class;
+            $event->types[] = \shopify\fieldtypes\ProductFieldType::class;
         });
 
 
@@ -116,7 +116,7 @@ class Shopify extends Plugin
         Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
             /** @var CraftVariable $variable */
             $variable = $event->sender;
-            $variable->set('shopify', variables\ShopifyVariables::class);
+            $variable->set('shopify', \shopify\variables\ShopifyVariables::class);
         });
 
 
