@@ -34,7 +34,7 @@ use yii\base\Event;
  *
  * @author    niklas
  * @package   Shopify
- * @since     1.0.4
+ * @since     1.0.5
  *
  */
 class Shopify extends Plugin
