@@ -4,8 +4,8 @@
 <div class="multiselect">
 	<select name="{{ name }}[]" multiple>
 		<option value="">{{ "None"|t }}</option>
-		{% for key, option in products %}
-			<option value="{{ option.value }}" {% if ""~option.value in values %} selected{% endif %}>{{ option.label }}</option>
+		{% for option in products %}
+			<option value="{{ option.productId }}"{% if option.productId in value %} selected{% endif %}>{{ option.label }}</option>
 		{% endfor %}
 	</select>
 </div>

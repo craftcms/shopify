@@ -2,7 +2,7 @@
     "name": "nmaier95/shopify-product-fetcher",
     "description": "load your shopify-products into your craft3 cms instance",
     "type": "craft-plugin",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "keywords": [
         "craft",
         "cms",

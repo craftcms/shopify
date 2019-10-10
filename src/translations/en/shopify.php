@@ -18,7 +18,7 @@
  *
  * @author    niklas
  * @package   Shopify
- * @since     1.0.4
+ * @since     1.0.5
  */
 return [
     'shopify plugin loaded' => 'shopify plugin loaded',
