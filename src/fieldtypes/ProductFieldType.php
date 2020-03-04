@@ -62,8 +62,6 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
                     [
                         // This cannot be included with page_info:
                         // 'published_status' => 'published',
-                        // This seems to force extra items:
-                        // 'limit' => 100,
                     ],
                     $productsData['link']['url']
                 );
