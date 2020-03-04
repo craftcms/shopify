@@ -51,8 +51,12 @@ class ShopifyService extends Component
     {
         $settings = \shopify\Shopify::getInstance()->getSettings();
         $query = http_build_query($options);
-        $endpoint = $link ?? $settings->allProductsEndpoint;
-        $url = $this->getShopifyUrl($endpoint . ($query ? '?' . $query : ''), $settings);
+        if ($link) {
+            $endpoint = $link . ($query ? '&' . $query : '');
+        } else {
+            $endpoint = $settings->allProductsEndpoint . ($query ? '?' . $query : '');
+        }
+        $url = $this->getShopifyUrl($endpoint, $settings);
 
         try {
             $client = new \GuzzleHttp\Client();
@@ -64,15 +68,16 @@ class ShopifyService extends Component
             if ($response->getStatusCode() !== 200) {
                 return false;
             }
-
-            $link = $response->getHeader('Link') ? preg_split('/;/', $response->getHeader('Link')[0]) : null;
-            $linkUrl = trim($link[0], '<>');
-            $linkRel = trim(str_replace(['rel="', '"'], '', $link[1]));
-
+            $link = $response->getHeader('Link') ? $response->getHeader('Link') : null;
+            if (count(preg_grep('/"next"/', $link)) > 0) {
+                $splitLink = preg_split('/; rel=/', $link[0]);
+                $linkNextUrl = trim($splitLink[0], '<>');
+                $linkRel = trim(str_replace(['"'], '', $splitLink[1]));
+            }
             $items = json_decode($response->getBody()->getContents(), true);
             $items['link'] = [
-                'url' => $linkUrl,
-                'rel' => $linkRel,
+                'url' => $linkNextUrl ?? null,
+                'rel' => $linkRel ?? null,
             ];
 
             return $items;
