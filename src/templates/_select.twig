@@ -23,7 +23,7 @@ document.addEventListener(
         let commerce_input = document.querySelector('[name="{{ filter_name }}"]');
         let commerce_select = document.querySelector('[name="{{ name }}[]"]');
         commerce_input.addEventListener(
-            'keyup',
+            'input',
             (event) => {
                 if (event.target.value) {
                     [...commerce_select.options].forEach(
