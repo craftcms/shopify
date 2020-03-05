@@ -12,7 +12,7 @@
 </div>
 
 {% if filter_class is defined and filter_class %}
-    <input style="width: 94%;" placeholder="Start typing to filter products ..." type="text" class="{{ filter_class }}_{{ now }}" value="">
+    <input style="width: 94%;" placeholder="{{ 'Start typing to filter products ...'|t }}" type="text" class="{{ filter_class }}_{{ now }}" value="">
 {% endif %}
 
 
