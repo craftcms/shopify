@@ -48,7 +48,7 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
     public function getInputHtml($value, ElementInterface $element = null): string
     {
         $defaultOptions = [
-            'published_status' => 'published'
+            'published_status' => 'published',
         ];
         $count = Shopify::getInstance()->service->getProductsCount($defaultOptions);
         $productsData = Shopify::getInstance()->service->getProducts($defaultOptions);
@@ -82,17 +82,17 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
                         array_map(function ($variant) {
                             return $variant['sku'];
                         }, $product['variants'])
-                    )
+                    ),
                 );
             }
         }
 
         return Craft::$app->getView()->renderTemplate('shopify/_select', [
-            'filter_name' => 'shopify_filter',
+            'filter_class' => $this->handle . '_filter',
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
-            'products' => $options
+            'products' => $options,
         ]);
     }
 }

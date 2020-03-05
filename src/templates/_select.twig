@@ -11,17 +11,16 @@
     </select>
 </div>
 
-{% if filter_name is defined and filter_name %}
-    <input style="width: 90%;" placeholder="Start typing to filter products ..." type="text" name="{{ filter_name }}" value="">
+{% if filter_class is defined and filter_class %}
+    <input style="width: 90%;" placeholder="Start typing to filter products ..." type="text" class="{{ filter_class }}" value="">
 {% endif %}
 
 
 <script>
-document.addEventListener(
-    'DOMContentLoaded',
-    () => {
-        let commerce_input = document.querySelector('[name="{{ filter_name }}"]');
-        let commerce_select = document.querySelector('[name="{{ name }}[]"]');
+(() => {
+    const filterProducts = () => {
+        let commerce_input = document.querySelector('[class*="{{ filter_class }}"]');
+        let commerce_select = document.querySelector('select[name*="{{ name }}"]');
         commerce_input.addEventListener(
             'input',
             (event) => {
@@ -45,7 +44,15 @@ document.addEventListener(
                 }
             }
         );
-    }
-);
+    };
+
+    filterProducts();
+    document.addEventListener(
+        'DOMContentLoaded',
+        () => {
+            filterProducts();
+        }
+    );
+})();
 </script>
 
