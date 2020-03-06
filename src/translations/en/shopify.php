@@ -25,4 +25,6 @@ return [
     'Shopify Product' => 'Shopify Product',
     'None' => 'None',
     'Start typing to filter products ...' => 'Start typing to filter products ...',
+    'Show selected only' => 'Show selected only',
+    'Clear selected' => 'Clear selected',
 ];

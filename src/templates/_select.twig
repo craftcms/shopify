@@ -3,13 +3,13 @@
 <div style="margin-bottom: 5px; margin-top: 5px;">
     {% if selected_only_class is defined and selected_only_class %}
         <span style="float: left;">
-            <input type="checkbox" class="{{ selected_only_class }}_{{ now }}" value=""><span style="margin-left: 5px;">Show selected only</span>
+            <input type="checkbox" class="{{ selected_only_class }}_{{ now }}" value=""><span style="margin-left: 5px;">{{ 'Show selected only'|t }}</span>
         </span>
     {% endif %}
 
     {% if clear_selected_class is defined and clear_selected_class %}
         <span style="float: right;">
-            <button class="{{ clear_selected_class }}_{{ now }}">Clear selected</button>
+            <button class="{{ clear_selected_class }}_{{ now }}">{{ 'Clear selected'|t }}</button>
         </span>
     {% endif %}
 </div>
