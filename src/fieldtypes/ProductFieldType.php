@@ -89,6 +89,8 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
 
         return Craft::$app->getView()->renderTemplate('shopify/_select', [
             'filter_class' => $this->handle . '_filter',
+            'selected_only_class' => $this->handle . '_selected_only',
+            'clear_selected_class' => $this->handle . '_clear_selected',
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
