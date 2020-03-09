@@ -47,27 +47,17 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
      */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
-        $defaultOptions = [
-            'published_status' => 'published',
-        ];
+        $defaultOptions = [];
         $count = Shopify::getInstance()->service->getProductsCount($defaultOptions);
         $productsData = Shopify::getInstance()->service->getProducts($defaultOptions);
         $products = [];
-        if ($productsData) {
-            $products = array_merge_recursive($products, $productsData['products']);
-        }
+        $products = array_merge_recursive($products, $productsData['products']);
+
         if (count($products) < $count) {
-            while (count($products) < $count && $productsData['link']) {
-                $productsData = Shopify::getInstance()->service->getProducts(
-                    [
-                        // This cannot be included with page_info:
-                        // 'published_status' => 'published',
-                    ],
-                    $productsData['link']['url']
-                );
-                if ($productsData) {
-                    $products = array_merge_recursive($products, $productsData['products']);
-                }
+            while (count($products) < $count) {
+                $nextLink = $productsData['link']['url'];
+                $productsData = Shopify::getInstance()->service->getProducts($defaultOptions, $nextLink);
+                $products = array_merge_recursive($products, $productsData['products']);
             }
         }
 

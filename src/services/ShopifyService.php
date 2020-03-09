@@ -47,7 +47,7 @@ class ShopifyService extends Component
      * @param array $options
      * @return bool
      */
-    public function getProducts($options = array(), $link = null)
+    public function getProducts($options = [], $link = null)
     {
         $settings = \shopify\Shopify::getInstance()->getSettings();
         $query = http_build_query($options);
@@ -71,8 +71,13 @@ class ShopifyService extends Component
             $link = $response->getHeader('Link') ? $response->getHeader('Link') : null;
             if (count(preg_grep('/"next"/', $link)) > 0) {
                 $splitLink = preg_split('/; rel=/', $link[0]);
-                $linkNextUrl = trim($splitLink[0], '<>');
-                $linkRel = trim(str_replace(['"'], '', $splitLink[1]));
+                if (count(preg_grep('/"previous"/', $splitLink)) > 0) {
+                    $linkNextUrl = trim(str_replace(['"previous", '], '', $splitLink[1]), '<>');
+                    $linkRel = trim(str_replace(['"'], '', $splitLink[2]));
+                } else {
+                    $linkNextUrl = trim($splitLink[0], '<>');
+                    $linkRel = trim(str_replace(['"'], '', $splitLink[1]));
+                }
             }
             $items = json_decode($response->getBody()->getContents(), true);
             $items['link'] = [
