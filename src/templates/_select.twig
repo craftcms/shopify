@@ -1,35 +1,36 @@
 {% set now = "now"|date("U") %}
 
-<div style="margin-bottom: 5px; margin-top: 5px;">
-    {% if selected_only_class is defined and selected_only_class %}
-        <span style="float: left;">
-            <input type="checkbox" class="{{ selected_only_class }}_{{ now }}" value=""><span style="margin-left: 5px;">{{ 'Show selected only'|t }}</span>
-        </span>
-    {% endif %}
+<div class="{{ wrapper_class }}_{{ now }}">
+    <div style="margin-bottom: 5px; margin-top: 5px;">
+        {% if selected_only_class is defined and selected_only_class %}
+            <span style="float: left;">
+                <input type="checkbox" class="{{ selected_only_class }}_{{ now }}" value=""><span style="margin-left: 5px;">{{ 'Show selected only'|t }}</span>
+            </span>
+        {% endif %}
 
-    {% if clear_selected_class is defined and clear_selected_class %}
-        <span style="float: right;">
-            <button class="{{ clear_selected_class }}_{{ now }}">{{ 'Clear selected'|t }}</button>
-        </span>
+        {% if clear_selected_class is defined and clear_selected_class %}
+            <span style="float: right;">
+                <button class="{{ clear_selected_class }}_{{ now }}">{{ 'Clear selected'|t }}</button>
+            </span>
+        {% endif %}
+    </div>
+
+    {% if name is defined and name %}
+        <input type="hidden" name="{{ name }}" value="">
+    {% endif %}
+    <div class="multiselect">
+        <select style="width: 100%; height: 20rem;" class="{{ name }}_{{ now }}" name="{{ name }}[]" multiple>
+            <option value="">{{ "None"|t }}</option>
+            {% for option in products %}
+                <option value="{{ option.productId }}"{% if option.productId in value %} selected{% endif %}>{{ option.label }} ({{ option.sku }})</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {% if filter_class is defined and filter_class %}
+        <input style="width: 99.5%;" placeholder="{{ 'Start typing to filter products ...'|t }}" type="text" class="{{ filter_class }}_{{ now }}" value="">
     {% endif %}
 </div>
-
-{% if name is defined and name %}
-    <input type="hidden" name="{{ name }}" value="">
-{% endif %}
-<div class="multiselect">
-    <select style="width: 100%; height: 20rem;" class="{{ name }}_{{ now }}" name="{{ name }}[]" multiple>
-        <option value="">{{ "None"|t }}</option>
-        {% for option in products %}
-            <option value="{{ option.productId }}"{% if option.productId in value %} selected{% endif %}>{{ option.label }} ({{ option.sku }})</option>
-        {% endfor %}
-    </select>
-</div>
-
-{% if filter_class is defined and filter_class %}
-    <input style="width: 99.5%;" placeholder="{{ 'Start typing to filter products ...'|t }}" type="text" class="{{ filter_class }}_{{ now }}" value="">
-{% endif %}
-
 
 <script>
 (() => {
@@ -41,75 +42,79 @@
     };
 
     const attach_events = () => {
-        let commerce_input = document.querySelector(
+        const commerce_wrapper = document.querySelector(
+            'div[class="{{ wrapper_class }}_{{ now }}"]'
+        );
+        add_date_class(commerce_wrapper);
+
+        const commerce_input = commerce_wrapper.querySelector(
             'input[class="{{ filter_class }}_{{ now }}"]'
         );
         add_date_class(commerce_input);
-        let commerce_select = document.querySelector(
+        const commerce_select = commerce_wrapper.querySelector(
             'select[class="{{ name }}_{{ now }}"]'
         );
         add_date_class(commerce_select);
 
-        let commerce_select_array = [...commerce_select.options];
+        const commerce_select_array = [...commerce_select.options];
 
         commerce_input.addEventListener('input', (event) => {
             if (event.target.value) {
                 commerce_select_array.forEach((option) => {
-                    let regex = new RegExp(event.target.value, 'ig');
+                    const regex = new RegExp(event.target.value, 'ig');
                     if (regex.test(option.textContent)) {
+                        option.disabled = false;
                         option.hidden = false;
                     } else {
+                        option.disabled = true;
                         option.hidden = true;
                     }
                 });
             } else {
                 commerce_select_array.forEach((option) => {
+                    option.disabled = false;
                     option.hidden = false;
                 });
             }
         });
 
-        let commerce_selected_only = document.querySelector(
+        const commerce_selected_only = commerce_wrapper.querySelector(
             'input[class="{{ selected_only_class }}_{{ now }}"]'
         );
         add_date_class(commerce_selected_only);
 
-        commerce_selected_only.addEventListener(
-            'change',
-            (event) => {
-                if (event.target.checked) {
-                    commerce_select_array.forEach((option) => {
-                        if (option.selected) {
-                            option.hidden = false;
-                        } else {
-                            option.hidden = true;
-                        }
-                    });
-                } else {
-                    commerce_select_array.forEach((option) => {
+        commerce_selected_only.addEventListener('change', (event) => {
+            if (event.target.checked) {
+                commerce_select_array.forEach((option) => {
+                    if (option.selected) {
+                        option.disabled = false;
                         option.hidden = false;
-                    });
-                }
+                    } else {
+                        option.disabled = true;
+                        option.hidden = true;
+                    }
+                });
+            } else {
+                commerce_select_array.forEach((option) => {
+                    option.disabled = false;
+                    option.hidden = false;
+                });
             }
-        );
+        });
 
-        let commerce_clear_selected = document.querySelector(
+        const commerce_clear_selected = commerce_wrapper.querySelector(
             'button[class="{{ clear_selected_class }}_{{ now }}"]'
         );
         add_date_class(commerce_clear_selected);
 
-        commerce_clear_selected.addEventListener(
-            'click',
-            (event) => {
-                event.preventDefault();
-                commerce_select_array.forEach((option) => {
-                    if (option.selected) {
-                        option.selected = false;
-                    }
-                });
-            }
-        );
-
+        commerce_clear_selected.addEventListener('click', (event) => {
+            event.preventDefault();
+            commerce_select_array.forEach((option) => {
+                if (option.selected) {
+                    option.selected = false;
+                }
+            });
+        });
     };
 
     attach_events();
