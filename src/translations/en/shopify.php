@@ -21,7 +21,7 @@
  * @since     1.0.5
  */
 return [
-    'Shopify plugin loaded' => 'Shopify plugin loaded',
+    'shopify plugin loaded' => 'shopify plugin loaded',
     'Shopify Product' => 'Shopify Product',
     'None' => 'None',
     'Start typing to filter products ...' => 'Start typing to filter products ...',
