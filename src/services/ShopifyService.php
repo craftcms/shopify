@@ -22,6 +22,10 @@ class ShopifyService extends Component
     {
         $settings = \shopify\Shopify::getInstance()->getSettings();
 
+        if ($settings->published_status) {
+            $options['published_status'] = $settings->published_status;
+        }
+
         $query = http_build_query($options);
         $url = $this->getShopifyUrl($settings->allProductsCountEndpoint . '?' . $query, $settings);
 
@@ -50,12 +54,21 @@ class ShopifyService extends Component
     public function getProducts($options = [], $link = null)
     {
         $settings = \shopify\Shopify::getInstance()->getSettings();
+
+        if (!$link && $settings->limit) {
+            $options['limit'] = $settings->limit;
+        }
+        if (!$link && $settings->published_status) {
+            $options['published_status'] = $settings->published_status;
+        }
+
         $query = http_build_query($options);
         if ($link) {
             $endpoint = $link . ($query ? '&' . $query : '');
         } else {
             $endpoint = $settings->allProductsEndpoint . ($query ? '?' . $query : '');
         }
+
         $url = $this->getShopifyUrl($endpoint, $settings);
 
         try {
@@ -69,7 +82,8 @@ class ShopifyService extends Component
                 return false;
             }
             $link = $response->getHeader('Link') ? $response->getHeader('Link') : null;
-            if (count(preg_grep('/"next"/', $link)) > 0) {
+
+            if ($link && count(preg_grep('/"next"/', $link)) > 0) {
                 $splitLink = preg_split('/; rel=/', $link[0]);
                 if (count(preg_grep('/"previous"/', $splitLink)) > 0) {
                     $linkNextUrl = trim(str_replace(['"previous", '], '', $splitLink[1]), '<>');
@@ -132,6 +146,7 @@ class ShopifyService extends Component
         if (substr($endpoint, 0, 4) === 'http') {
             $endpoint = preg_split('/.com\//', $endpoint)[1];
         }
+
         return 'https://' . $settings->apiKey . ':' . $settings->password . '@' . $settings->hostname . '/' . $endpoint;
     }
 }

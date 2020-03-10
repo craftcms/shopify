@@ -20,6 +20,10 @@ class Settings extends Model
 
     public $hostname; // valid-sample: craftintegration.myshopify.com //TODO validate user input to match format from sample
 
+    public $limit;
+
+    public $published_status;
+
     public $apiPrefix = 'admin/api';
     public $apiVersion = '2020-01';
     public $allProductsEndpoint;

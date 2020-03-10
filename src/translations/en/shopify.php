@@ -27,4 +27,9 @@ return [
     'Start typing to filter products ...' => 'Start typing to filter products ...',
     'Show selected only' => 'Show selected only',
     'Clear selected' => 'Clear selected',
+    'Your shopify domain, for example: yourdomain.com or yourshopifydomain.myshopify.com' =>
+        'Your shopify domain, for example: yourdomain.com or yourshopifydomain.myshopify.com',
+    'API return limit, default is 50. Maximum is 250.' => 'API return limit, default is 50. Maximum is 250.',
+    'The published status for products in the default field. Default is "any". Other choices are: published, unpublished' =>
+        'The published status for products in the default field. Default is "any". Other choices are: published, unpublished',
 ];
