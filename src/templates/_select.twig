@@ -22,7 +22,7 @@
         <select style="width: 100%; height: 20rem;" class="{{ name }}_{{ now }}" name="{{ name }}[]" multiple>
             <option value="">{{ "None"|t }}</option>
             {% for option in products %}
-                <option value="{{ option.productId }}"{% if option.productId in value %} selected{% endif %}>{{ option.label }} ({{ option.sku }})</option>
+                <option value="{{ option.productId }}"{% if option.productId in value %} selected{% endif %}>{{ option.label }}{% if option.sku %} ({{ option.sku }}){% endif %}</option>
             {% endfor %}
         </select>
     </div>
@@ -45,76 +45,84 @@
         const commerce_wrapper = document.querySelector(
             'div[class="{{ wrapper_class }}_{{ now }}"]'
         );
-        add_date_class(commerce_wrapper);
+        if (commerce_wrapper) {
+            add_date_class(commerce_wrapper);
 
-        const commerce_input = commerce_wrapper.querySelector(
-            'input[class="{{ filter_class }}_{{ now }}"]'
-        );
-        add_date_class(commerce_input);
-        const commerce_select = commerce_wrapper.querySelector(
-            'select[class="{{ name }}_{{ now }}"]'
-        );
-        add_date_class(commerce_select);
+            const commerce_input = commerce_wrapper.querySelector(
+                'input[class="{{ filter_class }}_{{ now }}"]'
+            );
 
-        const commerce_select_array = [...commerce_select.options];
+            if (commerce_input) {
+                add_date_class(commerce_input);
+                const commerce_select = commerce_wrapper.querySelector(
+                    'select[class="{{ name }}_{{ now }}"]'
+                );
 
-        commerce_input.addEventListener('input', (event) => {
-            if (event.target.value) {
-                commerce_select_array.forEach((option) => {
-                    const regex = new RegExp(event.target.value, 'ig');
-                    if (regex.test(option.textContent)) {
-                        option.disabled = false;
-                        option.hidden = false;
-                    } else {
-                        option.disabled = true;
-                        option.hidden = true;
-                    }
-                });
-            } else {
-                commerce_select_array.forEach((option) => {
-                    option.disabled = false;
-                    option.hidden = false;
-                });
-            }
-        });
+                if (commerce_select) {
+                    add_date_class(commerce_select);
 
-        const commerce_selected_only = commerce_wrapper.querySelector(
-            'input[class="{{ selected_only_class }}_{{ now }}"]'
-        );
-        add_date_class(commerce_selected_only);
+                    const commerce_select_array = [...commerce_select.options];
 
-        commerce_selected_only.addEventListener('change', (event) => {
-            if (event.target.checked) {
-                commerce_select_array.forEach((option) => {
-                    if (option.selected) {
-                        option.disabled = false;
-                        option.hidden = false;
-                    } else {
-                        option.disabled = true;
-                        option.hidden = true;
-                    }
-                });
-            } else {
-                commerce_select_array.forEach((option) => {
-                    option.disabled = false;
-                    option.hidden = false;
-                });
-            }
-        });
+                    commerce_input.addEventListener('input', (event) => {
+                        if (event.target.value) {
+                            commerce_select_array.forEach((option) => {
+                                const regex = new RegExp(event.target.value, 'ig');
+                                if (regex.test(option.textContent)) {
+                                    option.disabled = false;
+                                    option.hidden = false;
+                                } else {
+                                    option.disabled = true;
+                                    option.hidden = true;
+                                }
+                            });
+                        } else {
+                            commerce_select_array.forEach((option) => {
+                                option.disabled = false;
+                                option.hidden = false;
+                            });
+                        }
+                    });
 
-        const commerce_clear_selected = commerce_wrapper.querySelector(
-            'button[class="{{ clear_selected_class }}_{{ now }}"]'
-        );
-        add_date_class(commerce_clear_selected);
+                    const commerce_selected_only = commerce_wrapper.querySelector(
+                        'input[class="{{ selected_only_class }}_{{ now }}"]'
+                    );
+                    add_date_class(commerce_selected_only);
 
-        commerce_clear_selected.addEventListener('click', (event) => {
-            event.preventDefault();
-            commerce_select_array.forEach((option) => {
-                if (option.selected) {
-                    option.selected = false;
+                    commerce_selected_only.addEventListener('change', (event) => {
+                        if (event.target.checked) {
+                            commerce_select_array.forEach((option) => {
+                                if (option.selected) {
+                                    option.disabled = false;
+                                    option.hidden = false;
+                                } else {
+                                    option.disabled = true;
+                                    option.hidden = true;
+                                }
+                            });
+                        } else {
+                            commerce_select_array.forEach((option) => {
+                                option.disabled = false;
+                                option.hidden = false;
+                            });
+                        }
+                    });
+
+                    const commerce_clear_selected = commerce_wrapper.querySelector(
+                        'button[class="{{ clear_selected_class }}_{{ now }}"]'
+                    );
+                    add_date_class(commerce_clear_selected);
+
+                    commerce_clear_selected.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        commerce_select_array.forEach((option) => {
+                            if (option.selected) {
+                                option.selected = false;
+                            }
+                        });
+                    });
                 }
-            });
-        });
+            }
+        }
     };
 
     attach_events();
