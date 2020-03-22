@@ -7,6 +7,7 @@ use craft\base\Field;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use shopify\Shopify;
+use shopify\ShopifyAssets;
 
 class ProductFieldType extends Field implements PreviewableFieldInterface
 {
@@ -82,11 +83,11 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
             }
         }
 
+        Craft::$app->getView()->registerAssetBundle(ShopifyAssets::class);
+        $wrapperClass = 'c-shopifyProductsPlugin';
         return Craft::$app->getView()->renderTemplate('shopify/_select', [
-            'filter_class' => $this->handle . '_filter',
-            'selected_only_class' => $this->handle . '_selected_only',
-            'clear_selected_class' => $this->handle . '_clear_selected',
-            'wrapper_class' => $this->handle . '_wrapper',
+            'wrapper_class' => $wrapperClass,
+            'instance_wrapper_class' => $wrapperClass . '-' . str_replace('.', '-', uniqid('', true)),
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
