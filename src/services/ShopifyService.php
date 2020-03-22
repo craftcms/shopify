@@ -12,19 +12,22 @@ use yii\base\Component;
 
 class ShopifyService extends Component
 {
-
     /**
-     * get all products from shopify account
+     * Get all products count from shopify account.
      *
      * @param array $options
      * @return bool
      */
-    public function getProducts($options = array())
+    public function getProductsCount($options = array())
     {
         $settings = \shopify\Shopify::getInstance()->getSettings();
 
+        if ($settings->published_status) {
+            $options['published_status'] = $settings->published_status;
+        }
+
         $query = http_build_query($options);
-        $url = $this->getShopifyUrl($settings->allProductsEndpoint . '?' . $query, $settings);
+        $url = $this->getShopifyUrl($settings->allProductsCountEndpoint . '?' . $query, $settings);
 
         try {
             $client = new \GuzzleHttp\Client();
@@ -34,15 +37,73 @@ class ShopifyService extends Component
                 return false;
             }
 
-
             $items = json_decode($response->getBody()->getContents(), true);
 
-            return $items['products'];
-        } catch(\Exception $e) {
+            return $items['count'];
+        } catch (\Exception $e) {
             return false;
         }
     }
 
+    /**
+     * Get all products from shopify account.
+     *
+     * @param array $options
+     * @return bool
+     */
+    public function getProducts($options = [], $link = null)
+    {
+        $settings = \shopify\Shopify::getInstance()->getSettings();
+
+        if (!$link && $settings->limit) {
+            $options['limit'] = $settings->limit;
+        }
+        if (!$link && $settings->published_status) {
+            $options['published_status'] = $settings->published_status;
+        }
+
+        $query = http_build_query($options);
+        if ($link) {
+            $endpoint = $link . ($query ? '&' . $query : '');
+        } else {
+            $endpoint = $settings->allProductsEndpoint . ($query ? '?' . $query : '');
+        }
+
+        $url = $this->getShopifyUrl($endpoint, $settings);
+
+        try {
+            $client = new \GuzzleHttp\Client();
+
+            $response = $client->request('GET', $url, [
+                // 'debug' => true
+            ]);
+
+            if ($response->getStatusCode() !== 200) {
+                return false;
+            }
+            $link = $response->getHeader('Link') ? $response->getHeader('Link') : null;
+
+            if ($link && count(preg_grep('/"next"/', $link)) > 0) {
+                $splitLink = preg_split('/; rel=/', $link[0]);
+                if (count(preg_grep('/"previous"/', $splitLink)) > 0) {
+                    $linkNextUrl = trim(str_replace(['"previous", '], '', $splitLink[1]), '<>');
+                    $linkRel = trim(str_replace(['"'], '', $splitLink[2]));
+                } else {
+                    $linkNextUrl = trim($splitLink[0], '<>');
+                    $linkRel = trim(str_replace(['"'], '', $splitLink[1]));
+                }
+            }
+            $items = json_decode($response->getBody()->getContents(), true);
+            $items['link'] = [
+                'url' => $linkNextUrl ?? null,
+                'rel' => $linkRel ?? null,
+            ];
+
+            return $items;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
 
     /**
      * Get specific product from Shopify
@@ -70,11 +131,10 @@ class ShopifyService extends Component
             $items = json_decode($response->getBody()->getContents(), true);
 
             return $items['product'];
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
     }
-
 
     /**
      * @param $endpoint
@@ -83,6 +143,10 @@ class ShopifyService extends Component
      */
     private function getShopifyUrl($endpoint, \shopify\models\settings $settings)
     {
+        if (substr($endpoint, 0, 4) === 'http') {
+            $endpoint = preg_split('/.com\//', $endpoint)[1];
+        }
+
         return 'https://' . $settings->apiKey . ':' . $settings->password . '@' . $settings->hostname . '/' . $endpoint;
     }
 }

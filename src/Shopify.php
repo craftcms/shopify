@@ -10,7 +10,6 @@
 
 namespace shopify;
 
-
 use Craft;
 use craft\base\Plugin;
 use craft\events\RegisterComponentTypesEvent;
@@ -18,7 +17,6 @@ use craft\services\Fields;
 use craft\services\Plugins;
 use craft\events\PluginEvent;
 use craft\web\twig\variables\CraftVariable;
-
 
 use yii\base\Event;
 
@@ -60,14 +58,11 @@ class Shopify extends Plugin
      */
     public $schemaVersion = '4';
 
-
     /**
      * defines whether the plugin has a settings-page or not
      * @var bool
      */
     public $hasCpSettings = true;
-
-
 
     // Public Methods
     // =========================================================================
@@ -89,36 +84,28 @@ class Shopify extends Plugin
         self::$plugin = $this;
 
         // Do something after we're installed
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function (PluginEvent $event) {
-                if ($event->plugin === $this) {
-                    // We were just installed
-                }
+        Event::on(Plugins::class, Plugins::EVENT_AFTER_INSTALL_PLUGIN, function (PluginEvent $event) {
+            if ($event->plugin === $this) {
+                // We were just installed
             }
-        );
-
+        });
 
         //register to init-fields-event to add products-field to the list
-        Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, function(RegisterComponentTypesEvent $event) {
+        Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, function (RegisterComponentTypesEvent $event) {
             $event->types[] = \shopify\fieldtypes\ProductFieldType::class;
         });
 
-
         //register services
         $this->setComponents([
-            'service' => \shopify\services\ShopifyService::class
+            'service' => \shopify\services\ShopifyService::class,
         ]);
 
-
         //register plugin variables/functions
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
+        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function (Event $event) {
             /** @var CraftVariable $variable */
             $variable = $event->sender;
             $variable->set('shopify', \shopify\variables\ShopifyVariables::class);
         });
-
 
         /**
          * Logging in Craft involves using one of the following methods:
@@ -138,16 +125,8 @@ class Shopify extends Plugin
          *
          * http://www.yiiframework.com/doc-2.0/guide-runtime-logging.html
          */
-        Craft::info(
-            Craft::t(
-                'shopify',
-                '{name} plugin loaded',
-                ['name' => $this->name]
-            ),
-            __METHOD__
-        );
+        Craft::info(Craft::t('shopify', '{name} plugin loaded', ['name' => $this->name]), __METHOD__);
     }
-
 
     // Protected Methods
     // =========================================================================
@@ -168,8 +147,7 @@ class Shopify extends Plugin
     protected function settingsHtml()
     {
         return \Craft::$app->getView()->renderTemplate('shopify/settings', [
-            'settings' => $this->getSettings()
+            'settings' => $this->getSettings(),
         ]);
     }
-
 }
