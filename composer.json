@@ -9,9 +9,10 @@
         "craftcms",
         "craft-plugin",
         "shopify",
-        "fetch-products",
+        "fetch products",
         "integrate shopify",
-        "product sync"
+        "product sync",
+        "ecommerce"
     ],
     "license": "MIT",
     "authors": [
