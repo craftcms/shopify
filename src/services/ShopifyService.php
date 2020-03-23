@@ -23,7 +23,7 @@ class ShopifyService extends Component
         $settings = \shopify\Shopify::getInstance()->getSettings();
 
         if ($settings->published_status) {
-            $options['published_status'] = $settings->published_status;
+            $options['published_status'] = $settings->getPublished_status();
         }
 
         $query = http_build_query($options);
@@ -56,10 +56,10 @@ class ShopifyService extends Component
         $settings = \shopify\Shopify::getInstance()->getSettings();
 
         if (!$link && $settings->limit) {
-            $options['limit'] = $settings->limit;
+            $options['limit'] = $settings->getLimit();
         }
         if (!$link && $settings->published_status) {
-            $options['published_status'] = $settings->published_status;
+            $options['published_status'] = $settings->getPublished_status();
         }
 
         $query = http_build_query($options);
@@ -72,6 +72,8 @@ class ShopifyService extends Component
         $url = $this->getShopifyUrl($endpoint, $settings);
 
         try {
+            // var_dump($settings);
+
             $client = new \GuzzleHttp\Client();
 
             $response = $client->request('GET', $url, [
@@ -147,6 +149,13 @@ class ShopifyService extends Component
             $endpoint = preg_split('/.com\//', $endpoint)[1];
         }
 
-        return 'https://' . $settings->apiKey . ':' . $settings->password . '@' . $settings->hostname . '/' . $endpoint;
+        return 'https://' .
+            $settings->getApiKey() .
+            ':' .
+            $settings->getPassword() .
+            '@' .
+            $settings->getHostname() .
+            '/' .
+            $endpoint;
     }
 }

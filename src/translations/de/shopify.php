@@ -30,4 +30,10 @@ return [
     'API return limit, default is 50. Maximum is 250.' => 'API Rückgabelimit, Standard ist 50. Maximum ist 250.',
     'The published status for products in the default field. Default is "any". Other choices are: published, unpublished' =>
         'Der Status für Produkte im Einträge-feld. Standard ist "any". Andere mögliche Eingaben sind: published, unpublished',
+    'Api Key' => 'API-Schlüssel',
+    'Password' => 'Passwort',
+    'Shared Secret' => 'Geteiltes Geheimnis',
+    'Hostname' => 'Hostname',
+    'Limit' => 'Grenze',
+    'Published Status' => 'Veröffentlichter Status',
 ];

@@ -32,4 +32,10 @@ return [
     'API return limit, default is 50. Maximum is 250.' => 'API return limit, default is 50. Maximum is 250.',
     'The published status for products in the default field. Default is "any". Other choices are: published, unpublished' =>
         'The published status for products in the default field. Default is "any". Other choices are: published, unpublished',
+    'Api Key' => 'Api Key',
+    'Password' => 'Password',
+    'Shared Secret' => 'Shared Secret',
+    'Hostname' => 'Hostname',
+    'Limit' => 'Limit',
+    'Published Status' => 'Published Status',
 ];
