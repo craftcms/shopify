@@ -72,8 +72,6 @@ class ShopifyService extends Component
         $url = $this->getShopifyUrl($endpoint, $settings);
 
         try {
-            // var_dump($settings);
-
             $client = new \GuzzleHttp\Client();
 
             $response = $client->request('GET', $url, [
@@ -98,7 +96,7 @@ class ShopifyService extends Component
             $items = json_decode($response->getBody()->getContents(), true);
             $items['link'] = [
                 'url' => $linkNextUrl ?? null,
-                'rel' => $linkRel ?? null,
+                'rel' => $linkRel ?? null
             ];
 
             return $items;
