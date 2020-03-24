@@ -24,7 +24,7 @@ return [
     'None' => 'None',
     'Start typing to filter products ...' => 'Start typing to filter products ...',
     'Show selected only' => 'Show selected only',
-    'Clear selected' => 'Clear selected lol',
+    'Clear selected' => 'Clear selected',
     'Your shopify domain, for example: yourdomain.com or yourshopifydomain.myshopify.com' =>
         'Your shopify domain, for example: yourdomain.com or yourshopifydomain.myshopify.com',
     'API return limit, default is 50. Maximum is 250.' => 'API return limit, default is 50. Maximum is 250.',
