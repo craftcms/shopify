@@ -6,11 +6,20 @@ use Craft;
 use craft\base\Field;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use GraphQL\Type\Definition\Type;
 use shopify\Shopify;
 use shopify\ShopifyAssets;
 
 class ProductFieldType extends Field implements PreviewableFieldInterface
 {
+    /**
+     * @return array|\GraphQL\Type\Definition\ListOfType|\GraphQL\Type\Definition\StringType|\GraphQL\Type\Definition\Type
+     */
+    public function getContentGqlType()
+    {
+        return Type::listOf(Type::string());
+    }
+
     /**
      * @param $value
      * @return mixed
