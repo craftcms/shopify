@@ -31,7 +31,8 @@
     value: settings.hostname,
     required: true,
     placeholder: 'Your shopify domain, for example: yourdomain.com or yourshopifydomain.myshopify.com'|t('shopify'),
-    errors: settings.getErrors('hostname')
+    errors: settings.getErrors('hostname'),
+    suggestEnvVars: true
 }) }}
 
 {{ forms.autoSuggestField({
@@ -40,7 +41,8 @@
     value: settings.limit,
     required: false,
     placeholder: 'API return limit, default is 50. Maximum is 250.'|t('shopify'),
-    errors: settings.getErrors('limit')
+    errors: settings.getErrors('limit'),
+    suggestEnvVars: true
 }) }}
 
 {{ forms.autoSuggestField({
@@ -49,5 +51,6 @@
     value: settings.published_status,
     required: false,
     placeholder: 'The published status for products in the default field. Default is "any". Other choices are: published, unpublished'|t('shopify'),
-    errors: settings.getErrors('published_status')
+    errors: settings.getErrors('published_status'),
+    suggestEnvVars: true
 }) }}

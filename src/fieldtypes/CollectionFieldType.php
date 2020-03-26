@@ -7,6 +7,7 @@ use craft\base\Field;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use shopify\Shopify;
+use shopify\ShopifyAssets;
 
 class CollectionFieldType extends Field implements PreviewableFieldInterface
 {
@@ -76,11 +77,13 @@ class CollectionFieldType extends Field implements PreviewableFieldInterface
             $options = array_merge($options, $customCollections);
         }
 
+        Craft::$app->getView()->registerAssetBundle(ShopifyAssets::class);
+
+        $wrapperClass = 'c-shopifyProductsPlugin';
+        $instanceId = str_replace('.', '', uniqid('', true));
         return Craft::$app->getView()->renderTemplate('shopify/_select', [
-            'filter_class' => $this->handle . '_filter',
-            'selected_only_class' => $this->handle . '_selected_only',
-            'clear_selected_class' => $this->handle . '_clear_selected',
-            'wrapper_class' => $this->handle . '_wrapper',
+            'wrapper_class' => $wrapperClass,
+            'instance_wrapper_class' => $wrapperClass . '-' . $instanceId,
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
@@ -133,8 +136,7 @@ class CollectionFieldType extends Field implements PreviewableFieldInterface
 
     private function _getCollectionType($key)
     {
-        switch($key)
-        {
+        switch ($key) {
             case 'smart_collections':
                 return Craft::t('shopify', 'Smart Collection');
                 break;

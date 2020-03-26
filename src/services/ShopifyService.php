@@ -148,6 +148,7 @@ class ShopifyService extends Component
         $url = $this->getShopifyUrl($this->_getSettings()->singleCollectionEndpoint . $id . '.json' . $fields);
 
         try {
+
             $client = new Client();
             $response = $client->request('GET', $url);
 
@@ -157,7 +158,7 @@ class ShopifyService extends Component
 
             $items = json_decode($response->getBody()->getContents(), true);
 
-            return $items['product'];
+            return $items['collection'];
         } catch (Exception $e) {
             \Craft::error($e->getMessage());
             return false;
