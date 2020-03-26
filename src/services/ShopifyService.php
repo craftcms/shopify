@@ -8,10 +8,16 @@
 
 namespace shopify\services;
 
+use Exception;
+use GuzzleHttp\Client;
+use shopify\models\Settings;
 use yii\base\Component;
 
 class ShopifyService extends Component
 {
+    /** @var Settings */
+    protected $_settings;
+
     /**
      * Get all products count from shopify account.
      *
@@ -20,17 +26,160 @@ class ShopifyService extends Component
      */
     public function getProductsCount($options = array())
     {
-        $settings = \shopify\Shopify::getInstance()->getSettings();
+        return $this->_getCount($this->_getSettings()->allProductsCountEndpoint, $options);
+    }
 
-        if ($settings->published_status) {
-            $options['published_status'] = $settings->getPublished_status();
+    /**
+     * Get all products from shopify account.
+     *
+     * @param array $options
+     * @param string $link
+     * @return bool
+     */
+    public function getProducts($options = [], $link = null)
+    {
+        if (!$link && $this->_getSettings()->limit) {
+            $options['limit'] = $this->_getSettings()->getLimit();
+        }
+        if (!$link && $this->_getSettings()->published_status) {
+            $options['published_status'] = $this->_getSettings()->getPublished_status();
         }
 
         $query = http_build_query($options);
-        $url = $this->getShopifyUrl($settings->allProductsCountEndpoint . '?' . $query, $settings);
+        if ($link) {
+            $endpoint = $link . ($query ? '&' . $query : '');
+        } else {
+            $endpoint = $this->_getSettings()->allProductsEndpoint . ($query ? '?' . $query : '');
+        }
+
+        return $this->_getItems($endpoint);
+    }
+
+    /**
+     * Get specific product from Shopify
+     *
+     * @param array $options
+     * @return bool
+     */
+    public function getProductById($options = array())
+    {
+        $id = $options['id'];
+        $fields = isset($options['fields']) ? '?fields=' . $options['fields'] : '';
+
+        $url = $this->getShopifyUrl($this->_getSettings()->singleProductEndpoint . $id . '.json' . $fields);
 
         try {
-            $client = new \GuzzleHttp\Client();
+            $client = new Client();
+            $response = $client->request('GET', $url);
+
+            if ($response->getStatusCode() !== 200) {
+                return false;
+            }
+
+            $items = json_decode($response->getBody()->getContents(), true);
+
+            return $items['product'];
+        } catch (Exception $e) {
+            \Craft::error($e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get all smart collections count from shopify account.
+     *
+     * @param array $options
+     * @return bool
+     */
+    public function getSmartCollectionsCount($options = array())
+    {
+        return $this->_getCount($this->_getSettings()->allSmartCollectionsCountEndpoint, $options);
+    }
+
+    /**
+     * Get all custom collections count from shopify account.
+     *
+     * @param array $options
+     * @return bool
+     */
+    public function getCustomCollectionsCount($options = array())
+    {
+        return $this->_getCount($this->_getSettings()->allCustomCollectionsCountEndpoint, $options);
+    }
+
+    /**
+     * Get all products from shopify account.
+     *
+     * @param string $endpoint
+     * @param string $link
+     * @param array $options
+     * @return array|bool
+     */
+    public function getCollections($endpoint, $link, $options = [])
+    {
+        if (!$link && $this->_getSettings()->limit) {
+            $options['limit'] = $this->_getSettings()->getLimit();
+        }
+        if (!$link && $this->_getSettings()->published_status) {
+            $options['published_status'] = $this->_getSettings()->getPublished_status();
+        }
+
+        $query = http_build_query($options);
+        if ($link) {
+            $endpoint = $link . ($query ? '&' . $query : '');
+        } else {
+            $endpoint = $endpoint . ($query ? '?' . $query : '');
+        }
+
+        return $this->_getItems($endpoint);
+    }
+
+    /**
+     * Get specific collection from Shopify
+     *
+     * @param array $options
+     * @return array|bool
+     */
+    public function getCollectionById($options = array())
+    {
+        $id = $options['id'];
+        $fields = isset($options['fields']) ? '?fields=' . $options['fields'] : '';
+
+        $url = $this->getShopifyUrl($this->_getSettings()->singleCollectionEndpoint . $id . '.json' . $fields);
+
+        try {
+            $client = new Client();
+            $response = $client->request('GET', $url);
+
+            if ($response->getStatusCode() !== 200) {
+                return false;
+            }
+
+            $items = json_decode($response->getBody()->getContents(), true);
+
+            return $items['product'];
+        } catch (Exception $e) {
+            \Craft::error($e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * @param $endpoint
+     * @param $options
+     * @return array|bool
+     */
+    private function _getCount($endpoint, $options)
+    {
+        if ($this->_getSettings()->published_status) {
+            $options['published_status'] = $this->_getSettings()->getPublished_status();
+        }
+
+        $query = http_build_query($options);
+        $url = $this->getShopifyUrl($endpoint . '?' . $query);
+
+        try {
+            $client = new Client();
             $response = $client->request('GET', $url);
 
             if ($response->getStatusCode() !== 200) {
@@ -40,39 +189,22 @@ class ShopifyService extends Component
             $items = json_decode($response->getBody()->getContents(), true);
 
             return $items['count'];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            \Craft::error($e->getMessage());
             return false;
         }
     }
 
     /**
-     * Get all products from shopify account.
-     *
-     * @param array $options
-     * @return bool
+     * @param $endpoint
+     * @return bool|array
      */
-    public function getProducts($options = [], $link = null)
+    private function _getItems($endpoint)
     {
-        $settings = \shopify\Shopify::getInstance()->getSettings();
-
-        if (!$link && $settings->limit) {
-            $options['limit'] = $settings->getLimit();
-        }
-        if (!$link && $settings->published_status) {
-            $options['published_status'] = $settings->getPublished_status();
-        }
-
-        $query = http_build_query($options);
-        if ($link) {
-            $endpoint = $link . ($query ? '&' . $query : '');
-        } else {
-            $endpoint = $settings->allProductsEndpoint . ($query ? '?' . $query : '');
-        }
-
-        $url = $this->getShopifyUrl($endpoint, $settings);
+        $url = $this->getShopifyUrl($endpoint);
 
         try {
-            $client = new \GuzzleHttp\Client();
+            $client = new Client();
 
             $response = $client->request('GET', $url, [
                 // 'debug' => true
@@ -96,64 +228,45 @@ class ShopifyService extends Component
             $items = json_decode($response->getBody()->getContents(), true);
             $items['link'] = [
                 'url' => $linkNextUrl ?? null,
-                'rel' => $linkRel ?? null
+                'rel' => $linkRel ?? null,
             ];
 
             return $items;
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
-
-    /**
-     * Get specific product from Shopify
-     *
-     * @param array $options
-     * @return bool
-     */
-    public function getProductById($options = array())
-    {
-        $settings = \shopify\Shopify::getInstance()->getSettings();
-
-        $id = $options['id'];
-        $fields = isset($options['fields']) ? '?fields=' . $options['fields'] : '';
-
-        $url = $this->getShopifyUrl($settings->singleProductEndpoint . $id . '.json' . $fields, $settings);
-
-        try {
-            $client = new \GuzzleHttp\Client();
-            $response = $client->request('GET', $url);
-
-            if ($response->getStatusCode() !== 200) {
-                return false;
-            }
-
-            $items = json_decode($response->getBody()->getContents(), true);
-
-            return $items['product'];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            \Craft::error($e->getMessage());
             return false;
         }
     }
 
     /**
      * @param $endpoint
-     * @param \shopify\models\settings $settings
      * @return string
      */
-    private function getShopifyUrl($endpoint, \shopify\models\settings $settings)
+    private function getShopifyUrl($endpoint)
     {
         if (substr($endpoint, 0, 4) === 'http') {
             $endpoint = preg_split('/.com\//', $endpoint)[1];
         }
 
         return 'https://' .
-            $settings->getApiKey() .
+            $this->_getSettings()->getApiKey() .
             ':' .
-            $settings->getPassword() .
+            $this->_getSettings()->getPassword() .
             '@' .
-            $settings->getHostname() .
+            $this->_getSettings()->getHostname() .
             '/' .
             $endpoint;
+    }
+
+    /**
+     * @return Settings
+     */
+    private function _getSettings()
+    {
+        if ($this->_settings === null) {
+            $this->_settings = \shopify\Shopify::getInstance()->getSettings();
+        }
+
+        return $this->_settings;
     }
 }

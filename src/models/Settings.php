@@ -50,6 +50,11 @@ class Settings extends Model
     public $allProductsEndpoint;
     public $allProductsCountEndpoint;
     public $singleProductEndpoint;
+    public $allSmartCollectionsEndpoint;
+    public $allCustomCollectionsEndpoint;
+    public $allSmartCollectionsCountEndpoint;
+    public $allCustomCollectionsCountEndpoint;
+    public $singleCollectionEndpoint;
 
     public function __construct()
     {
@@ -57,6 +62,11 @@ class Settings extends Model
         $this->allProductsEndpoint = $apiStart . '/products.json';
         $this->allProductsCountEndpoint = $apiStart . '/products/count.json';
         $this->singleProductEndpoint = $apiStart . '/products/';
+        $this->allSmartCollectionsEndpoint = $apiStart . '/smart_collections.json';
+        $this->allCustomCollectionsEndpoint = $apiStart . '/custom_collections.json';
+        $this->allSmartCollectionsCountEndpoint = $apiStart . '/smart_collections/count.json';
+        $this->allCustomCollectionsCountEndpoint = $apiStart . '/custom_collections/count.json';
+        $this->singleCollectionEndpoint = $apiStart . '/collections/';
     }
 
     public function rules()

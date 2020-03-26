@@ -90,7 +90,8 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
-            'products' => $options,
+            'options' => $options,
+            'type' => 'products',
         ]);
     }
 }

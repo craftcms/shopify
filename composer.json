@@ -23,7 +23,8 @@
     ],
     "require": {
         "craftcms/cms": "^3.0.0",
-        "guzzlehttp/guzzle": "^6.3"
+        "guzzlehttp/guzzle": "^6.3",
+        "ext-json": "*"
     },
     "autoload": {
         "psr-4": {

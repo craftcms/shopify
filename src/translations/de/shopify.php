@@ -22,7 +22,7 @@ return [
     'shopify plugin loaded' => 'shopify plugin geladen',
     'Shopify Product' => 'Shopify Produkt',
     'None' => 'Kein/e',
-    'Start typing to filter products ...' => 'Tippen um Inhalte zu filtern...',
+    'Start typing to filter ...' => 'Tippen um Inhalte zu filtern...',
     'Show selected only' => 'Nur Ausgewählte anzeigen',
     'Clear selected' => 'Auswahl löschen',
     'Your shopify domain, for example: yourdomain.com or yourshopifydomain.myshopify.com' =>
@@ -36,4 +36,8 @@ return [
     'Hostname' => 'Hostname',
     'Limit' => 'Grenze',
     'Published Status' => 'Veröffentlichter Status',
+    'Shopify Collection' => 'Shopify Sammlung',
+    'Smart Collection' => 'Clever Sammlung',
+    'Custom Collection' => 'Benutzerdefiniert Sammlung',
+    'Collection' => 'Sammlung',
 ];
