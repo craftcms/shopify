@@ -2,8 +2,6 @@
 /**
  * shopify plugin for Craft CMS 3.x
  *
- * test
- *
  * @link      https://maier-niklas.de/
  * @copyright Copyright (c) 2018 niklas
  */

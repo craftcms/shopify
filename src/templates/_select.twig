@@ -1,27 +1,16 @@
-{% set now = "now"|date("U") %}
+<div class="{{ wrapper_class }} js-{{ wrapper_class }}">
+    <div class="{{ wrapper_class }}__controls flex flex-center">
+        <div class="field checkboxfield">
+            <input type="checkbox" id="{{ instance_wrapper_class }}__checkbox" class="checkbox js-{{ wrapper_class }}__selected-only-checkbox" value="">
+            <label for="{{ instance_wrapper_class }}__checkbox">{{ 'Show selected only'|t('shopify') }}</label>
+        </div>
 
-<div class="{{ wrapper_class }}_{{ now }}">
-    <div style="margin-bottom: 5px; margin-top: 5px;">
-        {% if selected_only_class is defined and selected_only_class %}
-            <span style="float: left;">
-                <input type="checkbox" class="{{ selected_only_class }}_{{ now }}" value=""><span
-                        style="margin-left: 5px;">{{ 'Show selected only'|t }}</span>
-            </span>
-        {% endif %}
-
-        {% if clear_selected_class is defined and clear_selected_class %}
-            <span style="float: right;">
-                <button class="{{ clear_selected_class }}_{{ now }}">{{ 'Clear selected'|t }}</button>
-            </span>
-        {% endif %}
+        <div class="btn secondary js-{{ wrapper_class }}__clear-selected">{{ 'Clear selected'|t('shopify') }}</div>
     </div>
 
-    {% if name is defined and name %}
-        <input type="hidden" name="{{ name }}" value="">
-    {% endif %}
     <div class="multiselect">
-        <select style="width: 100%; height: 20rem;" class="{{ name }}_{{ now }}" name="{{ name }}[]" multiple>
-            <option value="">{{ "None"|t }}</option>
+        <select class="{{ wrapper_class }}__select--multiple js-{{ wrapper_class }}__{{ name }}" name="{{ name }}[]" multiple>
+            <option value="">{{ "None"|t('shopify') }}</option>
             {% for option in options %}
                 {% if type == 'products' %}
                     <option value="{{ option.productId }}"{% if option.productId in value %} selected{% endif %}>
@@ -36,109 +25,75 @@
         </select>
     </div>
 
-    {% if filter_class is defined and filter_class %}
-        <input style="width: 99.5%;" placeholder="{{ 'Start typing to filter ...'|t }}" type="text"
-               class="{{ filter_class }}_{{ now }}" value="">
-    {% endif %}
+    <input placeholder="{{ 'Start typing to filter ...'|t('shopify') }}" type="text" class="text fullwidth js-{{ wrapper_class }}__search-filter-input" value="">
 </div>
 
-<script>
-  (() => {
-    const add_date_class = (element) => {
-      const right_now = Date.now()
-      if (!/_extra_date_/.test(element.classList)) {
-        element.classList.add(`_extra_date_${right_now}`)
-      }
-    }
-
-    const attach_events = () => {
-      const commerce_wrapper = document.querySelector(
-        'div[class="{{ wrapper_class }}_{{ now }}"]'
-      )
-      if (commerce_wrapper) {
-        add_date_class(commerce_wrapper)
-
-        const commerce_input = commerce_wrapper.querySelector(
-          'input[class="{{ filter_class }}_{{ now }}"]'
-        )
-
-        if (commerce_input) {
-          add_date_class(commerce_input)
-          const commerce_select = commerce_wrapper.querySelector(
-            'select[class="{{ name }}_{{ now }}"]'
-          )
-
-          if (commerce_select) {
-            add_date_class(commerce_select)
-
-            const commerce_select_array = [...commerce_select.options]
-
-            commerce_input.addEventListener('input', (event) => {
-              if (event.target.value) {
-                commerce_select_array.forEach((option) => {
-                  const regex = new RegExp(event.target.value, 'ig')
-                  if (regex.test(option.textContent)) {
-                    option.disabled = false
-                    option.hidden = false
-                  } else {
-                    option.disabled = true
-                    option.hidden = true
-                  }
-                })
-              } else {
-                commerce_select_array.forEach((option) => {
-                  option.disabled = false
-                  option.hidden = false
-                })
-              }
-            })
-
-            const commerce_selected_only = commerce_wrapper.querySelector(
-              'input[class="{{ selected_only_class }}_{{ now }}"]'
-            )
-            add_date_class(commerce_selected_only)
-
-            commerce_selected_only.addEventListener('change', (event) => {
-              if (event.target.checked) {
-                commerce_select_array.forEach((option) => {
-                  if (option.selected) {
-                    option.disabled = false
-                    option.hidden = false
-                  } else {
-                    option.disabled = true
-                    option.hidden = true
-                  }
-                })
-              } else {
-                commerce_select_array.forEach((option) => {
-                  option.disabled = false
-                  option.hidden = false
-                })
-              }
-            })
-
-            const commerce_clear_selected = commerce_wrapper.querySelector(
-              'button[class="{{ clear_selected_class }}_{{ now }}"]'
-            )
-            add_date_class(commerce_clear_selected)
-
-            commerce_clear_selected.addEventListener('click', (event) => {
-              event.preventDefault()
-              commerce_select_array.forEach((option) => {
-                if (option.selected) {
-                  option.selected = false
-                }
-              })
-            })
-          }
+<script type="text/javascript">
+(function() {
+    const initShopifyProductField = (rootNode) => {
+        if(rootNode.classList.contains('is-initialized')) {
+            return;
         }
-      }
-    }
+        rootNode.classList.add('is-initialized');
 
-    attach_events()
-    document.addEventListener('DOMContentLoaded', () => {
-      attach_events()
-    })
-  })()
+        const commerce_input = rootNode.querySelector('.js-{{ wrapper_class }}__search-filter-input');
+        const commerce_select = rootNode.querySelector('.js-{{ wrapper_class }}__{{ name }}');
+        const commerce_select_array = [...commerce_select.options];
+        const commerce_selected_only = rootNode.querySelector('.js-{{ wrapper_class }}__selected-only-checkbox');
+        const commerce_clear_selected = rootNode.querySelector('.js-{{ wrapper_class }}__clear-selected');
+
+        // search input filter
+        commerce_input.addEventListener('input', (event) => {
+            if (event.target.value) {
+                commerce_select_array.forEach((option) => {
+                    const regex = new RegExp(event.target.value, 'ig');
+                    if (regex.test(option.textContent)) {
+                        option.disabled = false;
+                        option.hidden = false;
+                    } else {
+                        option.disabled = true;
+                        option.hidden = true;
+                    }
+                });
+            } else {
+                commerce_select_array.forEach((option) => {
+                    option.disabled = false;
+                    option.hidden = false;
+                });
+            }
+        });
+
+        // checkbox toggling to show only selected or all
+        commerce_selected_only.addEventListener('change', (event) => {
+            if (event.target.checked) {
+                commerce_select_array.forEach((option) => {
+                    if (option.selected) {
+                        option.disabled = false;
+                        option.hidden = false;
+                    } else {
+                        option.disabled = true;
+                        option.hidden = true;
+                    }
+                });
+            } else {
+                commerce_select_array.forEach((option) => {
+                    option.disabled = false;
+                    option.hidden = false;
+                });
+            }
+        });
+
+        // button to clear all selected items
+        commerce_clear_selected.addEventListener('click', (event) => {
+            event.preventDefault();
+            commerce_select_array.forEach((option) => {
+                if (option.selected) {
+                    option.selected = false;
+                }
+            });
+        });
+    };
+
+    Array.from(document.querySelectorAll('.js-{{ wrapper_class }}:not(.is-initialized')).forEach((node) => initShopifyProductField(node));
+})();
 </script>
-
