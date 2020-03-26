@@ -1,15 +1,15 @@
-<div class="{{ wrapper_class }} js-{{ instance_wrapper_class }}">
+<div class="{{ wrapper_class }} js-{{ wrapper_class }}">
     <div class="{{ wrapper_class }}__controls flex flex-center">
         <div class="field checkboxfield">
-            <input type="checkbox" id="{{ instance_wrapper_class }}__checkbox" class="checkbox js-{{ instance_wrapper_class }}__selected-only-checkbox" value="">
+            <input type="checkbox" id="{{ instance_wrapper_class }}__checkbox" class="checkbox js-{{ wrapper_class }}__selected-only-checkbox" value="">
             <label for="{{ instance_wrapper_class }}__checkbox">{{ 'Show selected only'|t('shopify') }}</label>
         </div>
 
-        <div class="btn secondary js-{{ instance_wrapper_class }}__clear-selected">{{ 'Clear selected'|t('shopify') }}</div>
+        <div class="btn secondary js-{{ wrapper_class }}__clear-selected">{{ 'Clear selected'|t('shopify') }}</div>
     </div>
 
     <div class="multiselect">
-        <select class="{{ wrapper_class }}__select--multiple js-{{ instance_wrapper_class }}__{{ name }}" name="{{ name }}[]" multiple>
+        <select class="{{ wrapper_class }}__select--multiple js-{{ wrapper_class }}__{{ name }}" name="{{ name }}[]" multiple>
             <option value="">{{ "None"|t('shopify') }}</option>
             {% for option in products %}
                 <option value="{{ option.productId }}"{% if option.productId in value %} selected{% endif %}>{{ option.label }}{% if option.sku %} ({{ option.sku }}){% endif %}</option>
@@ -17,19 +17,22 @@
         </select>
     </div>
 
-    <input placeholder="{{ 'Start typing to filter products ...'|t('shopify') }}" type="text" class="text fullwidth js-{{ instance_wrapper_class }}__search-filter-input" value="">
+    <input placeholder="{{ 'Start typing to filter products ...'|t('shopify') }}" type="text" class="text fullwidth js-{{ wrapper_class }}__search-filter-input" value="">
 </div>
 
 <script type="text/javascript">
-document.addEventListener('DOMContentLoaded', () => {
-    (function() { // create own scope for this plugin's-script
-        console.log('DOMContentLoaded');
-        const commerce_wrapper = document.querySelector('.js-{{ instance_wrapper_class }}');
-        const commerce_input = commerce_wrapper.querySelector('.js-{{ instance_wrapper_class }}__search-filter-input');
-        const commerce_select = commerce_wrapper.querySelector('.js-{{ instance_wrapper_class }}__{{ name }}');
+(function() {
+    const initShopifyProductField = (rootNode) => {
+        if(rootNode.classList.contains('is-initialized')) {
+            return;
+        }
+        rootNode.classList.add('is-initialized');
+
+        const commerce_input = rootNode.querySelector('.js-{{ wrapper_class }}__search-filter-input');
+        const commerce_select = rootNode.querySelector('.js-{{ wrapper_class }}__{{ name }}');
         const commerce_select_array = [...commerce_select.options];
-        const commerce_selected_only = commerce_wrapper.querySelector('.js-{{ instance_wrapper_class }}__selected-only-checkbox');
-        const commerce_clear_selected = commerce_wrapper.querySelector('.js-{{ instance_wrapper_class }}__clear-selected');
+        const commerce_selected_only = rootNode.querySelector('.js-{{ wrapper_class }}__selected-only-checkbox');
+        const commerce_clear_selected = rootNode.querySelector('.js-{{ wrapper_class }}__clear-selected');
 
         // search input filter
         commerce_input.addEventListener('input', (event) => {
@@ -81,7 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
-    })();
-});
-</script>
+    };
 
+    Array.from(document.querySelectorAll('.js-{{ wrapper_class }}:not(.is-initialized')).forEach((node) => initShopifyProductField(node));
+})();
+</script>

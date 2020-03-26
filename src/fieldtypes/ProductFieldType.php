@@ -93,10 +93,12 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
         }
 
         Craft::$app->getView()->registerAssetBundle(ShopifyAssets::class);
+
         $wrapperClass = 'c-shopifyProductsPlugin';
+        $instanceId = str_replace('.', '', uniqid('', true));
         return Craft::$app->getView()->renderTemplate('shopify/_select', [
             'wrapper_class' => $wrapperClass,
-            'instance_wrapper_class' => $wrapperClass . '-' . str_replace('.', '-', uniqid('', true)),
+            'instance_wrapper_class' => $wrapperClass . '-' . $instanceId,
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
