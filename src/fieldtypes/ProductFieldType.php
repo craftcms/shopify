@@ -57,6 +57,9 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
      */
     public function getInputHtml($value, ElementInterface $element = null): string
     {
+        /** @var \shopify\models\Settings $settings */
+        $settings = \shopify\Shopify::getInstance()->getSettings();
+
         $defaultOptions = [];
         $count = Shopify::getInstance()->service->getProductsCount($defaultOptions);
         $productsData = Shopify::getInstance()->service->getProducts($defaultOptions);
@@ -94,15 +97,15 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
 
         Craft::$app->getView()->registerAssetBundle(ShopifyAssets::class);
 
-        $wrapperClass = 'c-shopifyProductsPlugin';
         $instanceId = str_replace('.', '', uniqid('', true));
         return Craft::$app->getView()->renderTemplate('shopify/_select', [
-            'wrapper_class' => $wrapperClass,
-            'instance_wrapper_class' => $wrapperClass . '-' . $instanceId,
+            'wrapper_class' => $settings->wrapperClass,
+            'instance_wrapper_class' => $settings->wrapperClass . '-' . $instanceId,
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
-            'products' => $options,
+            'options' => $options,
+            'type' => 'products',
         ]);
     }
 }

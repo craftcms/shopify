@@ -22,7 +22,7 @@ return [
     'shopify plugin loaded' => 'shopify plugin geladen',
     'Shopify Product' => 'Shopify Produkt',
     'None' => 'Kein/e',
-    'Start typing to filter products ...' => 'Tippen um Inhalte zu filtern...',
+    'Start typing to filter ...' => 'Tippen um Inhalte zu filtern...',
     'Show selected only' => 'Nur Ausgewählte anzeigen',
     'Clear selected' => 'Auswahl löschen',
     'Your shopify domain, for example: yourdomain.com or yourshopifydomain.myshopify.com' =>
@@ -30,4 +30,14 @@ return [
     'API return limit, default is 50. Maximum is 250.' => 'API Rückgabelimit, Standard ist 50. Maximum ist 250.',
     'The published status for products in the default field. Default is "any". Other choices are: published, unpublished' =>
         'Der Status für Produkte im Einträge-feld. Standard ist "any". Andere mögliche Eingaben sind: published, unpublished',
+    'Api Key' => 'Api Key',
+    'Password' => 'Password',
+    'Shared Secret' => 'Shared Secret',
+    'Hostname' => 'Hostname',
+    'Limit' => 'Produkte Limit',
+    'Published Status' => 'Veröffentlichungs Status',
+    'Shopify Collection' => 'Shopify Kollektion',
+    'Smart Collection' => 'Clever Kollektion',
+    'Custom Collection' => 'Benutzerdefiniert Kollektion',
+    'Collection' => 'Kollektion',
 ];

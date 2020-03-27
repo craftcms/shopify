@@ -90,9 +90,10 @@ class Shopify extends Plugin
             }
         });
 
-        //register to init-fields-event to add products-field to the list
+        //register to init-fields-event to add products-field and collections-field to the list
         Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, function (RegisterComponentTypesEvent $event) {
             $event->types[] = \shopify\fieldtypes\ProductFieldType::class;
+            $event->types[] = \shopify\fieldtypes\CollectionFieldType::class;
         });
 
         //register services
