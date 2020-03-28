@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.2.1 - 2020-03-28
+
+### Added
+
+-   Added support for Shopify Collections (both smart and custom)
+    - Implies adding a new fieldtype: Shopify Collection
+
 ## 1.1.1 - 2020-03-26
 
 ### Fixed
