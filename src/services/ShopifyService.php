@@ -39,8 +39,8 @@ class ShopifyService extends Component
     public function getProducts($options = [], $link = null)
     {
         // As long as the user doesn't pass options,
-        // only get the fields we need, this almost
-        // cuts the payload in half.
+        // only request the fields we need, this
+        // reduces the payload significantly.
         if (count($options) === 0) {
             $options['fields'] = 'id,title,variants';
         }
