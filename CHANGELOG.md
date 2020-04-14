@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.0.0 - 2020-04-14
+
+### Added
+
+-   Reduce payload significantly by only requesting required fields (#18).
+
+#### Migration:
+
+If you need more (in your response-payload of all products) than the fields which are loaded per default now (id, title, variants) you need to pass them as `String[]` to your `getProducts()` call. 
+
+### Fixed
+
+-   GitHub-issue #14
+    
+    
 ## 1.2.1 - 2020-03-28
 
 ### Added
