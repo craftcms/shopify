@@ -1,7 +1,7 @@
 {
     "pluginName":"nmaier95/shopify-product-fetcher",
     "pluginDescription":"load your shopify-products into your craft3 cms instance",
-    "pluginVersion":"2.0.0",
+    "pluginVersion":"2.0.1",
     "pluginAuthorName":"niklas maier",
     "pluginVendorName":"nmaier95",
     "pluginAuthorUrl":"https://maier-niklas.de/",
