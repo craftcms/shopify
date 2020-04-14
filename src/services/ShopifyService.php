@@ -24,7 +24,7 @@ class ShopifyService extends Component
      * @param array $options
      * @return bool
      */
-    public function getProductsCount($options = array())
+    public function getProductsCount($options = [])
     {
         return $this->_getCount($this->_getSettings()->allProductsCountEndpoint, $options);
     }
@@ -38,14 +38,23 @@ class ShopifyService extends Component
      */
     public function getProducts($options = [], $link = null)
     {
-        if (!$link && $this->_getSettings()->limit) {
-            $options['limit'] = $this->_getSettings()->getLimit();
+        // As long as the user doesn't pass options,
+        // only request the fields we need, this
+        // reduces the payload significantly.
+        if (count($options) === 0) {
+            $options['fields'] = 'id,title,variants';
         }
-        if (!$link && $this->_getSettings()->published_status) {
-            $options['published_status'] = $this->_getSettings()->getPublished_status();
+        if (!$link) {
+            if ($this->_getSettings()->limit) {
+                $options['limit'] = $this->_getSettings()->getLimit();
+            }
+            if ($this->_getSettings()->published_status) {
+                $options['published_status'] = $this->_getSettings()->getPublished_status();
+            }
         }
 
         $query = http_build_query($options);
+
         if ($link) {
             $endpoint = $link . ($query ? '&' . $query : '');
         } else {
@@ -61,7 +70,7 @@ class ShopifyService extends Component
      * @param array $options
      * @return bool
      */
-    public function getProductById($options = array())
+    public function getProductById($options = [])
     {
         $id = $options['id'];
         $fields = isset($options['fields']) ? '?fields=' . $options['fields'] : '';
@@ -91,7 +100,7 @@ class ShopifyService extends Component
      * @param array $options
      * @return bool
      */
-    public function getSmartCollectionsCount($options = array())
+    public function getSmartCollectionsCount($options = [])
     {
         return $this->_getCount($this->_getSettings()->allSmartCollectionsCountEndpoint, $options);
     }
@@ -102,7 +111,7 @@ class ShopifyService extends Component
      * @param array $options
      * @return bool
      */
-    public function getCustomCollectionsCount($options = array())
+    public function getCustomCollectionsCount($options = [])
     {
         return $this->_getCount($this->_getSettings()->allCustomCollectionsCountEndpoint, $options);
     }
@@ -140,7 +149,7 @@ class ShopifyService extends Component
      * @param array $options
      * @return array|bool
      */
-    public function getCollectionById($options = array())
+    public function getCollectionById($options = [])
     {
         $id = $options['id'];
         $fields = isset($options['fields']) ? '?fields=' . $options['fields'] : '';
@@ -148,7 +157,6 @@ class ShopifyService extends Component
         $url = $this->getShopifyUrl($this->_getSettings()->singleCollectionEndpoint . $id . '.json' . $fields);
 
         try {
-
             $client = new Client();
             $response = $client->request('GET', $url);
 
