@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 #### Migration:
 
-If you need more (in your response-payload of all products) than the fields which are loaded per default now (id, title, variants) you need to pass them as `String[]` to your `getProducts()` call. 
+If you need more (in your response-payload of all products) than the fields which are loaded per default now (id, title, variants) you need to pass them `Array<'fields', String[]>` to your `getProducts()` call. 
 
 ### Fixed
 
