@@ -55,7 +55,6 @@ class Settings extends Model
     public $allSmartCollectionsCountEndpoint;
     public $allCustomCollectionsCountEndpoint;
     public $singleCollectionEndpoint;
-    public $singleCollectsEndpoint;
     public $wrapperClass;
 
     public function __construct()
