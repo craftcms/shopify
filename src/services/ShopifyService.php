@@ -181,10 +181,10 @@ class ShopifyService extends Component
      */
     public function getCollectById($options = [])
     {
-        $id = $options['id'];
+        $id = $options['collection_id'];
         $fields = isset($options['fields']) ? '?fields=' . $options['fields'] : '';
 
-        $url = $this->getShopifyUrl($this->_getSettings()->singleCollectsEndpoint . $id . '.json' . $fields);
+        $url = $this->getShopifyUrl($this->_getSettings()->singleCollectionEndpoint . $id . '/products.json' . $fields);
 
         try {
             $client = new Client();
@@ -196,7 +196,7 @@ class ShopifyService extends Component
 
             $items = json_decode($response->getBody()->getContents(), true);
 
-            return $items['collection'];
+            return $items['products'];
         } catch (Exception $e) {
             \Craft::error($e->getMessage());
             return false;

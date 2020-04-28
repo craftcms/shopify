@@ -69,7 +69,6 @@ class Settings extends Model
         $this->allSmartCollectionsCountEndpoint = $apiStart . '/smart_collections/count.json';
         $this->allCustomCollectionsCountEndpoint = $apiStart . '/custom_collections/count.json';
         $this->singleCollectionEndpoint = $apiStart . '/collections/';
-        $this->singleCollectsEndpoint = $apiStart . '/collects/';
         $this->wrapperClass = 'c-shopifyProductsPlugin';
     }
 
