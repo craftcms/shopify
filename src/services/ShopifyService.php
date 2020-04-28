@@ -179,7 +179,7 @@ class ShopifyService extends Component
      * @param array $options
      * @return array|bool
      */
-    public function getCollectById($options = [])
+    public function getProductsFromCollectionById($options = [])
     {
         $id = $options['collection_id'];
         $fields = isset($options['fields']) ? '?fields=' . $options['fields'] : '';

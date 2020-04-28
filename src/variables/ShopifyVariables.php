@@ -15,9 +15,9 @@ class ShopifyVariables
 		return \shopify\Shopify::getInstance()->service->getProductById($options);
     }
     
-    public function getCollectById($options = array())
+    public function getProductsFromCollectionById($options = array())
 	{
-		return \shopify\Shopify::getInstance()->service->getCollectById($options);
+		return \shopify\Shopify::getInstance()->service->getProductsFromCollectionById($options);
 	}
 
 	public function getSettings() {
