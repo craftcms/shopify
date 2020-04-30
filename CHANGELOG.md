@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.1.1 - 2020-04-30
+
+### Added
+
+-   Grab order of products from a collection (PR #20)
+
 ## 2.0.1 - 2020-04-14
 
 ### Added
