@@ -172,6 +172,36 @@ class ShopifyService extends Component
             return false;
         }
     }
+    
+    /**
+     * Get specific collect from Shopify
+     *
+     * @param array $options
+     * @return array|bool
+     */
+    public function getProductsFromCollectionById($options = [])
+    {
+        $id = $options['collection_id'];
+        $fields = isset($options['fields']) ? '?fields=' . $options['fields'] : '';
+
+        $url = $this->getShopifyUrl($this->_getSettings()->singleCollectionEndpoint . $id . '/products.json' . $fields);
+
+        try {
+            $client = new Client();
+            $response = $client->request('GET', $url);
+
+            if ($response->getStatusCode() !== 200) {
+                return false;
+            }
+
+            $items = json_decode($response->getBody()->getContents(), true);
+
+            return $items['products'];
+        } catch (Exception $e) {
+            \Craft::error($e->getMessage());
+            return false;
+        }
+    }
 
     /**
      * @param $endpoint
