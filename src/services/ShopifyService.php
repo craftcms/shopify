@@ -182,9 +182,15 @@ class ShopifyService extends Component
     public function getProductsFromCollectionById($options = [])
     {
         $id = $options['collection_id'];
-        $fields = isset($options['fields']) ? '?fields=' . $options['fields'] : '';
+        $fields = isset($options['fields']) ? '?fields=' . $options['fields'] : '?fields=id,title,variants';
 
-        $url = $this->getShopifyUrl($this->_getSettings()->singleCollectionEndpoint . $id . '/products.json' . $fields);
+        $limit = '';
+
+        if ($this->_getSettings()->limit) {
+            $limit = '&limit=' . $this->_getSettings()->getLimit();
+        }
+
+        $url = $this->getShopifyUrl($this->_getSettings()->singleCollectionEndpoint . $id . '/products.json' . $fields . $limit);
 
         try {
             $client = new Client();
