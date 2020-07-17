@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.2.0 - 2020-07-17
+
+### Added
+
+-   Reduce payload of shopify\services\ShopifyService::getProductsFromCollectionById significantly by only requesting required fields (#21).
+    However it is still possible to override requested fields via parameters (plugin settings).
+
 ## 2.1.1 - 2020-04-30
 
 ### Added
