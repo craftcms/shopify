@@ -65,7 +65,7 @@ class ProductFieldType extends Field implements PreviewableFieldInterface
         $productsData = Shopify::getInstance()->service->getProducts($defaultOptions);
 
         $products = [];
-        if ($productsData['products'] && count($productsData['products']) > 0) {
+        if ($productsData !== false && $productsData['products'] && count($productsData['products']) > 0) {
             $products = array_merge_recursive($products, $productsData['products']);
         }
 
