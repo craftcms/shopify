@@ -1,0 +1,99 @@
+<div class="{{ wrapper_class }} js-{{ wrapper_class }}">
+    <div class="{{ wrapper_class }}__controls flex flex-center">
+        <div class="field checkboxfield">
+            <input type="checkbox" id="{{ instance_wrapper_class }}__checkbox" class="checkbox js-{{ wrapper_class }}__selected-only-checkbox" value="">
+            <label for="{{ instance_wrapper_class }}__checkbox">{{ 'Show selected only'|t('shopify') }}</label>
+        </div>
+
+        <div class="btn secondary js-{{ wrapper_class }}__clear-selected">{{ 'Clear selected'|t('shopify') }}</div>
+    </div>
+
+    <div class="multiselect">
+        <select class="{{ wrapper_class }}__select--multiple js-{{ wrapper_class }}__{{ name }}" name="{{ name }}[]" multiple>
+            <option value="">{{ "None"|t('shopify') }}</option>
+            {% for option in options %}
+                {% if type == 'products' %}
+                    <option value="{{ option.productId }}"{% if option.productId in value %} selected{% endif %}>
+                        {{ option.label }}{% if option.sku %} ({{ option.sku }}){% endif %}
+                    </option>
+                {% elseif type == 'collections' %}
+                    <option value="{{ option.collectionId }}"{% if option.collectionId in value %} selected{% endif %}>
+                        {{ option.label }}
+                    </option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+
+    <input placeholder="{{ 'Start typing to filter ...'|t('shopify') }}" type="text" class="text fullwidth js-{{ wrapper_class }}__search-filter-input" value="">
+</div>
+
+<script type="text/javascript">
+(function() {
+    const initShopifyProductField = (rootNode) => {
+        if(rootNode.classList.contains('is-initialized')) {
+            return;
+        }
+        rootNode.classList.add('is-initialized');
+
+        const commerce_input = rootNode.querySelector('.js-{{ wrapper_class }}__search-filter-input');
+        const commerce_select = rootNode.querySelector('.js-{{ wrapper_class }}__{{ name }}');
+        const commerce_select_array = [...commerce_select.options];
+        const commerce_selected_only = rootNode.querySelector('.js-{{ wrapper_class }}__selected-only-checkbox');
+        const commerce_clear_selected = rootNode.querySelector('.js-{{ wrapper_class }}__clear-selected');
+
+        // search input filter
+        commerce_input.addEventListener('input', (event) => {
+            if (event.target.value) {
+                commerce_select_array.forEach((option) => {
+                    const regex = new RegExp(event.target.value, 'ig');
+                    if (regex.test(option.textContent)) {
+                        option.disabled = false;
+                        option.hidden = false;
+                    } else {
+                        option.disabled = true;
+                        option.hidden = true;
+                    }
+                });
+            } else {
+                commerce_select_array.forEach((option) => {
+                    option.disabled = false;
+                    option.hidden = false;
+                });
+            }
+        });
+
+        // checkbox toggling to show only selected or all
+        commerce_selected_only.addEventListener('change', (event) => {
+            if (event.target.checked) {
+                commerce_select_array.forEach((option) => {
+                    if (option.selected) {
+                        option.disabled = false;
+                        option.hidden = false;
+                    } else {
+                        option.disabled = true;
+                        option.hidden = true;
+                    }
+                });
+            } else {
+                commerce_select_array.forEach((option) => {
+                    option.disabled = false;
+                    option.hidden = false;
+                });
+            }
+        });
+
+        // button to clear all selected items
+        commerce_clear_selected.addEventListener('click', (event) => {
+            event.preventDefault();
+            commerce_select_array.forEach((option) => {
+                if (option.selected) {
+                    option.selected = false;
+                }
+            });
+        });
+    };
+
+    Array.from(document.querySelectorAll('.js-{{ wrapper_class }}:not(.is-initialized')).forEach((node) => initShopifyProductField(node));
+})();
+</script>
