@@ -40,7 +40,7 @@
   "autoload": {
     "psr-4": {
       "craft\\shopify\\": "src/",
-      "shopify\\": "src_old/"
+      "shopify\\": "src/"
     }
   },
   "extra": {
