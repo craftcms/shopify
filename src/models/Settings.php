@@ -1,96 +1,87 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: nmaier
- * Date: 22.07.18
- * Time: 14:20
+ * @link https://craftcms.com/
+ * @copyright Copyright (c) Pixel & Tonic, Inc.
+ * @license https://craftcms.github.io/license/
  */
 
-namespace shopify\models;
+namespace craft\shopify\models;
 
 use Craft;
 use craft\base\Model;
+use craft\commerce\fieldlayoutelements\VariantsField;
+use craft\helpers\ArrayHelper;
+use craft\helpers\StringHelper;
+use craft\helpers\UrlHelper;
+use craft\models\FieldLayoutTab;
+use craft\shopify\elements\Product;
+use craft\shopify\fieldlayoutelements\ShopifyInformationField;
 
+/**
+ * Shopify Settings model.
+ *
+ * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
+ * @since 1.0
+ */
 class Settings extends Model
 {
-    public $apiKey = '';
-    public $password = '';
-    public $secret = '';
-    public $hostname = '';
-    public $limit = '';
-    public $published_status = '';
+    public string $apiKey = '';
+    public string $apiSecretKey = '';
+    public string $accessToken = '';
+    public string $hostName = '';
+    public string $uriFormat = '';
+    public string $template = '';
+    private mixed $_productFieldLayout;
 
-    public function getApiKey(): string
+    public function rules(): array
     {
-        return Craft::parseEnv($this->apiKey);
-    }
-    public function getPassword(): string
-    {
-        return Craft::parseEnv($this->password);
-    }
-    public function getSecret(): string
-    {
-        return Craft::parseEnv($this->secret);
-    }
-    public function getHostname(): string
-    {
-        return Craft::parseEnv($this->hostname);
-    }
-    public function getLimit(): string
-    {
-        return Craft::parseEnv($this->limit);
-    }
-    public function getPublished_status(): string
-    {
-        return Craft::parseEnv($this->published_status);
+        return [
+            [['apiSecretKey', 'apiKey', 'accessToken', 'hostName'], 'required'],
+        ];
     }
 
-    public $apiPrefix = 'admin/api';
-    public $apiVersion = '2020-01';
-    public $allProductsEndpoint;
-    public $allProductsCountEndpoint;
-    public $singleProductEndpoint;
-    public $allSmartCollectionsEndpoint;
-    public $allCustomCollectionsEndpoint;
-    public $allSmartCollectionsCountEndpoint;
-    public $allCustomCollectionsCountEndpoint;
-    public $singleCollectionEndpoint;
-    public $wrapperClass;
-
-    public function __construct()
+    public function getProductFieldLayout()
     {
-        $apiStart = $this->apiPrefix . '/' . $this->apiVersion;
-        $this->allProductsEndpoint = $apiStart . '/products.json';
-        $this->allProductsCountEndpoint = $apiStart . '/products/count.json';
-        $this->singleProductEndpoint = $apiStart . '/products/';
-        $this->allSmartCollectionsEndpoint = $apiStart . '/smart_collections.json';
-        $this->allCustomCollectionsEndpoint = $apiStart . '/custom_collections.json';
-        $this->allSmartCollectionsCountEndpoint = $apiStart . '/smart_collections/count.json';
-        $this->allCustomCollectionsCountEndpoint = $apiStart . '/custom_collections/count.json';
-        $this->singleCollectionEndpoint = $apiStart . '/collections/';
-        $this->wrapperClass = 'c-shopifyProductsPlugin';
-    }
+        if (!isset($this->_productFieldLayout)) {
+            $this->_productFieldLayout = Craft::$app->fields->getLayoutByType(Product::class);
+        }
 
-    public function rules()
-    {
-        return [[['apiKey', 'password', 'secret', 'hostname'], 'required'], ['hostname', 'validateHostname']];
+        if (!$this->_productFieldLayout->isFieldIncluded('shopifyInformation')) {
+            $layoutTabs = $this->_productFieldLayout->getTabs();
+            $shopifyTabName = Craft::t('shopify', 'Shopify');
+            if (ArrayHelper::contains($layoutTabs, 'name', $shopifyTabName)) {
+                $shopifyTabName .= ' ' . StringHelper::randomString(10);
+            }
+            $contentTab = new FieldLayoutTab([
+                'name' => $shopifyTabName,
+                'layout' => $this->_productFieldLayout,
+                'elements' => [
+                    [
+                        'type' => ShopifyInformationField::class,
+                    ],
+                ],
+            ]);
+            array_unshift($layoutTabs, $contentTab);
+            $this->_productFieldLayout->setTabs($layoutTabs);
+        }
+
+        return $this->_productFieldLayout;
     }
 
     /**
-     * @param $attribute
-     * @param $params
+     * @param mixed $fieldLayout
+     * @return void
      */
-    public function validateHostname($attributeName)
+    public function setProductFieldLayout(mixed $fieldLayout)
     {
-        if (
-            strpos($this->getHostname(), '//') !== false ||
-            strpos($this->getHostname(), 'http://') !== false ||
-            strpos($this->getHostname(), 'https://') !== false
-        ) {
-            $this->addError(
-                $attributeName,
-                'Please do not use http://, https:// or // at the beginning of the hostname.'
-            );
-        }
+        $this->_productFieldLayout = $fieldLayout;
+    }
+
+    /**
+     * @return string
+     */
+    public function getWebhookUrl(): string
+    {
+        return UrlHelper::actionUrl('shopify/webhook/handle');
     }
 }

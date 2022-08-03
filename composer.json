@@ -1,39 +1,68 @@
 {
-    "name": "nmaier95/shopify-product-fetcher",
-    "description": "load your shopify-products into your craft3 cms instance",
-    "type": "craft-plugin",
-    "version": "2.2.0",
-    "keywords": [
-        "craft",
-        "cms",
-        "craftcms",
-        "craft-plugin",
-        "shopify",
-        "fetch products",
-        "integrate shopify",
-        "product sync",
-        "ecommerce"
-    ],
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "niklas",
-            "homepage": "https://maier-niklas.de/"
-        }
-    ],
-    "require": {
-        "craftcms/cms": "^3.0.0",
-        "guzzlehttp/guzzle": "^6.3",
-        "ext-json": "*"
-    },
-    "autoload": {
-        "psr-4": {
-            "shopify\\": "src/"
-        }
-    },
-    "extra": {
-        "name": "shopify",
-        "handle": "shopify",
-        "class": "shopify\\Shopify"
+  "name": "craftcms/shopify",
+  "description": "Shopify for Craft CMS",
+  "type": "craft-plugin",
+  "keywords": [
+    "cms",
+    "craftcms",
+    "shopify"
+  ],
+  "homepage": "https://github.com/craftcms/shopify",
+  "license": "proprietary",
+  "support": {
+    "email": "support@craftcms.com",
+    "issues": "https://github.com/craftcms/shopify/issues?state=open",
+    "forum": "https://craftcms.stackexchange.com/",
+    "source": "https://github.com/craftcms/shopify",
+    "docs": "https://github.com/craftcms/shopify",
+    "rss": "https://github.com/craftcms/shopify/releases.atom"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": "^8.0.2",
+    "craftcms/cms": "^4.0.0",
+    "shopify/shopify-api": "^2.0"
+  },
+  "require-dev": {
+    "codeception/codeception": "^4.0.0",
+    "codeception/module-asserts": "^1.0.0",
+    "codeception/module-datafactory": "^1.0.0",
+    "codeception/module-phpbrowser": "^1.0.0",
+    "codeception/module-rest": "^1.0.0",
+    "codeception/module-yii2": "^1.0.0",
+    "craftcms/ecs": "dev-main",
+    "craftcms/phpstan": "dev-main",
+    "craftcms/rector": "dev-main",
+    "craftcms/redactor": "*",
+    "vlucas/phpdotenv": "^3.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "craft\\shopify\\": "src/",
+      "shopify\\": "src_old/"
     }
+  },
+  "extra": {
+    "handle": "shopify",
+    "name": "Shopify",
+    "description": "Sync shopify products into your content model",
+    "developer": "Pixel & Tonic",
+    "documentationUrl": "https://github.com/craftcms/shopify"
+  },
+  "scripts": {
+    "check-cs": "ecs check --ansi",
+    "fix-cs": "ecs check --ansi --fix",
+    "phpstan": "phpstan --memory-limit=1G"
+  },
+  "config": {
+    "sort-packages": true,
+    "platform": {
+      "php": "8.0.2"
+    },
+    "allow-plugins": {
+      "yiisoft/yii2-composer": true,
+      "craftcms/plugin-installer": true
+    }
+  }
 }

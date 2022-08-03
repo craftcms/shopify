@@ -1,0 +1,17 @@
+{% extends "_layouts/elementindex" %}
+{% set title = "Shopify ProductData"|t('app') %}
+{% set elementType = 'craft\\shopify\\elements\\Product' %}
+{% set canHaveDrafts = true %}
+
+{% block toolbar %}
+    {{ parent() }}
+    <form method="POST">
+        {{ actionInput('') }}
+        {{ csrfInput() }}
+        <a class="btn formsubmit"
+           data-action="shopify/products/sync"
+           data-confirm="{{ 'Are you sure you want run a complete sync?'|t('commerce') }}">
+            {{ 'Sync ProductData'|t('shopify') }}
+        </a>
+    </form>
+{% endblock %}

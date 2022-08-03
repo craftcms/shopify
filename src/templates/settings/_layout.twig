@@ -1,0 +1,50 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{% extends "_layouts/cp" %}
+{% set selectedSubnavItem = 'settings' %}
+
+{% set title = "Settings"|t('shopify') %}
+
+{% set navItems = {} %}
+
+{% if currentUser.admin %}
+    {% set navItems = {
+        'general': { title: "General"|t('shopify')},
+    } %}
+{% endif %}
+
+{% if selectedItem is not defined %}
+    {% set selectedItem = craft.app.request.getSegment(2) %}
+{% endif %}
+
+{% set docTitle = 'hi' %}
+
+{% macro configWarning(setting, file) -%}
+    {%- apply spaceless %}
+        {% set config = craft.app.config.getConfigFromFile(file) %}
+        {% if config[setting] is defined %}
+            {{ "This is being overridden by the {setting} config setting in `config/{file}.php`."|t('commerce', {
+                setting: setting,
+                file: file,
+            })|raw }}
+        {% else %}
+            {{ false }}
+        {% endif %}
+    {% endapply -%}
+{%- endmacro %}
+
+{% block sidebar %}
+    <nav>
+        <ul>
+            {% for handle, item in navItems %}
+                {% if item.heading is defined %}
+                    <li class="heading"><span>{{ item.heading }}</span></li>
+                {% else %}
+                    <li>
+                        <a href="{{ url('shopify/settings/'~handle) }}"{% if handle == selectedItem %} class="sel"{% endif %}>{{ item.title }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+{% endblock %}
+

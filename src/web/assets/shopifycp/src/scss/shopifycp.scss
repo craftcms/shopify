@@ -1,0 +1,75 @@
+@import "node_modules/craftcms-sass/_mixins";
+
+.proxy-element-card {
+  position: relative;
+  padding-top: 15px;
+  padding-bottom: 40px;
+
+  .pec-header {
+    position: relative;
+    display: block;
+    color: $textColor;
+    width: 100%;
+
+    &:hover {
+      color: $textColor;
+      text-decoration: none;
+    }
+
+    .pec-external-icon {
+      position: absolute;
+      top: 50%;
+      @include right(0px);
+      transform: translate(-50%, -50%);
+      color: $textColor;
+    }
+
+    &:hover {
+      .pec-external-icon {
+        color: $linkColor;
+      }
+    }
+
+    .pec-title {
+      margin-bottom: 0;
+    }
+
+    .pec-subtitle {
+      margin: 0.2em 0;
+    }
+  }
+
+  .pec-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    @include right(0);
+    font-size: 12px;
+    background-color: $grey100;
+    border-bottom-left-radius: $largeBorderRadius;
+    border-bottom-right-radius: $largeBorderRadius;
+    padding: 10px 24px;
+
+    a {
+      color: $textColor;
+      text-decoration: underline;
+    }
+
+    a:hover {
+      color: $linkColor;
+      text-decoration: underline;
+    }
+
+    .spinner {
+      position: absolute;
+      top: 50%;
+      @include right(0px);
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  hr {
+    margin-left: var(--neg-padding);
+    margin-right: var(--neg-padding);
+  }
+}
