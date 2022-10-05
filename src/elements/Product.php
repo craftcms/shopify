@@ -8,30 +8,29 @@
 namespace craft\shopify\elements;
 
 use Craft;
-use craft\helpers\App;
-use craft\helpers\Cp;
-use craft\helpers\DateTimeHelper;
-use craft\helpers\Html;
-use craft\helpers\StringHelper;
-use craft\i18n\Formatter;
-use craft\shopify\helpers\Product as ProductHelper;
-use craft\shopify\Plugin;
-use craft\shopify\records\ProductData;
-use craft\shopify\web\assets\shopifycp\ShopifyCpAsset;
-use DateTime;
 use craft\base\Element;
-use craft\elements\conditions\categories\CategoryCondition;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\User;
+use craft\helpers\App;
+use craft\helpers\Html;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\shopify\elements\conditions\products\ProductCondition;
 use craft\shopify\elements\db\ProductQuery;
+use craft\shopify\helpers\Product as ProductHelper;
+use craft\shopify\Plugin;
 use craft\shopify\records\Product as ProductRecord;
+use craft\shopify\web\assets\shopifycp\ShopifyCpAsset;
+use craft\web\CpScreenResponseBehavior;
+use DateTime;
+use yii\web\Response;
 
 /**
  * Product element.
+ * @property array $tags
+ * @property array $options
  *
  */
 class Product extends Element
@@ -40,9 +39,13 @@ class Product extends Element
     // -------------------------------------------------------------------------
 
     /**
-     * @since 1.0.0
+     * @since 3.0
      */
     public const STATUS_LIVE = 'live';
+    public const STATUS_PENDING = 'pending';
+    public const SHOPIFY_STATUS_ACTIVE = 'active';
+    public const SHOPIFY_STATUS_DRAFT = 'draft';
+    public const SHOPIFY_STATUS_ARCHIVED = 'archived';
 
     /**
      * @var string
@@ -67,7 +70,7 @@ class Product extends Element
     /**
      * @var array
      */
-    private array $_options;
+    private array $_options = [];
 
     /**
      * @var string
@@ -87,12 +90,12 @@ class Product extends Element
     /**
      * @var string
      */
-    public string $status = 'live';
+    public string $shopifyStatus = 'active';
 
     /**
-     * @var string
+     * @var array
      */
-    public string $tags;
+    public array $_tags = [];
 
     /**
      * @var string
@@ -120,6 +123,51 @@ class Product extends Element
      * @var int|null
      */
     public ?int $shopifyId = null;
+
+
+    /**
+     * @inheritdoc
+     */
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_LIVE => Craft::t('commerce', 'Live'),
+            self::STATUS_PENDING => Craft::t('commerce', 'Pending'),
+            self::STATUS_DISABLED => Craft::t('commerce', 'Disabled'),
+        ];
+    }
+
+    public function getStatus(): ?string
+    {
+        $status = parent::getStatus();
+
+        if ($status === self::STATUS_ENABLED) {
+            return $this->shopifyStatus === self::SHOPIFY_STATUS_ACTIVE ? self::STATUS_LIVE : self::STATUS_PENDING;
+        }
+
+        return $status;
+    }
+
+    /**
+     * @param array|string $tags
+     * @return void
+     */
+    public function setTags(array|string $tags)
+    {
+        if (is_string($tags)) {
+            $tags = StringHelper::split($tags, ',');
+        }
+
+        $this->tags = $tags;
+    }
+
+    /**
+     * @return array
+     */
+    public function getTags(): array
+    {
+        return $this->_tags ?? [];
+    }
 
     /**
      * @param string|array $value
@@ -189,7 +237,7 @@ class Product extends Element
      */
     public static function displayName(): string
     {
-        return Craft::t('app', 'Shopify Product');
+        return Craft::t('app', 'Product');
     }
 
     /**
@@ -197,7 +245,7 @@ class Product extends Element
      */
     public static function lowerDisplayName(): string
     {
-        return Craft::t('app', 'shopify category');
+        return Craft::t('app', 'shopify product');
     }
 
     /**
@@ -265,6 +313,19 @@ class Product extends Element
     }
 
     /**
+     * @return string
+     */
+    public function getShopifyStatusHtml(): string
+    {
+        $color = match ($this->shopifyStatus) {
+            'active' => 'green',
+            'archived' => 'red',
+            default => 'orange', // takes care of draft
+        };
+        return "<span class='status $color'></span>" . StringHelper::titleize($this->shopifyStatus);
+    }
+
+    /**
      * @inheritdoc
      */
     public function getPostEditUrl(): ?string
@@ -295,7 +356,25 @@ class Product extends Element
      */
     public function getUriFormat(): ?string
     {
-        return (string)Plugin::getInstance()->getSettings()->uriFormat;
+        $uriFormat = (string)Plugin::getInstance()->getSettings()->uriFormat;
+        return $uriFormat;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function prepareEditScreen(Response $response, string $containerId): void
+    {
+
+        $crumbs = [
+            [
+                'label' => Craft::t('shopify', 'Products'),
+                'url' => 'shopify/products',
+            ],
+        ];
+
+        /** @var Response|CpScreenResponseBehavior $response */
+        $response->crumbs($crumbs);
     }
 
     /**
@@ -346,7 +425,7 @@ class Product extends Element
 
     /**
      * @inheritdoc
-     * @return CategoryCondition
+     * @return ProductCondition
      */
     public static function createCondition(): ElementConditionInterface
     {
@@ -400,7 +479,7 @@ class Product extends Element
                 'criteria' => [
                 ],
                 'defaultSort' => ['id', 'desc'],
-            ]
+            ],
         ];
     }
 
@@ -439,9 +518,20 @@ class Product extends Element
     {
         return [
             'shopifyId' => Craft::t('shopify', 'Shopify ID'),
+            'createdAt' => Craft::t('shopify', 'Created At'),
             'handle' => Craft::t('shopify', 'Handle'),
+            // TODO: Support images
+            // 'images' => Craft::t('shopify', 'Images'),
+            'options' => Craft::t('shopify', 'Options'),
             'productType' => Craft::t('shopify', 'Product Type'),
+            'publishedAt' => Craft::t('shopify', 'Published At'),
+            'publishedScope' => Craft::t('shopify', 'Published Scope'),
+            'shopifyStatus' => Craft::t('shopify', 'Shopify Status'),
             'tags' => Craft::t('shopify', 'Tags'),
+            'updatedAt' => Craft::t('shopify', 'Updated At'),
+            'variants' => Craft::t('shopify', 'Variants'),
+            'vendor' => Craft::t('shopify', 'Vendor'),
+            'shopifyEdit' => Craft::t('shopify', 'Shopify Edit'),
         ];
     }
 
@@ -452,11 +542,39 @@ class Product extends Element
     {
         return [
             'shopifyId',
+            'shopifyStatus',
             'handle',
             'productType',
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
+    protected static function defineSortOptions(): array
+    {
+        $sortOptions = parent::defineSortOptions();
+
+        $sortOptions['title'] = [
+            'label' => Craft::t('commerce', 'Title'),
+            'orderBy' => 'shopify_productdata.title',
+            'defaultDir' => SORT_DESC,
+        ];
+
+        $sortOptions['shopifyId'] = [
+            'label' => Craft::t('commerce', 'Shopify Id'),
+            'orderBy' => 'shopify_productdata.shopifyId',
+            'defaultDir' => SORT_DESC,
+        ];
+
+        $sortOptions['shopifyStatus'] = [
+            'label' => Craft::t('commerce', 'Shopify Status'),
+            'orderBy' => 'shopify_productdata.shopifyStatus',
+            'defaultDir' => SORT_DESC,
+        ];
+
+        return $sortOptions;
+    }
 
     /**
      * @param string $attribute
@@ -466,10 +584,21 @@ class Product extends Element
     protected function tableAttributeHtml(string $attribute): string
     {
         switch ($attribute) {
-            case 'xxxx':
-            {
-                return 'xxx';
-            }
+            case 'shopifyEdit':
+                return Html::a('', $this->getShopifyEditUrl(), ['target' => '_blank', 'data' => ['icon' => 'external']]);
+            case 'shopifyStatus':
+                return $this->getShopifyStatusHtml();
+            case 'shopifyId':
+                return $this->$attribute;
+            case 'tags':
+                return collect($this->tags)->map(function ($tag) {
+                    return Html::tag('div', $tag, [
+                        'style' => 'margin-bottom: 2px;',
+                        'class' => 'token',
+                    ]);
+                })->join('&nbsp;');
+            case 'variants':
+                return collect($this->getVariants())->pluck('title')->map(fn($title) => StringHelper::toTitleCase($title))->join(',&nbsp;');
             default:
             {
                 return parent::tableAttributeHtml($attribute);
@@ -515,6 +644,7 @@ class Product extends Element
      */
     public function canDelete(User $user): bool
     {
+        // We normally cant delete shopify elements, but we can if we are in a draft state.
         if ($this->getIsDraft()) {
             return true;
         }
@@ -538,41 +668,20 @@ class Product extends Element
         $labels = parent::attributeLabels();
 
         $labels['bodyHtml'] = Craft::t('shopify', 'Body HTML');
-        $labels['createdAt'] = Craft::t('shopify', 'Created At');
+        $labels['createdAt'] = Craft::t('shopify', 'Created at');
         $labels['handle'] = Craft::t('shopify', 'Handle');
         $labels['images'] = Craft::t('shopify', 'Images');
         $labels['options'] = Craft::t('shopify', 'Options');
         $labels['productType'] = Craft::t('shopify', 'Product Type');
-        $labels['publishedAt'] = Craft::t('shopify', 'Published At');
+        $labels['publishedAt'] = Craft::t('shopify', 'Published at');
         $labels['publishedScope'] = Craft::t('shopify', 'Published Scope');
         $labels['tags'] = Craft::t('shopify', 'Tags');
+        $labels['shopifyStatus'] = Craft::t('shopify', 'Status');
         $labels['templateSuffix'] = Craft::t('shopify', 'Template Suffix');
-        $labels['updatedAt'] = Craft::t('shopify', 'Updated At');
+        $labels['updatedAt'] = Craft::t('shopify', 'Updated at');
         $labels['variants'] = Craft::t('shopify', 'Variants');
         $labels['vendor'] = Craft::t('shopify', 'Vendor');
 
         return $labels;
-    }
-
-    public function populateFromShopifyData(ProductData $record): void{
-
-//            'bodyHtml' => $record->bodyHtml,
-        $this->setAttributes([
-            'createdAt' => $record->createdAt,
-            'handle' => $record->handle,
-            'images' => $record->images,
-            'options' => $record->options,
-            'productType' => $record->productType,
-            'publishedAt' => $record->publishedAt,
-            'publishedScope' => $record->publishedScope,
-            'shopifyId' => $record->id,
-            'status' => $record->status,
-            'tags' => $record->tags,
-            'templateSuffix' => (string)$record->templateSuffix,
-            'title' => $record->title,
-            'updatedAt' => $record->updatedAt,
-            'variants' => $record->variants,
-            'vendor' => $record->vendor,
-        ]);
     }
 }

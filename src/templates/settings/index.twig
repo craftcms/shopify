@@ -89,47 +89,13 @@
 
         {{ forms.autosuggestField({
             label: 'Host Name'|t('shopify'),
+            instructions: 'The Shopify store hostname.'|t('shopify'),
             id: 'hostName',
             name: 'settings[hostName]',
             value: settings.hostName,
             errors: settings.getErrors('hostName'),
             suggestEnvVars: true,
         }) }}
-
-        <h3>{{ "Webhook Management"|t('shopify') }}</h3>
-        <div class="field">
-            <div id="webhooks-container">
-
-            </div>
-        </div>
-
-        {% set tableData = [] %}
-        {% for webhook in webhooks %}
-            {% set tableData = tableData|merge([{
-                id: webhook.id,
-                title: webhook.topic,
-                address: webhook.address
-            }]) %}
-        {% endfor %}
-
-        {% js %}
-            var columns = [
-            { name: '__slot:title', title: '{{ 'Topic'|t('shopify') }}' },
-            { name: 'address', title: '{{ 'URL'|t('shopify') }}' }
-            ];
-
-            new Craft.VueAdminTable({
-                fullPane: false,
-                columns: columns,
-                container: '#webhooks-container',
-                deleteAction: 'shopify/settings/delete-webhook',
-                deleteConfirmationMessage: Craft.t('shopify', "Are you sure you want to delete this webhook?"),
-                deleteFailMessage: Craft.t('shopify', "Webhook could not be deleted"),
-                deleteSuccessMessage: Craft.t('shopify', "Webhook deleted"),
-                emptyMessage: Craft.t('app', 'No webhooks exist yet.'),
-                tableData: {{ tableData|json_encode|raw }}
-            });
-        {% endjs %}
 
     </div>
 

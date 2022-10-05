@@ -15,9 +15,9 @@ use yii\db\ActiveQueryInterface;
  * Product Data record.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 1.0
+ * @since 3.0
  *
- * @property int $id
+ * @property int $shopifyId
  * @property string $title
  * @property string $bodyHtml
  * @property string $createdAt
@@ -27,12 +27,13 @@ use yii\db\ActiveQueryInterface;
  * @property string $productType
  * @property string $publishedAt
  * @property string $publishedScope
- * @property string $status
+ * @property string $shopifyStatus
  * @property string $tags
  * @property string $templateSuffix
  * @property string $updatedAt
  * @property array $variants
  * @property string $vendor
+ * @property string $dateUpdated
  *
  */
 class ProductData extends ActiveRecord

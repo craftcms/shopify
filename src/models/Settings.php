@@ -9,7 +9,6 @@ namespace craft\shopify\models;
 
 use Craft;
 use craft\base\Model;
-use craft\commerce\fieldlayoutelements\VariantsField;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
@@ -21,7 +20,7 @@ use craft\shopify\fieldlayoutelements\ShopifyInformationField;
  * Shopify Settings model.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 1.0
+ * @since 3.0
  */
 class Settings extends Model
 {
@@ -44,25 +43,6 @@ class Settings extends Model
     {
         if (!isset($this->_productFieldLayout)) {
             $this->_productFieldLayout = Craft::$app->fields->getLayoutByType(Product::class);
-        }
-
-        if (!$this->_productFieldLayout->isFieldIncluded('shopifyInformation')) {
-            $layoutTabs = $this->_productFieldLayout->getTabs();
-            $shopifyTabName = Craft::t('shopify', 'Shopify');
-            if (ArrayHelper::contains($layoutTabs, 'name', $shopifyTabName)) {
-                $shopifyTabName .= ' ' . StringHelper::randomString(10);
-            }
-            $contentTab = new FieldLayoutTab([
-                'name' => $shopifyTabName,
-                'layout' => $this->_productFieldLayout,
-                'elements' => [
-                    [
-                        'type' => ShopifyInformationField::class,
-                    ],
-                ],
-            ]);
-            array_unshift($layoutTabs, $contentTab);
-            $this->_productFieldLayout->setTabs($layoutTabs);
         }
 
         return $this->_productFieldLayout;

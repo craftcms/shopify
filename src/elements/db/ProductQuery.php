@@ -7,19 +7,57 @@
 
 namespace craft\shopify\elements\db;
 
-
 use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
-use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
 
 class ProductQuery extends ElementQuery
 {
-
     /**
      * @var mixed The Shopify product ID(s) that the resulting products must have.
      */
     public mixed $shopifyId = null;
+
+    public ?string $shopifyStatus = null;
+    public ?string $handle = null;
+    public ?string $productType = null;
+    public ?string $bodyHtml = null;
+    public ?string $createdAt = null;
+    public ?string $publishedAt = null;
+    public ?string $publishedScope = null;
+    public ?string $tags = null;
+    public ?string $templateSuffix = null;
+    public ?string $updatedAt = null;
+    public ?string $vendor = null;
+    public ?string $images = null;
+    public ?string $options = null;
+
+    /**
+     * @inheritdoc
+     */
+    protected array $defaultOrderBy = ['shopify_productdata.shopifyId' => SORT_ASC];
+
+    /**
+     * @inheritdoc
+     */
+    public function __construct($elementType, array $config = [])
+    {
+        // Default status
+        if (!isset($config['status'])) {
+            $config['status'] = 'live';
+        }
+
+        parent::__construct($elementType, $config);
+    }
+
+    /**
+     * Narrows the query results based on the Shopify product type
+     */
+    public function productType($value): self
+    {
+        $this->productType = $value;
+        return $this;
+    }
 
     /**
      * Narrows the query results based on the Shopify product ID
@@ -58,15 +96,59 @@ class ProductQuery extends ElementQuery
         return $this;
     }
 
-//    /**
-//     * @inheritdoc
-//     */
-//    protected function statusCondition(string $status): mixed
-//    {
-//        return [
-//            'shopify_productdata.status' => $status,
-//        ];
-//    }
+    /**
+     * Narrows the query results based on the {elements}’ statuses.
+     *
+     * Possible values include:
+     *
+     * | Value | Fetches {elements}…
+     * | - | -
+     * | `'live'` _(default)_ | that are live (enabled with an Active shopify Status).
+     * | `'pending'` | that are pending (enabled with non Active shopify Status).
+     * | `'disabled'` | that are disabled in Craft (Regardless of Shopify Status).
+     * | `['live', 'pending']` | that are live or pending.
+     *
+     * ---
+     *
+     * ```twig
+     * {# Fetch disabled {elements} #}
+     * {% set {elements-var} = {twig-method}
+     *   .status('disabled')
+     *   .all() %}
+     * ```
+     *
+     * ```php
+     * // Fetch disabled {elements}
+     * ${elements-var} = {element-class}::find()
+     *     ->status('disabled')
+     *     ->all();
+     * ```
+     */
+    public function status(array|string|null $value): ProductQuery
+    {
+        parent::status($value);
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function statusCondition(string $status): mixed
+    {
+        return match ($status) {
+            Product::STATUS_LIVE => [
+                'elements.enabled' => true,
+                'elements_sites.enabled' => true,
+                'shopify_productdata.shopifyStatus' => 'active',
+            ],
+            Product::STATUS_PENDING => [
+                'elements.enabled' => true,
+                'elements_sites.enabled' => true,
+                'shopify_productdata.shopifyStatus' => ['draft', 'archived'],
+            ],
+            default => parent::statusCondition($status),
+        };
+    }
 
     /**
      * @inheritdoc
@@ -74,6 +156,11 @@ class ProductQuery extends ElementQuery
      */
     protected function beforePrepare(): bool
     {
+        // Default status
+        if (!isset($config['status'])) {
+            $config['status'] = 'live';
+        }
+
         $shopifyId = $this->shopifyId;
 
         if ($this->shopifyId === []) {
@@ -86,13 +173,12 @@ class ProductQuery extends ElementQuery
         $this->joinElementTable($productTable);
 
         $productDataJoinTable = [$productDataTable => "{{%$productDataTable}}"];
-        $this->query->innerJoin($productDataJoinTable, "[[$productDataTable.id]] = [[shopify_products.shopifyId]]");
-        $this->subQuery->innerJoin($productDataJoinTable, "[[$productDataTable.id]] = [[shopify_products.shopifyId]]");
+        $this->query->innerJoin($productDataJoinTable, "[[$productDataTable.shopifyId]] = [[shopify_products.shopifyId]]");
+        $this->subQuery->innerJoin($productDataJoinTable, "[[$productDataTable.shopifyId]] = [[shopify_products.shopifyId]]");
 
         $this->query->select([
-            'shopify_products.id',
             'shopify_products.shopifyId',
-            'shopify_productdata.status',
+            'shopify_productdata.shopifyStatus',
             'shopify_productdata.handle',
             'shopify_productdata.productType',
             'shopify_productdata.bodyHtml',
@@ -110,6 +196,10 @@ class ProductQuery extends ElementQuery
 
         if (isset($this->shopifyId)) {
             $this->subQuery->andWhere(['shopify_products.shopifyId' => $this->shopifyId]);
+        }
+
+        if (isset($this->productType)) {
+            $this->query->andWhere(['shopify_productdata.productType' => $this->productType]);
         }
 
         return parent::beforePrepare();

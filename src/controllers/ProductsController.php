@@ -8,17 +8,18 @@
 namespace craft\shopify\controllers;
 
 use Craft;
+use craft\helpers\App;
+use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
 use craft\shopify\helpers\Product as ProductHelper;
 use craft\shopify\Plugin;
-use craft\shopify\records\ProductData;
 use yii\web\Response;
 
 /**
  * The ProductsController handles listing and showing Shopify products elments.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 1.0.0
+ * @since 3.0
  */
 class ProductsController extends \craft\web\Controller
 {
@@ -29,7 +30,12 @@ class ProductsController extends \craft\web\Controller
      */
     public function actionProductIndex(): Response
     {
-        return $this->renderTemplate('shopify/products/_index');
+        $newProductUrl = '';
+        if ($baseUrl = Plugin::getInstance()->getSettings()->hostName) {
+            $newProductUrl = UrlHelper::url('https://' . App::parseEnv($baseUrl) . '/admin/products/new');
+        }
+
+        return $this->renderTemplate('shopify/products/_index', compact('newProductUrl'));
     }
 
     /**
@@ -39,7 +45,7 @@ class ProductsController extends \craft\web\Controller
     public function actionSync(): Response
     {
         Plugin::getInstance()->getProducts()->syncAllProducts();
-        return $this->asSuccess('Products started syncing successfully');
+        return $this->asSuccess(Craft::t('shopify','Products successfully synced'));
     }
 
     /**

@@ -1,17 +1,26 @@
 {% extends "_layouts/elementindex" %}
-{% set title = "Shopify ProductData"|t('app') %}
+{% set title = "Shopify Products"|t('shopify') %}
 {% set elementType = 'craft\\shopify\\elements\\Product' %}
 {% set canHaveDrafts = true %}
 
 {% block toolbar %}
     {{ parent() }}
+
+    {% if newProductUrl %}
+        <a data-icon="external" class="btn submit" href="{{ newProductUrl }}"
+           target="_blank">{{ 'New Product'|t('shopify') }}</a>
+    {% endif %}
+{% endblock %}
+
+{% block sidebar %}
+    {{ parent() }}
     <form method="POST">
         {{ actionInput('') }}
         {{ csrfInput() }}
-        <a class="btn formsubmit"
+        <a class="btn small formsubmit" data-icon="refresh"
            data-action="shopify/products/sync"
-           data-confirm="{{ 'Are you sure you want run a complete sync?'|t('commerce') }}">
-            {{ 'Sync ProductData'|t('shopify') }}
+           data-confirm="{{ 'Are you sure you want run a complete sync of all products?'|t('shopify') }}">
+            {{ 'Sync All'|t('shopify') }}
         </a>
     </form>
 {% endblock %}

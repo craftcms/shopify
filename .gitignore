@@ -1,0 +1,12 @@
+.DS_Store
+.idea
+*.log
+*.bak
+*.orig
+*.sass-cache/*
+*Thumbs.db
+*aspnet_client/*
+node_modules/
+/vendor
+/tests/_craft/config/project
+.env

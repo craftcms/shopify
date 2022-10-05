@@ -12,74 +12,79 @@ use craft\shopify\records\ProductData as ProductDataRecord;
  * Shopify API service.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 1.0
+ * @since 3.0
  *
  *
  * @property-read void $products
  */
-class ProductData extends Component
+class Products extends Component
 {
+    /**
+     * @return void
+     * @throws \Throwable
+     * @throws \yii\base\InvalidConfigException
+     */
     public function syncAllProducts()
     {
+        // TODO: move this to a queue and add pagination
         $allData = Plugin::getInstance()->getApi()->getAllProducts();
         ProductDataRecord::deleteAll(); // May as well clean this up since we are doing a complete sync.
         foreach ($allData as $data) {
             $this->createOrUpdateProduct($data);
         }
 
-        $shopifyIds = collect($allData)->map(function ($data) {
-            return $data['id'];
-        })->all();
-
-        $deleteAbleProductElements = Product::find()->where(['not in', 'shopifyId', $shopifyIds])->all();
+        // Remove any products that are no longer in Shopify.
+        $shopifyIds = collect($allData)->pluck('id')->all();
+        $deleteAbleProductElements = Product::find()->shopifyId(['not', $shopifyIds])->all();
         foreach ($deleteAbleProductElements as $element) {
             Craft::$app->elements->deleteElement($element);
         }
     }
 
     /**
-     * @param array $data
+     * This takes the shopify data from the REST API and creates or updates a product element.
+     *
+     * @param array $shopifyProductData
      * @return Product
      */
-    public function createOrUpdateProduct(array $data): Product
+    public function createOrUpdateProduct(array $shopifyProductData): Product
     {
         // Transform data into the stuff we care about with the correct key names
-        $data = $this->_getDataArray($data);
+        $shopifyProductData = $this->_getDataArray($shopifyProductData);
 
         // Find the product data or create one
-        $productDataRecord = ProductDataRecord::find()->where(['id' => $data['id']])->one() ?: new ProductDataRecord();
-        $productDataRecord->setAttributes($data, false);
+        $productDataRecord = ProductDataRecord::find()->where(['shopifyId' => $shopifyProductData['shopifyId']])->one() ?: new ProductDataRecord();
+        $productDataRecord->setAttributes($shopifyProductData, false);
         $productDataRecord->save();
 
         // Find the product element or create one
-        $productElement = Product::find()->shopifyId($data['id'])->one();
+        /** @var Product $productElement */
+        $productElement = Product::find()->shopifyId($shopifyProductData['shopifyId'])->one();
 
-        // We are now going to use the data to create the Product element.
-        // We want to leave the element ID alone, all the other element properties lines up with the product data
-        $data['shopifyId'] = $data['id'];
-        unset($data['id']);
-
-        if ($productElement) {
-            $productElement->setAttributes($data);
-        } else {
-            $productElement = new Product($data);
+        if (!$productElement) {
+            /** @var Product $productElement */
+            $productElement = new Product();
         }
+
+        $productElement->setAttributes($shopifyProductData, false);
+
         Craft::$app->getElements()->saveElement($productElement, false);
 
         return $productElement;
     }
 
     /**
-     * @param $data
+     * Deletes a product element by the shopify ID.
+     *
+     * @param $id
      * @return void
-     * @throws \Throwable
-     * @throws \yii\db\StaleObjectException
      */
-    public function deleteProductByShopifyId($id)
+    public function deleteProductByShopifyId($id): void
     {
         if ($id) {
             if ($product = Product::find()->shopifyId($id)->one()) {
-                Craft::$app->getElements()->deleteElement($product);
+                // We hard delete because it will have been hard deleted in Shopify
+                Craft::$app->getElements()->deleteElement($product, true);
             };
             if ($productData = ProductDataRecord::find()->where(['id' => $id])->one()) {
                 $productData->delete();
@@ -94,7 +99,7 @@ class ProductData extends Component
     private function _getDataArray(array $product): array
     {
         return [
-            'id' => $product['id'],
+            'shopifyId' => $product['id'],
             'title' => $product['title'],
             'bodyHtml' => $product['body_html'],
             'createdAt' => $product['created_at'],
@@ -104,7 +109,7 @@ class ProductData extends Component
             'productType' => $product['product_type'],
             'publishedAt' => $product['published_at'],
             'publishedScope' => $product['published_scope'],
-            'status' => $product['status'],
+            'shopifyStatus' => $product['status'],
             'tags' => $product['tags'],
             'templateSuffix' => $product['template_suffix'],
             'updatedAt' => $product['updated_at'],
