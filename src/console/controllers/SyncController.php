@@ -16,12 +16,18 @@ use yii\console\ExitCode;
  * Allows you to sync Shopify data
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 1.0.0
+ * @since 3.0
  */
 class SyncController extends Controller
 {
-    public $defaultAction = 'products';
+    public $defaultAction = 'all';
 
+    
+    public function actionAll()
+    {
+        $this->actionProducts();
+    }
+    
     /**
      * Reset Commerce data.
      */
@@ -30,7 +36,9 @@ class SyncController extends Controller
         $this->stdout('Syncing Shopify products…' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
 
         Plugin::getInstance()->getProducts()->syncAllProducts();
-
+        
+        $this->stdout('Syncing Shopify products…' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
+        
         return ExitCode::OK;
     }
 }

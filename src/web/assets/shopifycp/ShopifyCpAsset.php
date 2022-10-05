@@ -31,7 +31,7 @@ class ShopifyCpAsset extends AssetBundle
         $this->depends = [
             CpAsset::class,
             JqueryAsset::class,
-            HtmxAsset::class
+            HtmxAsset::class,
         ];
 
         $this->css[] = 'css/shopifycp.css';

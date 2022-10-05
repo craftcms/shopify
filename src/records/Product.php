@@ -7,17 +7,16 @@
 
 namespace craft\shopify\records;
 
-use craft\shopify\db\Table;
 use craft\db\ActiveRecord;
 use craft\records\Element;
-use DateTime;
+use craft\shopify\db\Table;
 use yii\db\ActiveQueryInterface;
 
 /**
  * Product record.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 1.0
+ * @since 3.0
  *
  * @property int $id
  * @property int $shopifyId

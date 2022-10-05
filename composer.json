@@ -25,12 +25,6 @@
     "shopify/shopify-api": "^2.0"
   },
   "require-dev": {
-    "codeception/codeception": "^4.0.0",
-    "codeception/module-asserts": "^1.0.0",
-    "codeception/module-datafactory": "^1.0.0",
-    "codeception/module-phpbrowser": "^1.0.0",
-    "codeception/module-rest": "^1.0.0",
-    "codeception/module-yii2": "^1.0.0",
     "craftcms/ecs": "dev-main",
     "craftcms/phpstan": "dev-main",
     "craftcms/rector": "dev-main",

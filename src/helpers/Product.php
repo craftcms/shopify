@@ -15,16 +15,16 @@ use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\i18n\Formatter;
 use craft\shopify\elements\Product as ProductElement;
+use craft\shopify\records\ProductData;
 
 /**
  * Shopify Product Helper.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 1.0
+ * @since 3.0
  */
 class Product
 {
-
     /**
      * @return string
      */
@@ -33,16 +33,17 @@ class Product
         $formatter = Craft::$app->getFormatter();
 
         $title = Html::tag('h3', $product->title, [
-            'class' => 'pec-title'
+            'class' => 'pec-title',
         ]);
-        $subTitle = Html::tag('p', 'Clothing' . $product->productType, [
-            'class' => 'pec-subtitle'
+
+        $subTitle = Html::tag('p', $product->productType, [
+            'class' => 'pec-subtitle',
         ]);
         $extenalLink = Html::tag('div', '&nbsp;', [
             'class' => 'pec-external-icon',
             'data' => [
-                'icon' => 'external'
-            ]
+                'icon' => 'external',
+            ],
         ]);
         $cardHeader = Html::a($title . $subTitle . $extenalLink, $product->getShopifyEditUrl(), [
             'style' => '',
@@ -52,38 +53,67 @@ class Product
         ]);
 
         $hr = Html::tag('hr', '', [
-            'class' => ''
+            'class' => '',
         ]);
 
         $meta = [];
-//        $meta['Images'] = collect($product->images)->pluck('src_old')->map(static function($image){
-//          return Html::img($image,[
-//              'width' => 25,
-//              'height' => 25,
-//              'style' => 'margin-left:6px'
-//          ]);
-//        })->join("\n");
+
         $meta[Craft::t('shopify', 'Handle')] = $product->handle;
-        $meta[Craft::t('shopify', 'Status')] = StringHelper::titleize($product->status);
-        $meta[Craft::t('shopify', 'Options')] = collect($product->options)->pluck('name')->join(', ');
+        $meta[Craft::t('shopify', 'Status')] = $product->getShopifyStatusHtml();
+
+        // Options
+        if (count($product->getOptions()) > 0) {
+            $meta[Craft::t('shopify', 'Options')] =
+                collect($product->options)->map(function ($option) {
+                    return Html::tag('span', $option['name'], [
+                        'title' => $option['name'] . ' option values: ' . collect($option['values'])->join(', '),
+                    ]);
+                })->join(',&nbsp;');
+        }
+
+        // Tags
+        $meta[Craft::t('shopify', 'Tags')] =
+            collect($product->tags)->map(function ($tag) {
+                return Html::tag('span', $tag, [
+                    'class' => 'token',
+                ]);
+            })->join('&nbsp;');
+
+        // Variants
+        if (count($product->getVariants()) > 0) {
+            $meta[Craft::t('shopify', 'Variants')] = collect($product->getVariants())->pluck('title')->map(fn($title) => StringHelper::toTitleCase($title))->join(',&nbsp;');
+        }
+
         $meta[Craft::t('shopify', 'Shopify ID')] = $product->shopifyId;
-        $meta[Craft::t('shopify', 'Shopify Handle')] = $product->handle;
-        $meta[Craft::t('shopify', 'Product Type')] = $product->productType;
-        $meta[Craft::t('shopify', 'Created At')] = $formatter->asDatetime($product->createdAt, Formatter::FORMAT_WIDTH_SHORT);
-        $meta[Craft::t('shopify', 'Published At')] = $formatter->asDatetime($product->publishedAt, Formatter::FORMAT_WIDTH_SHORT);
-        $meta[Craft::t('shopify', 'Updated At')] = $formatter->asDatetime($product->updatedAt, Formatter::FORMAT_WIDTH_SHORT);
+//        $meta['Images'] = collect($product->getImages())->pluck('src')->map(static function($image){
+//            return Html::img($image,[
+//                'width' => 50,
+//                'height' => 50,
+//                'style' => 'margin-left:6px'
+//            ]);
+//        })->join("\n");
+        $meta[Craft::t('shopify', 'Created at')] = $formatter->asDatetime($product->createdAt, Formatter::FORMAT_WIDTH_SHORT);
+        $meta[Craft::t('shopify', 'Published at')] = $formatter->asDatetime($product->publishedAt, Formatter::FORMAT_WIDTH_SHORT);
+        $meta[Craft::t('shopify', 'Updated at')] = $formatter->asDatetime($product->updatedAt, Formatter::FORMAT_WIDTH_SHORT);
 
         $metadataHtml = Cp::metadataHtml($meta);
 
         $spinner = Html::tag('div', '', [
             'class' => 'spinner',
             'hx' => [
-                'indicator'
-            ]
+                'indicator',
+            ],
         ]);
 
-        $footer = Html::tag('div', 'Updated from Shopify 15 seconds ago.' . $spinner, [
-            'class' => 'pec-footer'
+        // This is the date updated in the database which represents the last time it was updated from a Shopify webhook or sync.
+        /** @var ProductData $productData */
+        $productData = ProductData::find()->where(['shopifyId' => $product->shopifyId])->one();
+        $dateUpdated = DateTimeHelper::toDateTime($productData->dateUpdated);
+        $now = new \DateTime();
+        $diff = $now->diff($dateUpdated);
+        $duration = DateTimeHelper::humanDuration($diff, false);
+        $footer = Html::tag('div', 'Updated ' . $duration . ' ago.' . $spinner, [
+            'class' => 'pec-footer',
         ]);
 
         return Html::tag('div', $cardHeader . $hr . $metadataHtml . $footer, [
@@ -91,12 +121,11 @@ class Product
             'id' => 'pec-' . $product->id,
             'hx' => [
                 'get' => UrlHelper::actionUrl('shopify/products/render-card-html', [
-                    'id' => $product->id
+                    'id' => $product->id,
                 ]),
-                'swap'=> 'outerHTML',
-                'trigger' => 'every 15s'
-            ]
+                'swap' => 'outerHTML',
+                'trigger' => 'every 15s',
+            ],
         ]);
     }
-
 }

@@ -11,7 +11,7 @@ namespace craft\shopify\db;
  * This class provides public constants for defining Shopify’s database table names. Do not use these in migrations.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 1.0
+ * @since 3.0
  */
 abstract class Table
 {

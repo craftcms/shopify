@@ -8,15 +8,14 @@
 
 {% if currentUser.admin %}
     {% set navItems = {
-        'general': { title: "General"|t('shopify')},
+        'general': { title: "General"|t('shopify') },
+        'products': { title: "Products"|t('shopify') },
     } %}
 {% endif %}
 
 {% if selectedItem is not defined %}
     {% set selectedItem = craft.app.request.getSegment(2) %}
 {% endif %}
-
-{% set docTitle = 'hi' %}
 
 {% macro configWarning(setting, file) -%}
     {%- apply spaceless %}
@@ -33,18 +32,18 @@
 {%- endmacro %}
 
 {% block sidebar %}
-    <nav>
-        <ul>
-            {% for handle, item in navItems %}
-                {% if item.heading is defined %}
-                    <li class="heading"><span>{{ item.heading }}</span></li>
-                {% else %}
-                    <li>
-                        <a href="{{ url('shopify/settings/'~handle) }}"{% if handle == selectedItem %} class="sel"{% endif %}>{{ item.title }}</a>
-                    </li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-    </nav>
+{#    <nav>#}
+{#        <ul>#}
+{#            {% for handle, item in navItems %}#}
+{#                {% if item.heading is defined %}#}
+{#                    <li class="heading"><span>{{ item.heading }}</span></li>#}
+{#                {% else %}#}
+{#                    <li>#}
+{#                        <a href="{{ url('shopify/settings/'~handle) }}"{% if handle == selectedItem %} class="sel"{% endif %}>{{ item.title }}</a>#}
+{#                    </li>#}
+{#                {% endif %}#}
+{#            {% endfor %}#}
+{#        </ul>#}
+{#    </nav>#}
 {% endblock %}
 

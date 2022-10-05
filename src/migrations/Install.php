@@ -44,7 +44,7 @@ class Install extends Migration
 
         $this->archiveTableIfExists(Table::PRODUCTDATA);
         $this->createTable(Table::PRODUCTDATA, [
-            'id' => $this->string(),
+            'shopifyId' => $this->string(),
             'title' => $this->text(),
             'bodyHtml' => $this->text(),
             'createdAt' => $this->dateTime(),
@@ -54,7 +54,7 @@ class Install extends Migration
             'productType' => $this->string(),
             'publishedAt' => $this->dateTime(),
             'publishedScope' => $this->string(),
-            'status' => $this->string(),
+            'shopifyStatus' => $this->string(),
             'tags' => $this->string(),
             'templateSuffix' => $this->string(),
             'updatedAt' => $this->string(),
@@ -63,7 +63,7 @@ class Install extends Migration
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->string(),
-            'PRIMARY KEY(id)',
+            'PRIMARY KEY(shopifyId)',
         ]);
     }
 
@@ -72,7 +72,7 @@ class Install extends Migration
      */
     public function createIndexes(): void
     {
-        $this->addForeignKey(null, Table::PRODUCTS, ['shopifyId'], Table::PRODUCTDATA, ['id'], 'CASCADE', 'CASCADE');
+        $this->addForeignKey(null, Table::PRODUCTS, ['shopifyId'], Table::PRODUCTDATA, ['shopifyId'], 'CASCADE', 'CASCADE');
     }
 
     /**
@@ -80,7 +80,6 @@ class Install extends Migration
      */
     public function addForeignKeys(): void
     {
-
     }
 
     /**

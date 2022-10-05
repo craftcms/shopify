@@ -5,28 +5,33 @@ namespace craft\shopify\services;
 use Craft;
 use craft\base\Component;
 use craft\helpers\App;
+use craft\log\MonologTarget;
 use craft\shopify\Plugin;
 use Shopify\Auth\FileSessionStorage;
-use Shopify\Auth\OAuth;
 use Shopify\Auth\Session;
 use Shopify\Clients\Rest;
 use Shopify\Context;
 use Shopify\Rest\Admin2022_04\Product as ShopifyProduct;
-use Shopify\Utils;
-use yii\helpers\Url;
 
 /**
  * Shopify API service.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 1.0
+ * @since 3.0
  *
  *
  * @property-read void $products
  */
 class Api extends Component
 {
+    /**
+     * @var string
+     */
     public const SHOPIFY_API_VERSION = '2022-04';
+
+    /**
+     * @var Session|null
+     */
     private ?Session $_session = null;
 
     /**
@@ -34,11 +39,32 @@ class Api extends Component
      */
     public function getAllProducts(): array
     {
-        return collect(ShopifyProduct::all($this->getSession()))->map(function ($product) {
-            return $product->toArray();
-        })->all();
+        $products = ShopifyProduct::all($this->getSession(), [], ['limit' => 250]);
+        $session = $this->getSession();
+        $client = new Rest($session->getShop(), $session->getAccessToken());
+        $response = $client->get('products');
+
+        return $response->getDecodedBody()['products'];
     }
 
+    /**
+     * @return array
+     */
+    public function getProductByShopifyId($id): array
+    {
+        $products = ShopifyProduct::all($this->getSession(), [], ['limit' => 250]);
+        $session = $this->getSession();
+        $client = new Rest($session->getShop(), $session->getAccessToken());
+        $response = $client->get('product/' . $id);
+
+        return $response->getDecodedBody()['product'];
+    }
+
+    /**
+     * @return Session|null
+     * @throws \Shopify\Exception\MissingArgumentException
+     * @throws \yii\base\Exception
+     */
     public function getSession(): ?Session
     {
         $pluginSettings = Plugin::getInstance()->getSettings();
@@ -49,7 +75,8 @@ class Api extends Component
         }
 
         if ($this->_session === null) {
-
+            /** @var MonologTarget $webLogTarget */
+            $webLogTarget = Craft::$app->getLog()->targets['web'];
             Context::initialize(
                 apiKey: App::parseEnv($pluginSettings->apiKey),
                 apiSecretKey: App::parseEnv($pluginSettings->apiSecretKey),
@@ -58,7 +85,7 @@ class Api extends Component
                 sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
                 apiVersion: self::SHOPIFY_API_VERSION,
                 isEmbeddedApp: false,
-                logger: Craft::$app->getLog()->targets['web']->logger
+                logger: $webLogTarget->getLogger()
             );
 
             $hostName = App::parseEnv($pluginSettings->hostName);
@@ -70,10 +97,9 @@ class Api extends Component
                 isOnline: false,
                 state: 'NA'
             );
-            $this->_session->setAccessToken($accessToken);
+            $this->_session->setAccessToken($accessToken); // this is the most important part of the authentication
         }
 
         return $this->_session;
     }
-
 }

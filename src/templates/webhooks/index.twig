@@ -1,0 +1,57 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{% extends "_layouts/cp" %}
+{% set selectedSubnavItem = 'settings' %}
+
+{% set title = "Settings"|t('shopify') %}
+
+{% set navItems = {} %}
+
+{% block content %}
+
+    <h3>{{ "Webhook Management"|t('shopify') }}</h3>
+
+    <p>{{ "Register the shopify webhooks for the current environment"|t('shopify') }}</p>
+
+    <form method="POST">
+        {{ actionInput('shopify/webhooks/create') }}
+        {{ redirectInput('shopify/webhooks') }}
+        {{ csrfInput() }}
+        <button class="btn primary" type="submit">{{ "Generate"|t('shopify') }}</button>
+    </form>
+
+
+    <div class="field">
+        <div id="webhooks-container">
+
+        </div>
+    </div>
+
+    {% set tableData = [] %}
+    {% for webhook in webhooks %}
+        {% set tableData = tableData|merge([{
+            id: webhook.id,
+            title: webhook.topic,
+            address: webhook.address
+        }]) %}
+    {% endfor %}
+
+    {% js %}
+        var columns = [
+        { name: '__slot:title', title: '{{ 'Topic'|t('shopify') }}' },
+        { name: 'address', title: '{{ 'URL'|t('shopify') }}' }
+        ];
+
+        new Craft.VueAdminTable({
+        fullPane: false,
+        columns: columns,
+        container: '#webhooks-container',
+        deleteAction: 'shopify/webhooks/delete',
+        deleteConfirmationMessage: Craft.t('shopify', "Are you sure you want to delete this webhook?"),
+        deleteFailMessage: Craft.t('shopify', "Webhook could not be deleted"),
+        deleteSuccessMessage: Craft.t('shopify', "Webhook deleted"),
+        emptyMessage: Craft.t('app', 'No webhooks exist yet.'),
+        tableData: {{ tableData|json_encode|raw }}
+        });
+    {% endjs %}
+
+{% endblock %}

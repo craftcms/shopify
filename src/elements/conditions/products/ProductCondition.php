@@ -8,7 +8,7 @@ use craft\elements\conditions\ElementCondition;
  * Category query condition.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 4.0.0
+ * @since 3.0.0
  */
 class ProductCondition extends ElementCondition
 {
@@ -18,7 +18,7 @@ class ProductCondition extends ElementCondition
     protected function conditionRuleTypes(): array
     {
         return array_merge(parent::conditionRuleTypes(), [
-
+            ProductTypeConditionRule::class,
         ]);
     }
 }
