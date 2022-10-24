@@ -378,6 +378,16 @@ class Product extends Element
     }
 
     /**
+     * @inerhitdoc
+     */
+    public function previewTargets(): array
+    {
+        return [[
+            'urlFormat' => Plugin::getInstance()->getSettings()->uriFormat,
+        ]];
+    }
+
+    /**
      * @inheritdoc
      */
     protected function route(): array|string|null
