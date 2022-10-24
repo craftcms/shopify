@@ -58,10 +58,10 @@ class Products extends Component
         $productDataRecord->save();
 
         // Find the product element or create one
-        /** @var Product $productElement */
+        /** @var Product|null $productElement */
         $productElement = Product::find()->shopifyId($shopifyProductData['shopifyId'])->one();
 
-        if (!$productElement) {
+        if ($productElement === null) {
             /** @var Product $productElement */
             $productElement = new Product();
         }
