@@ -27,37 +27,52 @@ To install the plugin, follow these instructions.
 3. Click the 'Develop apps for your store' button under "Build custom apps for your unique needs".
 4. Click "Create an app"
 5. Name the app something like 'Craft CMS Shopify Plugin'
-6. Click "Configure Admin API" integration
+6. Click 'Creat app'
+7. Click the 'Configuration' tab
+6. Click "Configure" in the 'Admin API integration' box.
 
-Scopes needed:
-Products
+Select the following scopes:
 `read_products`
 `read_product_listings`
+`write_product_listings`
+`read_product_listings`
 
-Webhook events version:
-`2022-04`
+Select the webhooks events version:
+`2022-10 (Latest)`
 
-7. Click Save on Admin API integration you just configured.
-8. Click on `API credentials` tab
+7. Click 'Save' on Admin API integration you just configured.
+8. Click the `API credentials` tab.
 9. Click install app to add the custom app you just created to your store
 10. Click `Install app`
-11. Copy the access token (you only have one chance to do this) to your settings (or to your .env file so your settings can reference it).
+11. Copy the Access Token (you only have one chance to do this) to your settings (or save to your .env file so your settings can reference it).
+12. Copy the API Key to your settings (or to your save .env file so your settings can reference it).
+12. Copy the Secret Key to your settings (or to your save .env file so your settings can reference it).
+
+13. Enter the above Access Token, API Key, and Secret Key into the plugin settings.
+14. Enter the Shopify store URL into the plugin settings in the format: `xxxxx.myshopify.com` (No `http://` or `https://`)
+15. Save the shopify plugin settings. The webhooks nav option will now be available.
+16. Click on Shopify 'webhooks' in the CP sidebar.
+17. Click generate to create the webhooks for the current environment. 
+
+Webhooks
+While in development we recommend using the [ngrok](https://ngrok.com/) tool to create a tunnel to your local development environment. This will allow Shopify to send webhooks to your local environment.
+Once you are in production you will need to generate the webhooks for that environment and can delete your ngrok if you want.
 
 Product Element
 
 The Product element type represents a product in your Shopify store.
-All products are created, updated, and deleted via the Shopify control panel.
+All products are created, updated, and deleted via the Shopify control panel, and are reflected in Craft.
 
 ## Fields
 
-In addition to the standard element field like `id`, `title` and `status` the shopify product element will contain
-the following fields which maps to the [Shopify Product resouce](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object)
+In addition to the standard element fields like `id`, `title` and `status` the shopify product element will contain
+the following fields which maps to the [Shopify Produce resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object)
 
 - `shopifyId` The shopifyId field is the unique identifier for the product in your Shopify store. This is a string of integers.
 - `shopifyStatus` The Shopify Status field is the status of the product in your Shopify store. Values can be `active`, `draft` or `archived`.
 - `handle` The handle field is the unique identifier for the product in your Shopify store. This is a string of characters.
 - `productType` The product type field is the product type of the product in your Shopify store. This is a string of characters.
-- `bodyHtml` The body html field is the description of the product in your Shopify store. This is a string of HTML. Use the `|raw` filter to output it if trusted.
+- `bodyHtml` The body html field is the description of the product in your Shopify store. This is a string of HTML. Use the `|raw` filter to output it, if trusted.
 - `publishedScope` The published scope field is the published scope of the product in your Shopify store. This is a string of characters, e.g 'web'.
 - `tags` The tags field is the tags of the product in your Shopify store. This is a an array of tags strings.
 - `templateSuffix` The suffix of the Liquid template used for the product page in Shopify. String of characters.
@@ -74,9 +89,9 @@ Shopify Products have a status of either 'active', 'draft', or 'archived'. This 
 
 Product elements have a status of either 'live', 'pending', or 'disabled'.
 
-- `live` - The product is `active` in your Shopify store and enabled in the Product edit page.
-- `pending` - The product is `draft` or `archived` in your Shopify store and enabled in the Product edit page.
-- `disabled` - The product is any status in your Shopify store but disabled on the Product edit page.
+- `live` - The product is `active` in your Shopify store and `enabled` in the Product edit page.
+- `pending` - The product is `draft` or `archived` in your Shopify store and `enabled` in the Product edit page.
+- `disabled` - The product is any status in your Shopify store but `disabled` on the Product edit page.
 
 ## Product Element Queries
 
