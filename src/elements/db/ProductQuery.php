@@ -163,11 +163,12 @@ class ProductQuery extends ElementQuery
         $productTable = 'shopify_products';
         $productDataTable = 'shopify_productdata';
 
+        // join standard product element table that only contains the shopifyId
         $this->joinElementTable($productTable);
 
         $productDataJoinTable = [$productDataTable => "{{%$productDataTable}}"];
-        $this->query->innerJoin($productDataJoinTable, "[[$productDataTable.shopifyId]] = [[shopify_products.shopifyId]]");
-        $this->subQuery->innerJoin($productDataJoinTable, "[[$productDataTable.shopifyId]] = [[shopify_products.shopifyId]]");
+        $this->query->innerJoin($productDataJoinTable, "[[$productDataTable.shopifyId]] = [[$productTable.shopifyId]]");
+        $this->subQuery->innerJoin($productDataJoinTable, "[[$productDataTable.shopifyId]] = [[$productTable.shopifyId]]");
 
         $this->query->select([
             'shopify_products.shopifyId',
@@ -188,11 +189,11 @@ class ProductQuery extends ElementQuery
         ]);
 
         if (isset($this->shopifyId)) {
-            $this->subQuery->andWhere(['shopify_products.shopifyId' => $this->shopifyId]);
+            $this->subQuery->andWhere(['shopify_productdata.shopifyId' => $this->shopifyId]);
         }
 
         if (isset($this->productType)) {
-            $this->query->andWhere(['shopify_productdata.productType' => $this->productType]);
+            $this->subQuery->andWhere(['shopify_productdata.productType' => $this->productType]);
         }
 
         return parent::beforePrepare();
