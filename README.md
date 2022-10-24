@@ -2,6 +2,12 @@
 
 <h1 align="center">Shopify for Craft CMS</h1>
 
+## About
+
+The Shopify plugin for Craft CMS allows you to connect your Craft CMS site to your Shopify store.
+
+The plugin syncs all your Shopify stores products to Craft, and keeps them updated.
+
 ## Requirements
 
 This plugin requires Craft CMS 4.0.0 or later.
@@ -93,9 +99,9 @@ the following fields which maps to the [Shopify Produce resource](https://shopif
 
 ## Product Status
 
-Shopify Products have a status of either 'active', 'draft', or 'archived'. This can only be updated from the Shopify CP.
+Products have a `shopifyStatus` property that contains either 'active', 'draft', or 'archived'. This can only be updated from the Shopify CP.
 
-Product elements have a status of either 'live', 'pending', or 'disabled'.
+Products have a status of either 'live', 'pending', or 'disabled'.
 
 - `live` - The product is `active` in your Shopify store and `enabled` in the Product edit page.
 - `pending` - The product is `draft` or `archived` in your Shopify store and `enabled` in the Product edit page.
