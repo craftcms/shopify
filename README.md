@@ -63,6 +63,14 @@ Product Element
 The Product element type represents a product in your Shopify store.
 All products are created, updated, and deleted via the Shopify control panel, and are reflected in Craft.
 
+## Syncing Products
+
+Products will be created, updated, and deleted automatically via the webhooks.
+
+If you want to sync all Products you can do so by running the following console command:
+
+    php craft shopify/sync/product
+
 ## Fields
 
 In addition to the standard element fields like `id`, `title` and `status` the shopify product element will contain

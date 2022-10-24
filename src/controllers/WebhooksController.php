@@ -16,7 +16,7 @@ use Shopify\Rest\Admin2022_04\Webhook;
 use Shopify\Webhooks\Registry;
 use Shopify\Webhooks\Topics;
 use yii\web\MethodNotAllowedHttpException;
-use yii\web\Response;
+use yii\web\Response as YiiResponse;
 
 /**
  * The WebhooksController to manage the Shopify webhooks.
@@ -29,9 +29,9 @@ class WebhooksController extends Controller
     /**
      * Edit page for the webhook management
      *
-     * @return Response
+     * @return YiiResponse
      */
-    public function actionEdit(): Response
+    public function actionEdit(): YiiResponse
     {
         $view = $this->getView();
         $view->registerAssetBundle(AdminTableAsset::class);
@@ -40,11 +40,7 @@ class WebhooksController extends Controller
             throw new MethodNotAllowedHttpException('No Shopify API session found, check credentials in settings.');
         }
 
-        $webhooks = Webhook::all(
-            $session, // Session
-            [], // Url Ids
-            [], // Params
-        );
+        $webhooks = Webhook::all($session);
 
         return $this->renderTemplate('shopify/webhooks/index', compact('webhooks'));
     }
@@ -52,8 +48,9 @@ class WebhooksController extends Controller
     /**
      * Creates the webhooks for the current environment.
      *
+     * @return YiiResponse
      */
-    public function actionCreate(): Response
+    public function actionCreate(): YiiResponse
     {
         $this->requirePostRequest();
 
@@ -95,9 +92,11 @@ class WebhooksController extends Controller
     }
 
     /**
-     * @return Response
+     * Deletes a webhook from the Shopify API.
+     *
+     * @return YiiResponse
      */
-    public function actionDelete(): Response
+    public function actionDelete(): YiiResponse
     {
         $this->requireAcceptsJson();
         $id = Craft::$app->getRequest()->getBodyParam('id');

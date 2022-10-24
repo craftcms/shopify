@@ -107,7 +107,7 @@ class Plugin extends BasePlugin
             }
         }
 
-        // Globally register shopify webhooks registery event handlers
+        // Globally register shopify webhooks registry event handlers
         Registry::addHandler(Topics::PRODUCTS_CREATE, new ProductHandler());
         Registry::addHandler(Topics::PRODUCTS_DELETE, new ProductHandler());
         Registry::addHandler(Topics::PRODUCTS_UPDATE, new ProductHandler());

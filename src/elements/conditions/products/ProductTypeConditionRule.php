@@ -26,7 +26,13 @@ class ProductTypeConditionRule extends BaseMultiSelectConditionRule implements E
      */
     protected function options(): array
     {
-        return collect(ProductData::find()->select('type')->distinct()->column())->map(function($type) {
+        $values = ProductData::find()->select('productType')->distinct()->column();
+        // If we have current values, make sure they're in the list
+        if ($this->values) {
+            $values = array_merge($values, $this->values);
+        }
+
+        return collect($values)->unique()->map(function($type) {
             return ['value' => $type, 'label' => StringHelper::titleize($type)];
         })->all();
     }

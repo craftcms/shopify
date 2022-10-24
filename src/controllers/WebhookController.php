@@ -12,7 +12,7 @@ use craft\shopify\Plugin;
 use craft\web\Controller;
 use Shopify\Webhooks\Registry;
 use yii\web\MethodNotAllowedHttpException;
-use yii\web\Response;
+use yii\web\Response as YiiResponse;
 
 /**
  * The WebhookController handles the Shopify webhook request.
@@ -29,8 +29,9 @@ class WebhookController extends Controller
     /**
      * Handles the webhooks from Shopify for all topics
      *
+     * @return YiiResponse
      */
-    public function actionHandle(): Response
+    public function actionHandle(): YiiResponse
     {
         $request = Craft::$app->getRequest();
 

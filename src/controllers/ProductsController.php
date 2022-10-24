@@ -16,7 +16,7 @@ use craft\shopify\Plugin;
 use yii\web\Response;
 
 /**
- * The ProductsController handles listing and showing Shopify products elments.
+ * The ProductsController handles listing and showing Shopify products elements.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 3.0
@@ -41,6 +41,7 @@ class ProductsController extends \craft\web\Controller
     /**
      * Syncs all products
      *
+     * @return Response
      */
     public function actionSync(): Response
     {
@@ -49,6 +50,8 @@ class ProductsController extends \craft\web\Controller
     }
 
     /**
+     * Renders the card HTML.
+     *
      * @return string
      */
     public function actionRenderCardHtml(): string
