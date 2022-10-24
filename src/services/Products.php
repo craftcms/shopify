@@ -4,6 +4,7 @@ namespace craft\shopify\services;
 
 use Craft;
 use craft\base\Component;
+use craft\elements\Entry;
 use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
@@ -101,6 +102,17 @@ class Products extends Component
                 $productData->delete();
             }
         }
+    }
+
+    /**
+     * Gets a Product element ID from a shopify ID.
+     *
+     * @param $id
+     * @return int
+     */
+    public function getProductIdByShopifyId($id): int
+    {
+        return Product::find()->shopifyId($id)->one()->id;
     }
 
     /**
