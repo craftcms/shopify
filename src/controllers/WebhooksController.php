@@ -47,7 +47,6 @@ class WebhooksController extends Controller
         );
 
         return $this->renderTemplate('shopify/webhooks/index', compact('webhooks'));
-
     }
 
     /**
@@ -93,7 +92,6 @@ class WebhooksController extends Controller
 
         $this->setSuccessFlash(Craft::t('app', 'Webhooks registered.'));
         return $this->redirectToPostedUrl();
-
     }
 
     /**

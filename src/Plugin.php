@@ -144,7 +144,7 @@ class Plugin extends BasePlugin
      */
     private function _registerElementTypes(): void
     {
-        Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, static function (RegisterComponentTypesEvent $e) {
+        Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, static function(RegisterComponentTypesEvent $e) {
             $e->types[] = Product::class;
         });
     }
@@ -156,7 +156,7 @@ class Plugin extends BasePlugin
      */
     private function _registerFieldTypes(): void
     {
-        Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, static function (RegisterComponentTypesEvent $event) {
+        Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, static function(RegisterComponentTypesEvent $event) {
             $event->types[] = ProductsField::class;
         });
     }
@@ -168,7 +168,7 @@ class Plugin extends BasePlugin
      */
     private function _registerVariables(): void
     {
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, static function (Event $event) {
+        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, static function(Event $event) {
             $variable = $event->sender;
             $variable->attachBehavior('shopify', CraftVariableBehavior::class);
         });
@@ -181,7 +181,7 @@ class Plugin extends BasePlugin
      */
     private function _registerCpRoutes(): void
     {
-        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function (RegisterUrlRulesEvent $event) {
+        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $session = Plugin::getInstance()->getApi()->getSession();
             $event->rules['shopify'] = ['template' => 'shopify/_index', 'variables' => ['hasSession' => (bool)$session]];
 
@@ -200,7 +200,7 @@ class Plugin extends BasePlugin
      */
     private function _registerSiteRoutes(): void
     {
-        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function (RegisterUrlRulesEvent $event) {
+        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $event->rules['shopify/webhook/handle'] = 'shopify/webhook/handle';
         });
     }
