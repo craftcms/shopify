@@ -22,6 +22,7 @@ class ProductCondition extends ElementCondition
             ShopifyStatusConditionRule::class,
             VendorConditionRule::class,
             HandleConditionRule::class,
+            TagsConditionRule::class,
         ]);
     }
 }
