@@ -11,7 +11,6 @@ use Shopify\Auth\FileSessionStorage;
 use Shopify\Auth\Session;
 use Shopify\Clients\Rest;
 use Shopify\Context;
-use Shopify\Rest\Admin2022_04\Product as ShopifyProduct;
 
 /**
  * Shopify API service.
@@ -39,7 +38,6 @@ class Api extends Component
      */
     public function getAllProducts(): array
     {
-        $products = ShopifyProduct::all($this->getSession(), [], ['limit' => 250]);
         $session = $this->getSession();
         $client = new Rest($session->getShop(), $session->getAccessToken());
         $response = $client->get('products');
@@ -52,7 +50,6 @@ class Api extends Component
      */
     public function getProductByShopifyId($id): array
     {
-        $products = ShopifyProduct::all($this->getSession(), [], ['limit' => 250]);
         $session = $this->getSession();
         $client = new Rest($session->getShop(), $session->getAccessToken());
         $response = $client->get('product/' . $id);

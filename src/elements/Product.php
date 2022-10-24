@@ -25,6 +25,8 @@ use craft\shopify\records\Product as ProductRecord;
 use craft\shopify\web\assets\shopifycp\ShopifyCpAsset;
 use craft\web\CpScreenResponseBehavior;
 use DateTime;
+use Exception;
+use yii\base\InvalidConfigException;
 use yii\web\Response;
 
 /**
@@ -152,10 +154,10 @@ class Product extends Element
      * @param array|string $tags
      * @return void
      */
-    public function setTags(array|string $tags)
+    public function setTags(array|string $tags): void
     {
         if (is_string($tags)) {
-            $tags = StringHelper::split($tags, ',');
+            $tags = StringHelper::split($tags);
         }
 
         $this->tags = $tags;
@@ -356,8 +358,7 @@ class Product extends Element
      */
     public function getUriFormat(): ?string
     {
-        $uriFormat = (string)Plugin::getInstance()->getSettings()->uriFormat;
-        return $uriFormat;
+        return Plugin::getInstance()->getSettings()->uriFormat;
     }
 
     /**
@@ -387,10 +388,10 @@ class Product extends Element
 
         $settings = Plugin::getInstance()->getSettings();
 
-        if ($url = $settings->uriFormat) {
+        if ($settings->uriFormat) {
             return [
                 'templates/render', [
-                    'template' => (string)$settings->template,
+                    'template' => $settings->template,
                     'variables' => [
                         'product' => $this,
                     ],
@@ -425,6 +426,7 @@ class Product extends Element
     /**
      * @inheritdoc
      * @return ProductCondition
+     * @throws InvalidConfigException
      */
     public static function createCondition(): ElementConditionInterface
     {
@@ -432,7 +434,7 @@ class Product extends Element
     }
 
     /**
-     * @return string
+     * @inheritDoc
      */
     protected function metaFieldsHtml(bool $static): string
     {
@@ -445,7 +447,7 @@ class Product extends Element
      */
     public function getFieldLayout(): ?FieldLayout
     {
-        return \Craft::$app->fields->getLayoutByType(Product::class);
+        return Craft::$app->fields->getLayoutByType(Product::class);
     }
 
     /**
@@ -461,6 +463,7 @@ class Product extends Element
      */
     public function getSidebarHtml(bool $static): string
     {
+        /** @noinspection PhpUnhandledExceptionInspection */
         Craft::$app->getView()->registerAssetBundle(ShopifyCpAsset::class);
         $productCard = ProductHelper::renderCardHtml($this);
         return $productCard . parent::getSidebarHtml($static);
@@ -485,6 +488,7 @@ class Product extends Element
     /**
      * @param bool $isNew
      * @return void
+     * @throws Exception
      */
     public function afterSave(bool $isNew): void
     {
@@ -492,7 +496,7 @@ class Product extends Element
             $record = ProductRecord::findOne($this->id);
 
             if (!$record) {
-                throw new \Exception('Invalid product ID: ' . $this->id);
+                throw new Exception('Invalid product ID: ' . $this->id);
             }
         } else {
             $record = new ProductRecord();
@@ -501,7 +505,7 @@ class Product extends Element
 
         $record->shopifyId = $this->shopifyId;
 
-        // We want to always have the same date as the element table, based on the logic for updating these in the element service i.e resaving
+        // We want to always have the same date as the element table, based on the logic for updating these in the element service i.e re-saving
         $record->dateUpdated = $this->dateUpdated;
         $record->dateCreated = $this->dateCreated;
 
@@ -578,7 +582,7 @@ class Product extends Element
     /**
      * @param string $attribute
      * @return string
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     protected function tableAttributeHtml(string $attribute): string
     {

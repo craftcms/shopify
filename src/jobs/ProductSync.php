@@ -25,6 +25,6 @@ class ProductSync extends BaseJob
      */
     protected function defaultDescription(): string
     {
-        return \Craft::t('app', 'Syncing all Shopify Products');
+        return Craft::t('app', 'Syncing all Shopify Products');
     }
 }

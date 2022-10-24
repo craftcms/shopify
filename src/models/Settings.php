@@ -48,7 +48,7 @@ class Settings extends Model
      * @param mixed $fieldLayout
      * @return void
      */
-    public function setProductFieldLayout(mixed $fieldLayout)
+    public function setProductFieldLayout(mixed $fieldLayout): void
     {
         $this->_productFieldLayout = $fieldLayout;
     }

@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpClassConstantAccessedViaChildClassInspection */
+
 /**
  * @link https://craftcms.com/
  * @copyright Copyright (c) Pixel & Tonic, Inc.
@@ -39,13 +40,13 @@ class Product
         $subTitle = Html::tag('p', $product->productType, [
             'class' => 'pec-subtitle',
         ]);
-        $extenalLink = Html::tag('div', '&nbsp;', [
+        $externalLink = Html::tag('div', '&nbsp;', [
             'class' => 'pec-external-icon',
             'data' => [
                 'icon' => 'external',
             ],
         ]);
-        $cardHeader = Html::a($title . $subTitle . $extenalLink, $product->getShopifyEditUrl(), [
+        $cardHeader = Html::a($title . $subTitle . $externalLink, $product->getShopifyEditUrl(), [
             'style' => '',
             'class' => 'pec-header',
             'target' => '_blank',

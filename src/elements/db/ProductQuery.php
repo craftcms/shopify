@@ -20,7 +20,7 @@ class ProductQuery extends ElementQuery
 
     public ?string $shopifyStatus = null;
     public ?string $handle = null;
-    public ?string $productType = null;
+    public mixed $productType = null;
     public ?string $bodyHtml = null;
     public ?string $createdAt = null;
     public ?string $publishedAt = null;
@@ -53,7 +53,7 @@ class ProductQuery extends ElementQuery
     /**
      * Narrows the query results based on the Shopify product type
      */
-    public function productType($value): self
+    public function productType(mixed $value): self
     {
         $this->productType = $value;
         return $this;
@@ -156,8 +156,6 @@ class ProductQuery extends ElementQuery
      */
     protected function beforePrepare(): bool
     {
-        $shopifyId = $this->shopifyId;
-
         if ($this->shopifyId === []) {
             return false;
         }

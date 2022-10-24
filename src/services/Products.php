@@ -24,7 +24,7 @@ class Products extends Component
      * @throws \Throwable
      * @throws \yii\base\InvalidConfigException
      */
-    public function syncAllProducts()
+    public function syncAllProducts(): void
     {
         // TODO: move this to a queue and add pagination
         $allData = Plugin::getInstance()->getApi()->getAllProducts();
@@ -85,10 +85,10 @@ class Products extends Component
             if ($product = Product::find()->shopifyId($id)->one()) {
                 // We hard delete because it will have been hard deleted in Shopify
                 Craft::$app->getElements()->deleteElement($product, true);
-            };
+            }
             if ($productData = ProductDataRecord::find()->where(['id' => $id])->one()) {
                 $productData->delete();
-            };
+            }
         }
     }
 
