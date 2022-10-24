@@ -111,3 +111,32 @@ For example:
 
 `craft.shopifyProducts.status('pending').all()`
 
+# Migrating from version 2 of the plugin
+
+You can remove the old plugin from your composer.json but do not uninstall it.
+
+If you used the old product field, after upgrading you will see a 'missing field' in your field layouts.
+To migrate to a new field:
+
+1. Add the new 'Shopify Product' field to your field layout with a different field name. 
+2. Run the below command to resave the data from the old field to the new field.
+
+Note: Replace the section handle and field names with your own below
+
+`blog` should be entry section you used.
+`oldShopifyField` is the field handle from the previous version of the plugin
+`shopifyProductsRelatedField` is the new field handle for the standard product relation field 
+```
+php craft resave/entries --section=blog --set shopifyProductsRelatedField --to "fn(\$entry) => collect(json_decode(\$entry->oldShopifyField))->map(fn (\$item) => \craft\shopify\Plugin::getInstance()->getProducts()->getProductIdByShopifyId(\$item))->unique()->all()"
+```
+
+After making the data migration, you can access the new field in your templates like this:
+
+```
+{% set products = entry.shopifyProductsRelatedField.all() %}
+{% for product in products %}
+    {{ product.handle }}
+{% endfor %}
+```
+
+There is no longer the need to make an API call to Shopify to get the product data. The data is now stored in the Craft product element.
