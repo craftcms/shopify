@@ -9,6 +9,7 @@ namespace craft\shopify\elements\db;
 
 use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
+use craft\helpers\Db;
 use craft\shopify\elements\Product;
 
 class ProductQuery extends ElementQuery
@@ -18,19 +19,14 @@ class ProductQuery extends ElementQuery
      */
     public mixed $shopifyId = null;
 
-    public ?string $shopifyStatus = null;
-    public ?string $handle = null;
+    public mixed $shopifyStatus = null;
+    public mixed $handle = null;
     public mixed $productType = null;
-    public ?string $bodyHtml = null;
-    public ?string $createdAt = null;
-    public ?string $publishedAt = null;
-    public ?string $publishedScope = null;
-    public ?string $tags = null;
-    public ?string $templateSuffix = null;
-    public ?string $updatedAt = null;
-    public ?string $vendor = null;
-    public ?string $images = null;
-    public ?string $options = null;
+    public mixed $publishedScope = null;
+    public mixed $tags = null;
+    public mixed $vendor = null;
+    public mixed $images = null;
+    public mixed $options = null;
 
     /**
      * @inheritdoc
@@ -60,35 +56,34 @@ class ProductQuery extends ElementQuery
     }
 
     /**
+     * Narrows the query results based on the Shopify status
+     */
+    public function shopifyStatus(mixed $value): self
+    {
+        $this->shopifyStatus = $value;
+        return $this;
+    }
+
+    /**
+     * Narrows the query results based on the Shopify product handle
+     */
+    public function handle(mixed $value): self
+    {
+        $this->handle = $value;
+        return $this;
+    }
+
+    /**
+     * Narrows the query results based on the Shopify product vendor
+     */
+    public function vendor(mixed $value): self
+    {
+        $this->vendor = $value;
+        return $this;
+    }
+
+    /**
      * Narrows the query results based on the Shopify product ID
-     *
-     * Possible values include:
-     *
-     * | Value | Fetches {elements}…
-     * | - | -
-     * | `1` | of a type with an ID of 1.
-     * | `'not 1'` | not of a type with an ID of 1.
-     * | `[1, 2]` | of a type with an ID of 1 or 2.
-     * | `['not', 1, 2]` | not of a type with an ID of 1 or 2.
-     *
-     * ---
-     *
-     * ```twig
-     * {# Fetch {elements} of the product type with an ID of 1 #}
-     * {% set {elements-var} = {twig-method}
-     *   .shopifyId(54321)
-     *   .all() %}
-     * ```
-     *
-     * ```php
-     * // Fetch {elements} of the product type with an ID of 1
-     * ${elements-var} = {php-method}
-     *     ->shopifyId(54321)
-     *     ->all();
-     * ```
-     *
-     * @param mixed $value The property value
-     * @return static self reference
      */
     public function shopifyId(mixed $value): ProductQuery
     {
@@ -194,6 +189,18 @@ class ProductQuery extends ElementQuery
 
         if (isset($this->productType)) {
             $this->subQuery->andWhere(['shopify_productdata.productType' => $this->productType]);
+        }
+
+        if (isset($this->shopifyStatus)) {
+            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.shopifyStatus', $this->shopifyStatus));
+        }
+
+        if (isset($this->handle)) {
+            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.handle', $this->handle));
+        }
+
+        if (isset($this->vendor)) {
+            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.vendor', $this->vendor));
         }
 
         return parent::beforePrepare();

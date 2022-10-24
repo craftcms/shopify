@@ -19,6 +19,9 @@ class ProductCondition extends ElementCondition
     {
         return array_merge(parent::conditionRuleTypes(), [
             ProductTypeConditionRule::class,
+            ShopifyStatusConditionRule::class,
+            VendorConditionRule::class,
+            HandleConditionRule::class,
         ]);
     }
 }
