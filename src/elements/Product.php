@@ -365,7 +365,6 @@ class Product extends Element
      */
     public function prepareEditScreen(Response $response, string $containerId): void
     {
-
         $crumbs = [
             [
                 'label' => Craft::t('shopify', 'Products'),
@@ -591,7 +590,7 @@ class Product extends Element
             case 'shopifyId':
                 return $this->$attribute;
             case 'tags':
-                return collect($this->tags)->map(function ($tag) {
+                return collect($this->tags)->map(function($tag) {
                     return Html::tag('div', $tag, [
                         'style' => 'margin-bottom: 2px;',
                         'class' => 'token',

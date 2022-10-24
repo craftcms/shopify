@@ -11,7 +11,6 @@ use Craft;
 use craft\base\Model;
 use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
-use craft\shopify\fieldlayoutelements\ShopifyInformationField;
 
 /**
  * Shopify Settings model.

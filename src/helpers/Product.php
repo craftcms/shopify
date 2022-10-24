@@ -64,7 +64,7 @@ class Product
         // Options
         if (count($product->getOptions()) > 0) {
             $meta[Craft::t('shopify', 'Options')] =
-                collect($product->options)->map(function ($option) {
+                collect($product->options)->map(function($option) {
                     return Html::tag('span', $option['name'], [
                         'title' => $option['name'] . ' option values: ' . collect($option['values'])->join(', '),
                     ]);
@@ -73,7 +73,7 @@ class Product
 
         // Tags
         $meta[Craft::t('shopify', 'Tags')] =
-            collect($product->tags)->map(function ($tag) {
+            collect($product->tags)->map(function($tag) {
                 return Html::tag('span', $tag, [
                     'class' => 'token',
                 ]);
