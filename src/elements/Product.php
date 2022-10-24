@@ -382,9 +382,11 @@ class Product extends Element
      */
     public function previewTargets(): array
     {
-        return [[
-            'urlFormat' => Plugin::getInstance()->getSettings()->uriFormat,
-        ]];
+        if ($uriFormat = Plugin::getInstance()->getSettings()->uriFormat) {
+            return [[
+                'urlFormat' => $uriFormat,
+            ]];
+        }
     }
 
     /**
@@ -604,7 +606,7 @@ class Product extends Element
             case 'shopifyId':
                 return $this->$attribute;
             case 'tags':
-                return collect($this->tags)->map(function($tag) {
+                return collect($this->tags)->map(function ($tag) {
                     return Html::tag('div', $tag, [
                         'style' => 'margin-bottom: 2px;',
                         'class' => 'token',
