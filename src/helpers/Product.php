@@ -1,5 +1,4 @@
-<?php /** @noinspection PhpClassConstantAccessedViaChildClassInspection */
-
+<?php
 /**
  * @link https://craftcms.com/
  * @copyright Copyright (c) Pixel & Tonic, Inc.
