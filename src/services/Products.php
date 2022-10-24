@@ -28,7 +28,7 @@ class Products extends Component
     {
         // TODO: move this to a queue and add pagination
         $allData = Plugin::getInstance()->getApi()->getAllProducts();
-        ProductDataRecord::deleteAll(); // May as well clean this up since we are doing a complete sync.
+
         foreach ($allData as $data) {
             $this->createOrUpdateProduct($data);
         }
@@ -59,7 +59,7 @@ class Products extends Component
 
         // Find the product element or create one
         /** @var Product|null $productElement */
-        $productElement = Product::find()->shopifyId($shopifyProductData['shopifyId'])->one();
+        $productElement = Product::find()->shopifyId($shopifyProductData['shopifyId'])->status(null)->one();
 
         if ($productElement === null) {
             /** @var Product $productElement */
