@@ -9,7 +9,6 @@ use craft\elements\db\ElementQueryInterface;
 use craft\helpers\StringHelper;
 use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\elements\Product;
-use craft\shopify\records\ProductData;
 
 class ShopifyStatusConditionRule extends BaseMultiSelectConditionRule implements ElementConditionRuleInterface
 {

@@ -72,12 +72,15 @@ class Product
         }
 
         // Tags
-        $meta[Craft::t('shopify', 'Tags')] =
-            collect($product->tags)->map(function($tag) {
+        if (count($product->tags) > 0) {
+            $tags = collect($product->tags)->map(function($tag) {
                 return Html::tag('span', $tag, [
                     'class' => 'token',
                 ]);
             })->join('&nbsp;');
+
+            $meta[Craft::t('shopify', 'Tags')] = Html::tag('div', $tags);
+        }
 
         // Variants
         if (count($product->getVariants()) > 0) {
