@@ -4,7 +4,6 @@ namespace craft\shopify\services;
 
 use Craft;
 use craft\base\Component;
-use craft\elements\Entry;
 use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
@@ -80,7 +79,7 @@ class Products extends Component
 
         $productElement->setAttributes($shopifyProductData, false);
 
-        Craft::$app->getElements()->saveElement($productElement, false);
+        Craft::$app->getElements()->saveElement($productElement);
 
         return $productElement;
     }
