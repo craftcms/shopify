@@ -42,6 +42,17 @@ class Products extends Component
     }
 
     /**
+     * @return void
+     * @throws \Throwable
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function syncProductByShopifyId($id): void
+    {
+        $data = Plugin::getInstance()->getApi()->getProductByShopifyId($id);
+        $this->createOrUpdateProduct($data);
+    }
+
+    /**
      * This takes the shopify data from the REST API and creates or updates a product element.
      *
      * @param array $shopifyProductData

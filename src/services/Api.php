@@ -41,8 +41,28 @@ class Api extends Component
         $session = $this->getSession();
         $client = new Rest($session->getShop(), $session->getAccessToken());
         $response = $client->get('products');
+        $products = [];
+        $this->_getProductsFromResponse($response, $products);
 
-        return $response->getDecodedBody()['products'];
+        return $products;
+    }
+
+    /**
+     * Loops through all pages of the response to get all products
+     *
+     * @param $response
+     * @param $products
+     */
+    private function _getProductsFromResponse($response, &$products)
+    {
+        $session = $this->getSession();
+        $client = new Rest($session->getShop(), $session->getAccessToken());
+        $products = array_merge($products, $response->getDecodedBody()['products'] ?? []);
+        $pageInfo = $response->getPageInfo();
+        if ($pageInfo && $pageInfo->hasNextPage()) {
+            $response = $client->get('products', [], $pageInfo->getNextPageQuery());
+            $this->_getProductsFromResponse($response, $products);
+        }
     }
 
     /**

@@ -6,7 +6,6 @@ use craft\base\conditions\BaseTextConditionRule;
 use craft\base\ElementInterface;
 use craft\elements\conditions\ElementConditionRuleInterface;
 use craft\elements\db\ElementQueryInterface;
-use craft\helpers\StringHelper;
 use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\elements\Product;
 
