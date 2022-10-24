@@ -83,6 +83,15 @@ class ProductQuery extends ElementQuery
     }
 
     /**
+     * Narrows the query results based on the Shopify product tags
+     */
+    public function tags(mixed $value): self
+    {
+        $this->tags = $value;
+        return $this;
+    }
+
+    /**
      * Narrows the query results based on the Shopify product ID
      */
     public function shopifyId(mixed $value): ProductQuery
@@ -201,6 +210,10 @@ class ProductQuery extends ElementQuery
 
         if (isset($this->vendor)) {
             $this->subQuery->andWhere(Db::parseParam('shopify_productdata.vendor', $this->vendor));
+        }
+
+        if (isset($this->tags)) {
+            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.tags', $this->tags));
         }
 
         return parent::beforePrepare();
