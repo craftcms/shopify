@@ -75,7 +75,7 @@ Products will be created, updated, and deleted automatically via the webhooks.
 
 If you want to sync all Products you can do so by running the following console command:
 
-    php craft shopify/sync/product
+    php craft shopify/sync/products
 
 ## Fields
 
