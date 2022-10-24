@@ -1,11 +1,8 @@
-# Shopify Changelog
+# Release Notes for Shopify
 
-All notable changes to this project will be documented in this file.
+## 3.0.0
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
-
-## 0.0.1 - 2021-12-17
-
-### Added
-
-- Initial release
+### Changed
+- Webhooks now keep product information syncronized between Shopify and Craft.
+- The Shopify product element relation field replaces the previous product field.
+- Shopify API version is now `2020-10`
