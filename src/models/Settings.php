@@ -9,10 +9,7 @@ namespace craft\shopify\models;
 
 use Craft;
 use craft\base\Model;
-use craft\helpers\ArrayHelper;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
-use craft\models\FieldLayoutTab;
 use craft\shopify\elements\Product;
 use craft\shopify\fieldlayoutelements\ShopifyInformationField;
 

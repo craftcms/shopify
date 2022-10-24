@@ -8,7 +8,6 @@
 namespace craft\shopify\fields;
 
 use Craft;
-use craft\base\ElementInterface;
 use craft\fields\BaseRelationField;
 use craft\shopify\elements\Product;
 

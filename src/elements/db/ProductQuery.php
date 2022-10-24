@@ -156,11 +156,6 @@ class ProductQuery extends ElementQuery
      */
     protected function beforePrepare(): bool
     {
-        // Default status
-        if (!isset($config['status'])) {
-            $config['status'] = 'live';
-        }
-
         $shopifyId = $this->shopifyId;
 
         if ($this->shopifyId === []) {

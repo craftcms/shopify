@@ -12,7 +12,6 @@ use craft\shopify\elements\Product;
 use craft\shopify\models\Settings;
 use craft\shopify\Plugin;
 use craft\web\Controller;
-use Shopify\Rest\Admin2022_04\Webhook;
 use yii\web\NotFoundHttpException;
 
 /**
