@@ -26,7 +26,7 @@ class Api extends Component
     /**
      * @var string
      */
-    public const SHOPIFY_API_VERSION = '2022-10';
+    public const SHOPIFY_API_VERSION = '2022-04';
 
     /**
      * @var Session|null
