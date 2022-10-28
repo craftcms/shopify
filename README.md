@@ -101,11 +101,12 @@ the following fields which maps to the [Shopify Produce resource](https://shopif
 
 Products have a `shopifyStatus` property that contains either 'active', 'draft', or 'archived'. This can only be updated from the Shopify CP.
 
-Products have a status of either 'live', 'pending', or 'disabled'.
+Products have a status of either 'live', 'shopifyDraft', 'shopifyArchived', or 'disabled'.
 
 - `live` - The product is `active` in your Shopify store and `enabled` in the Product edit page.
-- `pending` - The product is `draft` or `archived` in your Shopify store and `enabled` in the Product edit page.
-- `disabled` - The product is any status in your Shopify store but `disabled` on the Product edit page.
+- `shopifyDraft` - The product is `draft` in your Shopify store and `enabled` in the Product edit page.
+- `shopifyArchived` - The product is `archived` in your Shopify store and `enabled` in the Product edit page.
+- `disabled` - The product is *any* status in your Shopify store but `disabled` on the Product edit page.
 
 ## Product Element Queries
 
@@ -115,7 +116,7 @@ For example:
 
 `craft.shopifyProducts.limit(10).all()`
 
-`craft.shopifyProducts.status('pending').all()`
+`craft.shopifyProducts.status('shopifyDraft').all()`
 
 # Migrating from version 2 of the plugin
 
