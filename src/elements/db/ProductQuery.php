@@ -107,10 +107,11 @@ class ProductQuery extends ElementQuery
      *
      * | Value | Fetches {elements}…
      * | - | -
-     * | `'live'` _(default)_ | that are live (enabled with an Active shopify Status).
-     * | `'pending'` | that are pending (enabled with non Active shopify Status).
+     * | `'live'` _(default)_ | that are live (enabled in Craft, with an Active shopify Status).
+     * | `'shopifyDraft'` | that are enabled with a Draft shopify Status.
+     * | `'shopifyArchived'` | that are enabled, with an Archived shopify Status.
      * | `'disabled'` | that are disabled in Craft (Regardless of Shopify Status).
-     * | `['live', 'pending']` | that are live or pending.
+     * | `['live', 'shopifyDraft']` | that are live or shopify draft.
      *
      * ---
      *
@@ -139,19 +140,26 @@ class ProductQuery extends ElementQuery
      */
     protected function statusCondition(string $status): mixed
     {
-        return match ($status) {
-            Product::STATUS_LIVE => [
+        $res = match ($status) {
+            strtolower(Product::STATUS_LIVE) => [
                 'elements.enabled' => true,
                 'elements_sites.enabled' => true,
                 'shopify_productdata.shopifyStatus' => 'active',
             ],
-            Product::STATUS_PENDING => [
+            strtolower(Product::STATUS_SHOPIFY_DRAFT) => [
                 'elements.enabled' => true,
                 'elements_sites.enabled' => true,
-                'shopify_productdata.shopifyStatus' => ['draft', 'archived'],
+                'shopify_productdata.shopifyStatus' => 'draft',
+            ],
+            strtolower(Product::STATUS_SHOPIFY_ARCHIVED) => [
+                'elements.enabled' => true,
+                'elements_sites.enabled' => true,
+                'shopify_productdata.shopifyStatus' => 'archived',
             ],
             default => parent::statusCondition($status),
         };
+
+        return $res;
     }
 
     /**

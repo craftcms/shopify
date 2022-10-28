@@ -41,10 +41,17 @@ class Product extends Element
     // -------------------------------------------------------------------------
 
     /**
+     * Craft Statuses
      * @since 3.0
      */
     public const STATUS_LIVE = 'live';
-    public const STATUS_PENDING = 'pending';
+    public const STATUS_SHOPIFY_DRAFT = 'shopifyDraft';
+    public const STATUS_SHOPIFY_ARCHIVED = 'shopifyArchived';
+
+    /**
+     * Shopify Statuses
+     * @since 3.0
+     */
     public const SHOPIFY_STATUS_ACTIVE = 'active';
     public const SHOPIFY_STATUS_DRAFT = 'draft';
     public const SHOPIFY_STATUS_ARCHIVED = 'archived';
@@ -134,17 +141,24 @@ class Product extends Element
     {
         return [
             self::STATUS_LIVE => Craft::t('commerce', 'Live'),
-            self::STATUS_PENDING => Craft::t('commerce', 'Pending'),
-            self::STATUS_DISABLED => Craft::t('commerce', 'Disabled'),
+            self::STATUS_SHOPIFY_DRAFT => ['label' => Craft::t('shopify', 'Draft in Shopify'), 'color' => 'orange'],
+            self::STATUS_SHOPIFY_ARCHIVED => ['label' => Craft::t('shopify', 'Archived in Shopify'), 'color' => 'red'],
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getStatus(): ?string
     {
         $status = parent::getStatus();
 
         if ($status === self::STATUS_ENABLED) {
-            return $this->shopifyStatus === self::SHOPIFY_STATUS_ACTIVE ? self::STATUS_LIVE : self::STATUS_PENDING;
+            return match ($this->shopifyStatus) {
+                self::SHOPIFY_STATUS_ACTIVE => self::STATUS_LIVE,
+                self::SHOPIFY_STATUS_DRAFT => self::STATUS_SHOPIFY_DRAFT,
+                self::SHOPIFY_STATUS_ARCHIVED => self::STATUS_SHOPIFY_ARCHIVED,
+            };
         }
 
         return $status;
