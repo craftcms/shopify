@@ -623,13 +623,13 @@ class Product extends Element
             case 'shopifyId':
                 return $this->$attribute;
             case 'options':
-                return collect($this->getOptions())->map(function ($option) {
+                return collect($this->getOptions())->map(function($option) {
                     return Html::tag('span', $option['name'], [
                         'title' => $option['name'] . ' option values: ' . collect($option['values'])->join(', '),
                     ]);
                 })->join(',&nbsp;');
             case 'tags':
-                return collect($this->getTags())->map(function ($tag) {
+                return collect($this->getTags())->map(function($tag) {
                     return Html::tag('div', $tag, [
                         'style' => 'margin-bottom: 2px;',
                         'class' => 'token',

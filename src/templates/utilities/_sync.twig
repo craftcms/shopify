@@ -1,0 +1,10 @@
+<h2>{{ "Shopify Sync"|t('shopify') }}</h2>
+<form method="POST">
+    {{ actionInput('') }}
+    {{ csrfInput() }}
+    <a class="btn submit formsubmit" data-icon="refresh"
+       data-action="shopify/products/sync"
+       data-confirm="{{ 'Are you sure you want run a complete sync of all products?'|t('shopify') }}">
+        {{ 'Sync all Products'|t('shopify') }}
+    </a>
+</form>

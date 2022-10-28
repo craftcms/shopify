@@ -77,6 +77,8 @@ If you want to sync all Products you can do so by running the following console 
 
     php craft shopify/sync/products
 
+You can also sync all products using the "Shopify Sync" utilty in the control panel.
+
 ## Fields
 
 In addition to the standard element fields like `id`, `title` and `status` the shopify product element will contain

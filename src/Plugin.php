@@ -18,12 +18,14 @@ use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\services\Fields;
+use craft\services\Utilities;
 use craft\shopify\elements\Product;
 use craft\shopify\fields\Products as ProductsField;
 use craft\shopify\handlers\Product as ProductHandler;
 use craft\shopify\models\Settings;
 use craft\shopify\services\Api;
 use craft\shopify\services\Products;
+use craft\shopify\utilities\Sync;
 use craft\shopify\web\twig\CraftVariableBehavior;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
@@ -96,6 +98,7 @@ class Plugin extends BasePlugin
         $request = Craft::$app->getRequest();
 
         $this->_registerElementTypes();
+        $this->_registerUtilityTypes();
         $this->_registerFieldTypes();
         $this->_registerVariables();
 
@@ -135,6 +138,22 @@ class Plugin extends BasePlugin
     public function getProducts(): Products
     {
         return $this->get('products');
+    }
+
+    /**
+     * Registers the utilities.
+     *
+     * @since 3.0
+     */
+    private function _registerUtilityTypes(): void
+    {
+        Event::on(
+            Utilities::class,
+            Utilities::EVENT_REGISTER_UTILITY_TYPES,
+            function(RegisterComponentTypesEvent $event) {
+                $event->types[] = Sync::class;
+            }
+        );
     }
 
     /**

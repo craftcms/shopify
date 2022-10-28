@@ -11,16 +11,3 @@
            target="_blank">{{ 'New Product'|t('shopify') }}</a>
     {% endif %}
 {% endblock %}
-
-{% block sidebar %}
-    {{ parent() }}
-    <form method="POST">
-        {{ actionInput('') }}
-        {{ csrfInput() }}
-        <a class="btn small formsubmit" data-icon="refresh"
-           data-action="shopify/products/sync"
-           data-confirm="{{ 'Are you sure you want run a complete sync of all products?'|t('shopify') }}">
-            {{ 'Sync All'|t('shopify') }}
-        </a>
-    </form>
-{% endblock %}
