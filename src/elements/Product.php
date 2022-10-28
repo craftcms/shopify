@@ -387,6 +387,8 @@ class Product extends Element
                 'urlFormat' => $uriFormat,
             ]];
         }
+
+        return [];
     }
 
     /**
