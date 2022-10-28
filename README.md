@@ -44,7 +44,7 @@ Select the following scopes:
 `read_product_listings`
 
 Select the webhooks events version:
-`2022-10 (Latest)`
+`2022-04`
 
 7. Click 'Save' on Admin API integration you just configured.
 8. Click the `API credentials` tab.
