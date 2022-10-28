@@ -143,6 +143,7 @@ class Product extends Element
             self::STATUS_LIVE => Craft::t('commerce', 'Live'),
             self::STATUS_SHOPIFY_DRAFT => ['label' => Craft::t('shopify', 'Draft in Shopify'), 'color' => 'orange'],
             self::STATUS_SHOPIFY_ARCHIVED => ['label' => Craft::t('shopify', 'Archived in Shopify'), 'color' => 'red'],
+            self::STATUS_DISABLED => Craft::t('app', 'Disabled'),
         ];
     }
 
