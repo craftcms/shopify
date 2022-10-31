@@ -69,7 +69,7 @@ SHOPIFY_HOSTNAME="my-storefront.myshopify.com"
 
 Now that you have credentials for your custom app, it’s time to add them to Craft.
 
-1. Visit **Shopify** &rarr; **Settings** screen in your project’s control panel.
+1. Visit the **Shopify** &rarr; **Settings** screen in your project’s control panel.
 2. Assign the four environment variables to the corresponding settings, using the special [config syntax](https://craftcms.com/docs/4.x/config/#control-panel-settings):
     - **API Key**: `$SHOPIFY_API_KEY`
     - **API Secret Key**: `$SHOPIFY_API_SECRET_KEY`
