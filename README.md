@@ -4,9 +4,9 @@
 
 ## About
 
-The Shopify plugin for Craft CMS allows you to connect your Craft CMS site to your Shopify store.
+Connect your [Craft CMS](https://craftcms.com/) site to a Shopify store.
 
-The plugin syncs all your Shopify stores products to Craft, and keeps them updated.
+The Shopify plugin syncs all your Shopify products into Craft, and keeps them updated.
 
 ## Requirements
 
@@ -16,115 +16,223 @@ This plugin requires Craft CMS 4.0.0 or later.
 
 To install the plugin, follow these instructions.
 
-1.  Open your terminal and go to your Craft project:
+1. Open your terminal and go to your Craft project:
 
-        cd /path/to/project
+    ```bash
+    cd /path/to/project
+    ```
 
-2.  Then tell Composer to load the plugin:
+2. Then require the Composer package:
 
-        composer require craftcms/shopify
+    ```bash
+    composer require craftcms/shopify -W
+    ```
 
-3.  In the Control Panel, go to Settings → Plugins and click the “Install” button for Shopify.
+3. In the Control Panel, go to Settings → Plugins and click the “Install” button for Shopify, or run:
 
-### Setup API Keys and connect your Craft Shopify plugin to the store
+    ```bash
+    php craft plugin/install shopify
+    ```
 
-1. Log into your Shopify store.
-2. Click 'Apps' in the sidebar.
-3. Click the 'Develop apps for your store' button under "Build custom apps for your unique needs".
-4. Click "Create an app"
-5. Name the app something like 'Craft CMS Shopify Plugin'
-6. Click 'Creat app'
-7. Click the 'Configuration' tab
-6. Click "Configure" in the 'Admin API integration' box.
+### Create a Shopify App
 
-Select the following scopes:
-`read_products`
-`read_product_listings`
-`write_product_listings`
-`read_product_listings`
+The plugin works with Shopify’s [Custom Apps](https://help.shopify.com/en/manual/apps/custom-apps) system.
 
-Select the webhooks events version:
-`2022-04`
+> If you are not the owner of the Shopify store, have the owner add you as a collaborator or staff member with the [_Develop Apps_ permission](https://help.shopify.com/en/manual/apps/custom-apps#api-scope-permissions-for-custom-apps).
 
-7. Click 'Save' on Admin API integration you just configured.
-8. Click the `API credentials` tab.
-9. Click install app to add the custom app you just created to your store
-10. Click `Install app`
-11. Copy the Access Token (you only have one chance to do this) to your settings (or save to your .env file so your settings can reference it).
-12. Copy the API Key to your settings (or to your save .env file so your settings can reference it).
-12. Copy the Secret Key to your settings (or to your save .env file so your settings can reference it).
+Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-apps) for creating a private app (through the _Get the API credentials for a custom app_ section), and provide these details when asked:
 
-13. Enter the above Access Token, API Key, and Secret Key into the plugin settings.
-14. Enter the Shopify store URL into the plugin settings in the format: `xxxxx.myshopify.com` (No `http://` or `https://`)
-15. Save the shopify plugin settings. The webhooks nav option will now be available.
-16. Click on Shopify 'webhooks' in the CP sidebar.
-17. Click generate to create the webhooks for the current environment. 
+1. **App Name**: Choose something that identifies the integration, like “Craft CMS.”
+2. **Admin API access scopes**: The following scopes are required for the plugin to function correctly:
+    - `read_products`
+    - `write_product_listings`
+    - `read_product_listings`
 
-Webhooks
-While in development we recommend using the [ngrok](https://ngrok.com/) tool to create a tunnel to your local development environment. This will allow Shopify to send webhooks to your local environment.
-Once you are in production you will need to generate the webhooks for that environment and can delete your ngrok if you want.
+    Additionally (at the bottom of this screen), the **Webhook subscriptions** &rarr; **Event version** should be `2022-04`.
+3. **Admin API access token**: Reveal and copy this value into your `.env` file, as `SHOPIFY_ADMIN_ACCESS_TOKEN`.
+4. **API key and secret key**: Reveal and/or copy the **API key** and **API secret key** into your `.env` under `SHOPIFY_API_KEY` and `SHOPIFY_API_SECRET_KEY`, respectively.
 
-Product Element
+#### Store Hostname
 
-The Product element type represents a product in your Shopify store.
-All products are created, updated, and deleted via the Shopify control panel, and are reflected in Craft.
+The last piece of info you’ll need on hand is your store’s hostname. This is usually what appears in the browser when using the Shopify admin—it also appears in the Settings screen of your store:
 
-## Syncing Products
+<img src="./docs/shopify-hostname.png" alt="Screenshot of the settings screen in the Shopify admin, with an arrow pointing to the store’s default hostname in the sidebar.">
 
-Products will be created, updated, and deleted automatically via the webhooks.
+Save this value (_without_ the leading `http://` or `https://`) in your `.env` as `SHOPIFY_HOSTNAME`. At this point, you should have four Shopify-specific values:
 
-If you want to sync all Products you can do so by running the following console command:
+```env
+# ...
+
+SHOPIFY_ADMIN_ACCESS_TOKEN="..."
+SHOPIFY_API_KEY="..."
+SHOPIFY_API_SECRET_KEY="..."
+SHOPIFY_HOSTNAME="my-storefront.myshopify.com"
+```
+
+### Connect Plugin
+
+Now that you have credentials for your custom app, it’s time to add them to Craft.
+
+1. Visit **Shopify** &rarr; **Settings** screen in your project’s control panel.
+2. Assign the four environment variables to the corresponding settings, using the special [config syntax](https://craftcms.com/docs/4.x/config/#control-panel-settings):
+    - **API Key**: `$SHOPIFY_API_KEY`
+    - **API Secret Key**: `$SHOPIFY_API_SECRET_KEY`
+    - **Access Token**: `$SHOPIFY_ACCESS_TOKEN`
+    - **Host Name**: `$SHOPIFY_HOSTNAME`
+3. Click **Save**.
+
+### Set up Webhooks
+
+Once your credentials have been added to Craft, a new **Webhooks** tab will appear in the **Shopify** section of the control panel.
+
+Click **Generate** on the Webhooks screen to add the required webhooks to Shopify. The plugin will use the credentials you just configured to perform this operation—so this also serves as an initial communication test.
+
+> :rotating_light: You will need to add webhooks for each environment you deploy the plugin to, because each webhook is tied to a specific URL.
+
+> :lightbulb: If you need to test live synchronization in development, we recommend using the [ngrok](https://ngrok.com/) tool to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel.
+
+## Product Element
+
+Products from your Shopify store are represented in Craft as product [elements](https://craftcms.com/docs/4.x/elements.html), and can be found by going to **Shopify** &rarr; **Products** in the control panel.
+
+### Synchronization
+
+Products will be automatically created, updated, and deleted via [webhooks](#set-up-webhooks)—but Craft doesn’t know about a product until a change happens.
+
+Once the plugin has been configured, perform an initial synchronization via the command line:
 
     php craft shopify/sync/products
 
-You can also sync all products using the "Shopify Sync" utilty in the control panel.
+> :lightbulb: Products can also be synchronized from the control panel using the **Shopify Sync** utility. Keep in mind that large stores (over a hundred products) may take some time to synchronize, and can quickly run through [PHP’s `max_execution_time`](https://www.php.net/manual/en/info.configuration.php#ini.max-execution-time).
 
 ## Fields
 
-In addition to the standard element fields like `id`, `title` and `status` the shopify product element will contain
-the following fields which maps to the [Shopify Produce resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object)
+In addition to the standard element fields like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Produce resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object)
 
-- `shopifyId` The shopifyId field is the unique identifier for the product in your Shopify store. This is a string of integers.
-- `shopifyStatus` The Shopify Status field is the status of the product in your Shopify store. Values can be `active`, `draft` or `archived`.
-- `handle` The handle field is the unique identifier for the product in your Shopify store. This is a string of characters.
-- `productType` The product type field is the product type of the product in your Shopify store. This is a string of characters.
-- `bodyHtml` The body html field is the description of the product in your Shopify store. This is a string of HTML. Use the `|raw` filter to output it, if trusted.
-- `publishedScope` The published scope field is the published scope of the product in your Shopify store. This is a string of characters, e.g 'web'.
-- `tags` The tags field is the tags of the product in your Shopify store. This is a an array of tags strings.
-- `templateSuffix` The suffix of the Liquid template used for the product page in Shopify. String of characters.
-- `vendor` The vendor field is the vendor of the product in your Shopify store. This is a string of characters.
-- `images` The images field is the images of the product in your Shopify store. This is an array of image objects. https://shopify.dev/api/admin-rest/2022-10/resources/product-image#resource-object
-- `options` The options field is the options of the product in your Shopify store. This is an array of option objects.
-- `createdAt` The created at field is the date the product was created in your Shopify store. This is a DateTime object.
-- `publishedAt` The published at field is the date the product was published in your Shopify store. This is a DateTime object.
-- `updatedAt` The updated at field is the date the product was updated in your Shopify store. This is a DateTime object.
+Attribute | Description | Type
+--------- | ----------- | ----
+`shopifyId` | The unique product identifier in your Shopify store. | `String`
+`shopifyStatus` | The status of the product in your Shopify store. Values can be `active`, `draft`, or `archived`. | `String`
+`handle` | The product’s “URL handle” in Shopify, equivalent to a “slug” in Craft. For existing products, this is visible under the **Search engine listing** section of the edit screen. | `String`
+`productType` | The product type of the product in your Shopify store. | `String`
+`bodyHtml` | Product description. Use the `|raw` filter to output it in Twig—but only if the content is trusted. | `String`
+`publishedScope` | Published scope of the product in Shopify store. Common values are `web` (for web-only products) and `global` (for web and point-of-sale products). | `String`
+`tags` | Tags associated with the product in Shopify. | `Array`
+`templateSuffix` | The suffix of the Liquid template used for the product page in Shopify. | `String`
+`vendor` | Vendor of the product. | `String`
+`images` | Images attached to the product in Shopify. The complete [Product Image resources](https://shopify.dev/api/admin-rest/2022-10/resources/product-image#resource-object) are stored in Craft. | `Array`
+`options` | Product options, as configured in Shopify. Each option has a `name`, `position`, and an array of `values`. | `Array`
+`createdAt` | When the product was created in your Shopify store. | `DateTime`
+`publishedAt` | When the product was published in your Shopify store. | `DateTime`
+`updatedAt` | When the product was last updated in your Shopify store. | `DateTime`
+
+> :lightbulb: See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-04/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
 
 ## Product Status
 
-Products have a `shopifyStatus` property that contains either 'active', 'draft', or 'archived'. This can only be updated from the Shopify CP.
+A product’s `status` in Craft is a combination of its `shopifyStatus` attribute ('active', 'draft', or 'archived') and its enabled state. The former can only be changed from Shopify; the latter is set in the Craft control panel.
 
-Products have a status of either 'live', 'shopifyDraft', 'shopifyArchived', or 'disabled'.
+> :info_person: Statuses in Craft are often a synthesis of multiple properties. For example, entries can be _Pending_—but this is just a simple value that stands in for a combination of being `enabled` _and_ having a `postDate` in the future.
 
-- `live` - The product is `active` in your Shopify store and `enabled` in the Product edit page.
-- `shopifyDraft` - The product is `draft` in your Shopify store and `enabled` in the Product edit page.
-- `shopifyArchived` - The product is `archived` in your Shopify store and `enabled` in the Product edit page.
-- `disabled` - The product is *any* status in your Shopify store but `disabled` on the Product edit page.
+In most cases, you’ll only need to display “Live” products, or those which are _Active_ in Shopify and _Enabled_ in Craft:
 
-## Product Element Queries
+Status | Shopify | Craft
+------ | ------- | -----
+`live` | Active | Enabled
+`shopifyDraft` | Draft | Enabled
+`shopifyArchived` | Archived | Enabled
+`disabled` | Any | Disabled
 
-The Product element can be queried like any other entry in the system:
+### Querying Products
 
-For example:
+Products can be queried like any other element in the system.
 
-`craft.shopifyProducts.limit(10).all()`
+A new query begins with the `craft.shopifyProducts` factory function:
 
-`craft.shopifyProducts.status('shopifyDraft').all()`
+```twig
+{% set products = craft.shopifyProducts.all() %}
+```
 
-# Migrating from version 2 of the plugin
+#### Query Parameters
+
+The following query parameters are supported:
+
+##### `shopifyId`
+
+One or multiple Shopify product IDs to filter by.
+
+```twig
+{# Watch out—these aren't the same as element IDs! #}
+{% set singleProduct = craft.shopifyProducts
+    .shopifyId(123456789)
+    .one() %}
+```
+
+##### `shopifyStatus`
+
+Directly query against the product’s status in Shopify.
+
+```twig
+{% set archivedProducts = craft.shopifyProducts
+    .shopifyStatus('archived')
+    .all() %}
+```
+
+Use the regular `.status()` param if you'd prefer to query against [synthesized status values](#product-status).
+
+##### `handle`
+
+```twig
+{# Todo #}
+```
+
+##### `productType`
+
+```twig
+{# Todo #}
+```
+
+##### `publishedScope`
+
+```twig
+{# Todo #}
+```
+
+##### `tags`
+
+```twig
+{# Todo: JSON blob? #}
+```
+
+##### `vendor`
+
+```twig
+{# Todo #}
+```
+
+##### `images`
+
+```twig
+{# Todo: JSON blob? #}
+```
+
+##### `options`
+
+```twig
+{# Todo: JSON blob? #}
+```
+
+
+## Product Field
+
+The plugin provides a _Shopify Products_ field, which uses the familiar relational field UI to allow authors to select Product elements.
+
+# Migrating from v2.x of the plugin
 
 You can remove the old plugin from your composer.json but do not uninstall it.
 
 If you used the old product field, after upgrading you will see a 'missing field' in your field layouts.
+
 To migrate to a new field:
 
 1. Add the new 'Shopify Product' field to your field layout with a different field name. 
