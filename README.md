@@ -6,7 +6,7 @@ Connect your [Craft CMS](https://craftcms.com/) site to a [Shopify](https://shop
 
 ## Requirements
 
-This plugin requires Craft CMS 4.0.0 or later.
+The Shopify plugin requires Craft CMS 4.0.0 or later.
 
 ## Installation
 
