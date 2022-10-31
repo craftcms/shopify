@@ -390,6 +390,36 @@ There is no need to query the Shopify API to render product details in your temp
 </ul>
 ```
 
-There is no longer the need to make an API call to Shopify to get the product data. The data is now stored in the Craft product element.
+## Going Further
+
+### Element API
+
+Your synchronized products can be published into an [Element API](https://plugins.craftcms.com/element-api) endpoint, just like any other element type. This allows you to set up a local JSON feed of products, decorated with any content you’ve added in Craft:
+
+```php
+use craft\shopify\elements\Product;
+
+return [
+  'endpoints' => [
+    'products.json' => function() {
+      return [
+        'elementType' => Product::class,
+        'criteria' => [
+          'publishedScope' => 'web',
+          'with' => [
+            ['myImageField']
+          ],
+        ],
+        'transformer' => function(Product $product) {
+          $image = $product->myImageField->one();
+
+          return [
+            'title' => $product->title,
+            'variants' => $product->getVariants(),
+            'image' => $image ? $image->getUrl() : null,
+          ];
+        },
+      ];
+    },
   ],
 ];
