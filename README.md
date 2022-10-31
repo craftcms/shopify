@@ -36,7 +36,7 @@ The plugin works with Shopify’s [Custom Apps](https://help.shopify.com/en/manu
 
 > If you are not the owner of the Shopify store, have the owner add you as a collaborator or staff member with the [_Develop Apps_ permission](https://help.shopify.com/en/manual/apps/custom-apps#api-scope-permissions-for-custom-apps).
 
-Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-apps) for creating a private app (through the _Get the API credentials for a custom app_ section), and provide these details when asked:
+Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-apps) for creating a private app (through the _Get the API credentials for a custom app_ section), and take these actions when prompted:
 
 1. **App Name**: Choose something that identifies the integration, like “Craft CMS.”
 2. **Admin API access scopes**: The following scopes are required for the plugin to function correctly:
