@@ -130,7 +130,7 @@ All of these properties are available when working with a product element [in yo
 
 ### Custom Fields
 
-Products synchronized from Shopify have a dedicated field layout, which means they support Craft’s full array of content tools.
+Products synchronized from Shopify have a dedicated field layout, which means they support Craft’s full array of [content tools](https://craftcms.com/docs/4.x/fields.html).
 
 The product field layout can be edited by going to **Shopify** &rarr; **Settings** &rarr; **Products**, and scrolling down to **Field Layout**.
 
