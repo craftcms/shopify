@@ -116,7 +116,7 @@ Attribute | Description | Type
 `bodyHtml` | Product description. Use the `\|raw` filter to output it in Twig—but only if the content is trusted. | `String`
 `publishedScope` | Published scope of the product in Shopify store. Common values are `web` (for web-only products) and `global` (for web and point-of-sale products). | `String`
 `tags` | Tags associated with the product in Shopify. | `Array`
-`templateSuffix` | The suffix of the Liquid template used for the product page in Shopify. | `String`
+`templateSuffix` | [Liquid template suffix](https://shopify.dev/themes/architecture/templates#name-structure) used for the product page in Shopify. | `String`
 `vendor` | Vendor of the product. | `String`
 `images` | Images attached to the product in Shopify. The complete [Product Image resources](https://shopify.dev/api/admin-rest/2022-10/resources/product-image#resource-object) are stored in Craft. | `Array`
 `options` | Product options, as configured in Shopify. Each option has a `name`, `position`, and an array of `values`. | `Array`
