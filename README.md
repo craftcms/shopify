@@ -138,7 +138,7 @@ The product field layout can be edited by going to **Shopify** &rarr; **Settings
 
 A product’s `status` in Craft is a combination of its `shopifyStatus` attribute ('active', 'draft', or 'archived') and its enabled state. The former can only be changed from Shopify; the latter is set in the Craft control panel.
 
-> :information_desk_person: Statuses in Craft are often a synthesis of multiple properties. For example, entries can be _Pending_—but this is just a simple value that stands in for a combination of being `enabled` _and_ having a `postDate` in the future.
+> :information_desk_person: Statuses in Craft are often a synthesis of multiple properties. For example, an entry with the _Pending_ status just means it is `enabled` _and_ has a `postDate` in the future.
 
 In most cases, you’ll only need to display “Live” products, or those which are _Active_ in Shopify and _Enabled_ in Craft:
 
