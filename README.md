@@ -28,7 +28,7 @@ To install the plugin, follow these instructions.
     composer require craftcms/shopify -W
     ```
 
-3. In the Control Panel, go to Settings → Plugins and click the “Install” button for Shopify, or run:
+3. In the Control Panel, go to **Settings** → **Plugins** and click the “Install” button for Shopify, or run:
 
     ```bash
     php craft plugin/install shopify
