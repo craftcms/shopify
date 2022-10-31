@@ -14,7 +14,7 @@ This plugin requires Craft CMS 4.0.0 or later.
 
 ## Installation
 
-To install the plugin, follow these instructions.
+To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/shopify) from your Craft project, or follow these instructions.
 
 1. Open your terminal and go to your Craft project:
 
@@ -22,7 +22,7 @@ To install the plugin, follow these instructions.
     cd /path/to/project
     ```
 
-2. Then require the Composer package:
+2. Require the package with Composer:
 
     ```bash
     composer require craftcms/shopify -W
