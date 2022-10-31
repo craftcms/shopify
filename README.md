@@ -85,7 +85,7 @@ Click **Generate** on the Webhooks screen to add the required webhooks to Shopif
 
 > :rotating_light: You will need to add webhooks for each environment you deploy the plugin to, because each webhook is tied to a specific URL.
 
-> :lightbulb: If you need to test live synchronization in development, we recommend using the [ngrok](https://ngrok.com/) tool to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel.
+> :bulb: If you need to test live synchronization in development, we recommend using the [ngrok](https://ngrok.com/) tool to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel.
 
 ## Product Element
 
@@ -99,7 +99,7 @@ Once the plugin has been configured, perform an initial synchronization via the 
 
     php craft shopify/sync/products
 
-> :lightbulb: Products can also be synchronized from the control panel using the **Shopify Sync** utility. Keep in mind that large stores (over a hundred products) may take some time to synchronize, and can quickly run through [PHP’s `max_execution_time`](https://www.php.net/manual/en/info.configuration.php#ini.max-execution-time).
+> :bulb: Products can also be synchronized from the control panel using the **Shopify Sync** utility. Keep in mind that large stores (over a hundred products) may take some time to synchronize, and can quickly run through [PHP’s `max_execution_time`](https://www.php.net/manual/en/info.configuration.php#ini.max-execution-time).
 
 ### Native Attributes
 
@@ -122,7 +122,7 @@ Attribute | Description | Type
 `publishedAt` | When the product was published in your Shopify store. | `DateTime`
 `updatedAt` | When the product was last updated in your Shopify store. | `DateTime`
 
-> :lightbulb: See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-04/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
+> :bulb: See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-04/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
 
 ### Custom Fields
 
@@ -134,7 +134,7 @@ The product field layout can be edited by going to **Shopify** &rarr; **Settings
 
 A product’s `status` in Craft is a combination of its `shopifyStatus` attribute ('active', 'draft', or 'archived') and its enabled state. The former can only be changed from Shopify; the latter is set in the Craft control panel.
 
-> :info_person: Statuses in Craft are often a synthesis of multiple properties. For example, entries can be _Pending_—but this is just a simple value that stands in for a combination of being `enabled` _and_ having a `postDate` in the future.
+> :information_desk_person: Statuses in Craft are often a synthesis of multiple properties. For example, entries can be _Pending_—but this is just a simple value that stands in for a combination of being `enabled` _and_ having a `postDate` in the future.
 
 In most cases, you’ll only need to display “Live” products, or those which are _Active_ in Shopify and _Enabled_ in Craft:
 
