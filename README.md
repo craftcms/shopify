@@ -105,7 +105,7 @@ Once the plugin has been configured, perform an initial synchronization via the 
 
 > :lightbulb: Products can also be synchronized from the control panel using the **Shopify Sync** utility. Keep in mind that large stores (over a hundred products) may take some time to synchronize, and can quickly run through [PHP’s `max_execution_time`](https://www.php.net/manual/en/info.configuration.php#ini.max-execution-time).
 
-## Fields
+### Native Attributes
 
 In addition to the standard element fields like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Produce resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object)
 
@@ -127,6 +127,12 @@ Attribute | Description | Type
 `updatedAt` | When the product was last updated in your Shopify store. | `DateTime`
 
 > :lightbulb: See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-04/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
+
+### Custom Fields
+
+Products synchronized from Shopify have a dedicated field layout, which means they support Craft’s full array of content tools.
+
+The product field layout can be edited by going to **Shopify** &rarr; **Settings** &rarr; **Products**, and scrolling down to **Field Layout**.
 
 ## Product Status
 
@@ -222,10 +228,9 @@ Use the regular `.status()` param if you'd prefer to query against [synthesized 
 {# Todo: JSON blob? #}
 ```
 
-
 ## Product Field
 
-The plugin provides a _Shopify Products_ field, which uses the familiar relational field UI to allow authors to select Product elements.
+The plugin provides a _Shopify Products_ field, which uses the familiar [relational field](https://craftcms.com/docs/4.x/relations.html) UI to allow authors to select Product elements.
 
 # Migrating from v2.x of the plugin
 
