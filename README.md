@@ -103,7 +103,7 @@ Once the plugin has been configured, perform an initial synchronization via the 
 
 ### Native Attributes
 
-In addition to the standard element fields like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Produce resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object)
+In addition to the standard element fields like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Produce resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object):
 
 Attribute | Description | Type
 --------- | ----------- | ----
@@ -121,6 +121,8 @@ Attribute | Description | Type
 `createdAt` | When the product was created in your Shopify store. | `DateTime`
 `publishedAt` | When the product was published in your Shopify store. | `DateTime`
 `updatedAt` | When the product was last updated in your Shopify store. | `DateTime`
+
+All of these properties are available when working with a product element [in your templates](#templating).
 
 > :bulb: See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-04/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
 
@@ -157,17 +159,17 @@ A new query begins with the `craft.shopifyProducts` factory function:
 
 ### Query Parameters
 
-The following query parameters are supported:
+The following element query parameters are supported, in addition to [Craft’s standard set](https://craftcms.com/docs/4.x/element-queries.html):
 
 #### `shopifyId`
 
-One or multiple Shopify product IDs to filter by.
+Filter by Shopify product IDs.
 
 ```twig
 {# Watch out—these aren't the same as element IDs! #}
 {% set singleProduct = craft.shopifyProducts
-    .shopifyId(123456789)
-    .one() %}
+  .shopifyId(123456789)
+  .one() %}
 ```
 
 #### `shopifyStatus`
@@ -176,28 +178,48 @@ Directly query against the product’s status in Shopify.
 
 ```twig
 {% set archivedProducts = craft.shopifyProducts
-    .shopifyStatus('archived')
-    .all() %}
+  .shopifyStatus('archived')
+  .all() %}
 ```
 
 Use the regular `.status()` param if you'd prefer to query against [synthesized status values](#product-status).
 
 #### `handle`
 
+Query by the product’s handle, in Shopify.
+
 ```twig
-{# Todo #}
+{% set product = craft.shopifyProducts
+  .handle('worlds-tallest-socks')
+  .all() %}
 ```
+
+> :rotating_light: This is not a reliable means to fetch a specific product, as the value may change during a synchronization. If you want a permanent reference to a product, consider using the Shopify [product field](#product-field).
 
 #### `productType`
 
+Find products by their “type” in Shopify.
+
 ```twig
-{# Todo #}
+{% set upSells = craft.shopifyProducts
+  .productType(['apparel', 'accessories'])
+  .all() %}
 ```
 
 #### `publishedScope`
 
+Show only products that are published to a matching sales channel.
+
 ```twig
-{# Todo #}
+{# Only web-ready products: #}
+{% set webProducts = craft.shopifyProducts
+  .publishedScope('web')
+  .all() %}
+
+{# Everything: #}
+{% set inStoreProducts = craft.shopifyProducts
+  .publishedScope('global')
+  .all() %}
 ```
 
 #### `tags`
@@ -208,8 +230,12 @@ Use the regular `.status()` param if you'd prefer to query against [synthesized 
 
 #### `vendor`
 
+Filter by the vendor information from Shopify.
+
 ```twig
-{# Todo #}
+{% set fancyBags = craft.shopifyProducts
+  .vendor(['Louis Vuitton', 'Jansport'])
+  .all() %}
 ```
 
 #### `images`
@@ -224,38 +250,144 @@ Use the regular `.status()` param if you'd prefer to query against [synthesized 
 {# Todo: JSON blob? #}
 ```
 
+## Templating
+
+### Product Data
+
+Products behave just like any other element, in Twig. Once you’ve loaded a product via a [query](#querying-products), you can output its native [Shopify attributes](#native-attributes) and [custom field](#custom-fields) data.
+
+> :information_desk_person: Keep in mind that some attributes are stored as JSON, which inherently limits which types nested properties can use. Dates may be slightly more difficult to work with, as a result.
+
+```twig
+{# Standard element title: #}
+{{ product.title }}
+  {# -> Root Beer #}
+
+{# Shopify HTML content: #}
+{{ product.bodyHtml | raw }}
+  {# -> <p>...</p> #}
+
+{# Tags, as list: #}
+{{ product.tags | join(', ') }}
+  {# -> sweet, spicy, herbal #}
+
+{# Tags, as filter links: #}
+{% for tag in tags %}
+  <a href="{{ siteUrl('products', { tag: tag }) }}">{{ tag | title }}</a>
+  {# -> <a href="https://mydomain.com/products?tag=herbal">Herbal</a> #}
+{% endfor %}
+
+{# Images: #}
+{% for image in product.images %}
+  <img src="{{ image.src }}" alt="{{ image.alt }}">
+    {# -> <img src="https://cdn.shopify.com/..." alt="Bubbly Soda"> #}
+{% endfor %}
+
+{# Variants: #}
+<select name="variant">
+  {% for variant in product.variants %}
+    <option value="{{ variant.id }}">{{ variant.title }}</option>
+  {% endfor %}
+</select>
+```
+
+### Cart
+
+Your customers can add products to their cart directly from your Craft site:
+
+```twig
+{% set product = craft.shopifyProducts.one() %}
+
+<form action="https://{{ getenv('SHOPIFY_HOSTNAME') }}/cart/add" method="post">
+  <select name="id">
+    {% for variant in product.variants %}
+      <option value="{{ variant.id }}">{{ variant.title }}</option>
+    {% endfor %}
+  </select>
+
+  {{ hiddenInput('qty', 1) }}
+
+  <button>Add to Cart</button>
+</form>
+```
+
 ## Product Field
 
 The plugin provides a _Shopify Products_ field, which uses the familiar [relational field](https://craftcms.com/docs/4.x/relations.html) UI to allow authors to select Product elements.
 
-# Migrating from v2.x of the plugin
+Relationships defined with the _Shopify Products_ field use stable element IDs under the hood. When Shopify products are archived or deleted, the corresponding elements will also be updated in Craft, and naturally filtered out of your query results—including those explicitly attached via a _Shopify Products_ field.
 
-You can remove the old plugin from your composer.json but do not uninstall it.
+> :information_desk_person: Upgrading? Check out the [migration](#migrating-from-v2x) notes for more info.
 
-If you used the old product field, after upgrading you will see a 'missing field' in your field layouts.
+---
 
-To migrate to a new field:
+## Migrating from v2.x
 
-1. Add the new 'Shopify Product' field to your field layout with a different field name. 
-2. Run the below command to resave the data from the old field to the new field.
+If you are upgrading a Craft 3 project to Craft 4 and have existing “Shopify Product” fields, you’ll need show the plugin how to translate plain Shopify IDs (stored as a JSON array) into element IDs, within Craft’s relations system.
 
-Note: Replace the section handle and field names with your own below
+> :rotating_light: Before getting started with the migration, make sure you have [synchronized](#synchronization) your product catalog.
 
-`blog` should be entry section you used.
-`oldShopifyField` is the field handle from the previous version of the plugin
-`shopifyProductsRelatedField` is the new field handle for the standard product relation field 
+It’s safe to remove the old plugin package (`nmaier95/shopify-product-fetcher`) from your `composer.json`—but **do not uninstall it** from the control panel. We want the field’s data to stick around, but don’t need the old field class to work with it.
 
-```bash
-php craft resave/entries --section=blog --set shopifyProductsRelatedField --to "fn(\$entry) => collect(json_decode(\$entry->oldShopifyField))->map(fn (\$item) => \craft\shopify\Plugin::getInstance()->getProducts()->getProductIdByShopifyId(\$item))->unique()->all()"
-```
+> :information_desk_person: You may see a “missing field” in your field layouts during this process—that’s OK! Your data is still there.
 
-After making the data migration, you can access the new field in your templates like this:
+For each legacy Shopify Product field in your project, do the following:
+
+1. Create a _new_ [Shopify Products](#product-field) field, giving it a a new handle and name;
+2. Add the field to any layouts where the legacy field appeared;
+
+### Re-saving Data
+
+Run the following command (substituting appropriate values) for each place you added the field in step #2, above:
+
+    - `resave/entries` &rarr; The [re-save command](https://craftcms.com/docs/4.x/console-commands.html#resave) for the element type the field layout is attached to;
+    - `mySectionHandle` &rarr; A stand-in for any criteria that need to be applied to the element type you’re re-saving;
+    - `oldShopifyField` &rarr; Field handle from the old version of the plugin (used inside the `--to` argument closure);
+    - `newShopifyField` &rarr; New field handle created in step #1, above;
+
+    ```bash
+    php craft resave/entries \
+      --section=mySectionHandle \
+      --set=newShopifyField \
+      --to="fn(\$entry) => collect(json_decode(\$entry->oldShopifyField))->map(fn (\$item) => \craft\shopify\Plugin::getInstance()->getProducts()->getProductIdByShopifyId(\$item))->unique()->all()"
+    ```
+
+### Updating Templates
+
+After your content is re-saved, update your templates:
+
+#### Before
 
 ```twig
-{% set products = entry.shopifyProductsRelatedField.all() %}
-{% for product in products %}
-    {{ product.handle }}
-{% endfor %}
+{# Product references were stored as a list of IDs: #}
+{% set productIds = entry.oldShopifyField %}
+
+<ul>
+  {% for productId in productIds %}
+    {# Query Shopify API for Product using ID: #}
+    {% set shopifyProduct = craft.shopify.getProductById({ id: productId }) %}
+
+    <li>{{ product.productType }}: {{ product.title }}</li>
+  {% endfor %}
+</ul>
+```
+
+#### After
+
+There is no need to query the Shopify API to render product details in your templates—all of the data is ready in the returned elements!
+
+```twig
+{# Execute query from relational field: #}
+{% set relatedProducts = entry.newShopifyField.all() %}
+
+<ul>
+  {% for product in products %}
+    {# Output product data directly: #}
+    <li>{{ product.productType }}: {{ product.title }}</li>
+  {% endfor %}
+</ul>
 ```
 
 There is no longer the need to make an API call to Shopify to get the product data. The data is now stored in the Craft product element.
+  ],
+];
