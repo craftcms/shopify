@@ -77,6 +77,8 @@ Now that you have credentials for your custom app, it’s time to add them to Cr
     - **Host Name**: `$SHOPIFY_HOSTNAME`
 3. Click **Save**.
 
+> :information_desk_person: These settings are stored in [Project Config](https://craftcms.com/docs/4.x/project-config.html), and will be automatically applied in other environments. [Webhooks](#set-up-webhooks) will still need to be configured for each environment!
+
 ### Set up Webhooks
 
 Once your credentials have been added to Craft, a new **Webhooks** tab will appear in the **Shopify** section of the control panel.
