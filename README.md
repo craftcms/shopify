@@ -130,7 +130,7 @@ Products synchronized from Shopify have a dedicated field layout, which means th
 
 The product field layout can be edited by going to **Shopify** &rarr; **Settings** &rarr; **Products**, and scrolling down to **Field Layout**.
 
-## Product Status
+### Product Status
 
 A product’s `status` in Craft is a combination of its `shopifyStatus` attribute ('active', 'draft', or 'archived') and its enabled state. The former can only be changed from Shopify; the latter is set in the Craft control panel.
 
@@ -145,7 +145,7 @@ Status | Shopify | Craft
 `shopifyArchived` | Archived | Enabled
 `disabled` | Any | Disabled
 
-### Querying Products
+## Querying Products
 
 Products can be queried like any other element in the system.
 
@@ -155,11 +155,11 @@ A new query begins with the `craft.shopifyProducts` factory function:
 {% set products = craft.shopifyProducts.all() %}
 ```
 
-#### Query Parameters
+### Query Parameters
 
 The following query parameters are supported:
 
-##### `shopifyId`
+#### `shopifyId`
 
 One or multiple Shopify product IDs to filter by.
 
@@ -170,7 +170,7 @@ One or multiple Shopify product IDs to filter by.
     .one() %}
 ```
 
-##### `shopifyStatus`
+#### `shopifyStatus`
 
 Directly query against the product’s status in Shopify.
 
@@ -182,43 +182,43 @@ Directly query against the product’s status in Shopify.
 
 Use the regular `.status()` param if you'd prefer to query against [synthesized status values](#product-status).
 
-##### `handle`
+#### `handle`
 
 ```twig
 {# Todo #}
 ```
 
-##### `productType`
+#### `productType`
 
 ```twig
 {# Todo #}
 ```
 
-##### `publishedScope`
+#### `publishedScope`
 
 ```twig
 {# Todo #}
 ```
 
-##### `tags`
+#### `tags`
 
 ```twig
 {# Todo: JSON blob? #}
 ```
 
-##### `vendor`
+#### `vendor`
 
 ```twig
 {# Todo #}
 ```
 
-##### `images`
+#### `images`
 
 ```twig
 {# Todo: JSON blob? #}
 ```
 
-##### `options`
+#### `options`
 
 ```twig
 {# Todo: JSON blob? #}
