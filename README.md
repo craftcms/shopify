@@ -105,7 +105,7 @@ Once the plugin has been configured, perform an initial synchronization via the 
 
 ### Native Attributes
 
-In addition to the standard element fields like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Produce resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object):
+In addition to the standard element fields like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Product resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object):
 
 Attribute | Description | Type
 --------- | ----------- | ----
