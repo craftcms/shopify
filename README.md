@@ -25,7 +25,7 @@ To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/sho
 2. Require the package with Composer:
 
     ```bash
-    composer require craftcms/shopify -W
+    composer require craftcms/shopify -w
     ```
 
 3. In the Control Panel, go to **Settings** → **Plugins** and click the “Install” button for Shopify, or run:
