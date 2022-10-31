@@ -2,11 +2,7 @@
 
 <h1 align="center">Shopify for Craft CMS</h1>
 
-## About
-
-Connect your [Craft CMS](https://craftcms.com/) site to a Shopify store.
-
-The Shopify plugin syncs all your Shopify products into Craft, and keeps them updated.
+Connect your [Craft CMS](https://craftcms.com/) site to a [Shopify](https://shopify.com) store and keep your products in sync.
 
 ## Requirements
 
