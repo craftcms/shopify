@@ -12,7 +12,7 @@ The Shopify plugin requires Craft CMS 4.0.0 or later.
 
 To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/shopify) from your Craft project, or follow these instructions.
 
-1. Open your terminal and go to your Craft project:
+1. Navigate to your Craft project in a new terminal:
 
     ```bash
     cd /path/to/project
