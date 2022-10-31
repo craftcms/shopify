@@ -244,13 +244,14 @@ Note: Replace the section handle and field names with your own below
 `blog` should be entry section you used.
 `oldShopifyField` is the field handle from the previous version of the plugin
 `shopifyProductsRelatedField` is the new field handle for the standard product relation field 
-```
+
+```bash
 php craft resave/entries --section=blog --set shopifyProductsRelatedField --to "fn(\$entry) => collect(json_decode(\$entry->oldShopifyField))->map(fn (\$item) => \craft\shopify\Plugin::getInstance()->getProducts()->getProductIdByShopifyId(\$item))->unique()->all()"
 ```
 
 After making the data migration, you can access the new field in your templates like this:
 
-```
+```twig
 {% set products = entry.shopifyProductsRelatedField.all() %}
 {% for product in products %}
     {{ product.handle }}
