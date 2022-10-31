@@ -111,7 +111,7 @@ Attribute | Description | Type
 `shopifyStatus` | The status of the product in your Shopify store. Values can be `active`, `draft`, or `archived`. | `String`
 `handle` | The product’s “URL handle” in Shopify, equivalent to a “slug” in Craft. For existing products, this is visible under the **Search engine listing** section of the edit screen. | `String`
 `productType` | The product type of the product in your Shopify store. | `String`
-`bodyHtml` | Product description. Use the `|raw` filter to output it in Twig—but only if the content is trusted. | `String`
+`bodyHtml` | Product description. Use the `\|raw` filter to output it in Twig—but only if the content is trusted. | `String`
 `publishedScope` | Published scope of the product in Shopify store. Common values are `web` (for web-only products) and `global` (for web and point-of-sale products). | `String`
 `tags` | Tags associated with the product in Shopify. | `Array`
 `templateSuffix` | The suffix of the Liquid template used for the product page in Shopify. | `String`
