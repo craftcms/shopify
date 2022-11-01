@@ -12,7 +12,7 @@ use craft\helpers\App;
 use craft\shopify\Plugin;
 use craft\web\assets\admintable\AdminTableAsset;
 use craft\web\Controller;
-use Shopify\Rest\Admin2022_04\Webhook;
+use Shopify\Rest\Admin2022_10\Webhook;
 use Shopify\Webhooks\Registry;
 use Shopify\Webhooks\Topics;
 use yii\web\MethodNotAllowedHttpException;

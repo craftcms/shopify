@@ -21,8 +21,8 @@
   "prefer-stable": true,
   "require": {
     "php": "^8.0.2",
-    "craftcms/cms": "^4.0.0",
-    "shopify/shopify-api": "^2.0"
+    "craftcms/cms": "^4.3.0",
+    "shopify/shopify-api": "^4.1"
   },
   "require-dev": {
     "craftcms/ecs": "dev-main",

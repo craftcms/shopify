@@ -60,6 +60,7 @@ class Install extends Migration
             'updatedAt' => $this->string(),
             'variants' => $this->text(),
             'vendor' => $this->string(),
+            'metaFields' => $this->text(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->string(),
@@ -72,8 +73,7 @@ class Install extends Migration
      */
     public function createIndexes(): void
     {
-        $this->addForeignKey(null, Table::PRODUCTS, ['shopifyId'], Table::PRODUCTDATA, ['shopifyId'], 'CASCADE', 'CASCADE');
-        $this->addForeignKey(null, Table::PRODUCTS, ['id'], CraftTable::ELEMENTS, ['id'], 'CASCADE', 'CASCADE');
+        $this->createIndex(null, Table::PRODUCTDATA, ['shopifyId'], true);
     }
 
     /**
@@ -81,6 +81,8 @@ class Install extends Migration
      */
     public function addForeignKeys(): void
     {
+        $this->addForeignKey(null, Table::PRODUCTS, ['shopifyId'], Table::PRODUCTDATA, ['shopifyId'], 'CASCADE', 'CASCADE');
+        $this->addForeignKey(null, Table::PRODUCTS, ['id'], CraftTable::ELEMENTS, ['id'], 'CASCADE', 'CASCADE');
     }
 
     /**

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7dbdb05ae3d86ab98b94e68231691d54",
+    "content-hash": "3c8561018e2e1c65dd4156d823959d21",
     "packages": [
         {
             "name": "brick/math",
@@ -734,16 +734,16 @@
         },
         {
             "name": "craftcms/cms",
-            "version": "4.2.8",
+            "version": "4.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/craftcms/cms.git",
-                "reference": "3db5c2376356d6baada51079de89c54a5073e24e"
+                "reference": "1149dd385d9d38fbd1e0a6edf057ce8fe5347487"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/craftcms/cms/zipball/3db5c2376356d6baada51079de89c54a5073e24e",
-                "reference": "3db5c2376356d6baada51079de89c54a5073e24e",
+                "url": "https://api.github.com/repos/craftcms/cms/zipball/1149dd385d9d38fbd1e0a6edf057ce8fe5347487",
+                "reference": "1149dd385d9d38fbd1e0a6edf057ce8fe5347487",
                 "shasum": ""
             },
             "require": {
@@ -782,7 +782,7 @@
                 "twig/twig": "~3.4.3",
                 "voku/stringy": "^6.4.0",
                 "webonyx/graphql-php": "~14.11.5",
-                "yiisoft/yii2": "~2.0.45.0",
+                "yiisoft/yii2": "~2.0.46.0",
                 "yiisoft/yii2-debug": "~2.1.19.0",
                 "yiisoft/yii2-queue": "~2.3.2",
                 "yiisoft/yii2-symfonymailer": "^2.0.0"
@@ -848,7 +848,7 @@
                 "rss": "https://github.com/craftcms/cms/releases.atom",
                 "source": "https://github.com/craftcms/cms"
             },
-            "time": "2022-10-18T18:28:05+00:00"
+            "time": "2022-10-27T19:59:08+00:00"
         },
         {
             "name": "craftcms/oauth2-craftid",
@@ -1877,16 +1877,16 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.4.1",
+            "version": "2.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "69568e4293f4fa993f3b0e51c9723e1e17c41379"
+                "reference": "67c26b443f348a51926030c83481b85718457d3d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/69568e4293f4fa993f3b0e51c9723e1e17c41379",
-                "reference": "69568e4293f4fa993f3b0e51c9723e1e17c41379",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/67c26b443f348a51926030c83481b85718457d3d",
+                "reference": "67c26b443f348a51926030c83481b85718457d3d",
                 "shasum": ""
             },
             "require": {
@@ -1976,7 +1976,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.4.1"
+                "source": "https://github.com/guzzle/psr7/tree/2.4.3"
             },
             "funding": [
                 {
@@ -1992,11 +1992,11 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-08-28T14:45:39+00:00"
+            "time": "2022-10-26T14:07:24+00:00"
         },
         {
             "name": "illuminate/collections",
-            "version": "v9.36.4",
+            "version": "v9.37.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/collections.git",
@@ -2051,7 +2051,7 @@
         },
         {
             "name": "illuminate/conditionable",
-            "version": "v9.36.4",
+            "version": "v9.37.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/conditionable.git",
@@ -2097,7 +2097,7 @@
         },
         {
             "name": "illuminate/contracts",
-            "version": "v9.36.4",
+            "version": "v9.37.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/contracts.git",
@@ -2145,7 +2145,7 @@
         },
         {
             "name": "illuminate/macroable",
-            "version": "v9.36.4",
+            "version": "v9.37.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/macroable.git",
@@ -3729,25 +3729,26 @@
         },
         {
             "name": "shopify/shopify-api",
-            "version": "v2.0.1",
+            "version": "v4.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Shopify/shopify-api-php.git",
-                "reference": "0556edf274ceb83346533bd22b662d7622e58c66"
+                "reference": "e5605b81f0e130b4f5be4611f07a01e5db0dd292"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Shopify/shopify-api-php/zipball/0556edf274ceb83346533bd22b662d7622e58c66",
-                "reference": "0556edf274ceb83346533bd22b662d7622e58c66",
+                "url": "https://api.github.com/repos/Shopify/shopify-api-php/zipball/e5605b81f0e130b4f5be4611f07a01e5db0dd292",
+                "reference": "e5605b81f0e130b4f5be4611f07a01e5db0dd292",
                 "shasum": ""
             },
             "require": {
                 "doctrine/inflector": "^2.0",
+                "ext-json": "*",
                 "firebase/php-jwt": "^5.2",
                 "guzzlehttp/guzzle": "^7.0",
                 "php": "^7.4 || ^8.0 || ^8.1",
                 "psr/http-client": "^1.0",
-                "psr/log": "^1.1",
+                "psr/log": "^1.1 || ^2.0 || ^3.0",
                 "ramsey/uuid": "^4.1"
             },
             "require-dev": {
@@ -3785,22 +3786,22 @@
             ],
             "support": {
                 "issues": "https://github.com/Shopify/shopify-api-php/issues",
-                "source": "https://github.com/Shopify/shopify-api-php/tree/v2.0.1"
+                "source": "https://github.com/Shopify/shopify-api-php/tree/v4.1.0"
             },
-            "time": "2022-04-11T17:51:03+00:00"
+            "time": "2022-10-11T17:28:00+00:00"
         },
         {
             "name": "symfony/console",
-            "version": "v5.4.14",
+            "version": "v5.4.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "984ea2c0f45f42dfed01d2f3987b187467c4b16d"
+                "reference": "ea59bb0edfaf9f28d18d8791410ee0355f317669"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/984ea2c0f45f42dfed01d2f3987b187467c4b16d",
-                "reference": "984ea2c0f45f42dfed01d2f3987b187467c4b16d",
+                "url": "https://api.github.com/repos/symfony/console/zipball/ea59bb0edfaf9f28d18d8791410ee0355f317669",
+                "reference": "ea59bb0edfaf9f28d18d8791410ee0355f317669",
                 "shasum": ""
             },
             "require": {
@@ -3870,7 +3871,7 @@
                 "terminal"
             ],
             "support": {
-                "source": "https://github.com/symfony/console/tree/v5.4.14"
+                "source": "https://github.com/symfony/console/tree/v5.4.15"
             },
             "funding": [
                 {
@@ -3886,7 +3887,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-10-07T08:01:20+00:00"
+            "time": "2022-10-26T21:41:52+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -4243,16 +4244,16 @@
         },
         {
             "name": "symfony/http-client",
-            "version": "v6.0.14",
+            "version": "v6.0.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/http-client.git",
-                "reference": "ec183a587e3ad47f03cf1572d4b8437e0fc3e923"
+                "reference": "af84893895ce7637a4b60fd3de87fe9e44286a21"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/http-client/zipball/ec183a587e3ad47f03cf1572d4b8437e0fc3e923",
-                "reference": "ec183a587e3ad47f03cf1572d4b8437e0fc3e923",
+                "url": "https://api.github.com/repos/symfony/http-client/zipball/af84893895ce7637a4b60fd3de87fe9e44286a21",
+                "reference": "af84893895ce7637a4b60fd3de87fe9e44286a21",
                 "shasum": ""
             },
             "require": {
@@ -4307,7 +4308,7 @@
             "description": "Provides powerful methods to fetch HTTP resources synchronously or asynchronously",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/http-client/tree/v6.0.14"
+                "source": "https://github.com/symfony/http-client/tree/v6.0.15"
             },
             "funding": [
                 {
@@ -4323,7 +4324,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-10-11T15:20:43+00:00"
+            "time": "2022-10-28T16:22:58+00:00"
         },
         {
             "name": "symfony/http-client-contracts",
@@ -4405,16 +4406,16 @@
         },
         {
             "name": "symfony/mailer",
-            "version": "v6.0.13",
+            "version": "v6.0.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/mailer.git",
-                "reference": "6269c872ab4792e8facbf8af27a2fbee8429f217"
+                "reference": "5eaa3f1404cafa842e953ae16c35757b7356fb32"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/mailer/zipball/6269c872ab4792e8facbf8af27a2fbee8429f217",
-                "reference": "6269c872ab4792e8facbf8af27a2fbee8429f217",
+                "url": "https://api.github.com/repos/symfony/mailer/zipball/5eaa3f1404cafa842e953ae16c35757b7356fb32",
+                "reference": "5eaa3f1404cafa842e953ae16c35757b7356fb32",
                 "shasum": ""
             },
             "require": {
@@ -4459,7 +4460,7 @@
             "description": "Helps sending emails",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/mailer/tree/v6.0.13"
+                "source": "https://github.com/symfony/mailer/tree/v6.0.15"
             },
             "funding": [
                 {
@@ -4475,7 +4476,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-08-29T06:49:22+00:00"
+            "time": "2022-10-28T16:22:58+00:00"
         },
         {
             "name": "symfony/mime",
@@ -5522,16 +5523,16 @@
         },
         {
             "name": "symfony/string",
-            "version": "v6.0.14",
+            "version": "v6.0.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/string.git",
-                "reference": "3db7da820a6e4a584b714b3933c34c6a7db4d86c"
+                "reference": "51ac0fa0ccf132a00519b87c97e8f775fa14e771"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/string/zipball/3db7da820a6e4a584b714b3933c34c6a7db4d86c",
-                "reference": "3db7da820a6e4a584b714b3933c34c6a7db4d86c",
+                "url": "https://api.github.com/repos/symfony/string/zipball/51ac0fa0ccf132a00519b87c97e8f775fa14e771",
+                "reference": "51ac0fa0ccf132a00519b87c97e8f775fa14e771",
                 "shasum": ""
             },
             "require": {
@@ -5587,7 +5588,7 @@
                 "utf8"
             ],
             "support": {
-                "source": "https://github.com/symfony/string/tree/v6.0.14"
+                "source": "https://github.com/symfony/string/tree/v6.0.15"
             },
             "funding": [
                 {
@@ -6661,16 +6662,16 @@
         },
         {
             "name": "yiisoft/yii2",
-            "version": "2.0.45",
+            "version": "2.0.46",
             "source": {
                 "type": "git",
                 "url": "https://github.com/yiisoft/yii2-framework.git",
-                "reference": "e2223d4085e5612aa616635f8fcaf478607f62e8"
+                "reference": "d73259c3bc886648a6875109f9f09cddeff03708"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/yiisoft/yii2-framework/zipball/e2223d4085e5612aa616635f8fcaf478607f62e8",
-                "reference": "e2223d4085e5612aa616635f8fcaf478607f62e8",
+                "url": "https://api.github.com/repos/yiisoft/yii2-framework/zipball/d73259c3bc886648a6875109f9f09cddeff03708",
+                "reference": "d73259c3bc886648a6875109f9f09cddeff03708",
                 "shasum": ""
             },
             "require": {
@@ -6779,7 +6780,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-02-11T13:12:40+00:00"
+            "time": "2022-08-18T22:18:45+00:00"
         },
         {
             "name": "yiisoft/yii2-composer",
@@ -7418,16 +7419,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "1.8.10",
+            "version": "1.8.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "0c4459dc42c568b818b3f25186589f3acddc1823"
+                "reference": "46e223dd68a620da18855c23046ddb00940b4014"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/0c4459dc42c568b818b3f25186589f3acddc1823",
-                "reference": "0c4459dc42c568b818b3f25186589f3acddc1823",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/46e223dd68a620da18855c23046ddb00940b4014",
+                "reference": "46e223dd68a620da18855c23046ddb00940b4014",
                 "shasum": ""
             },
             "require": {
@@ -7457,7 +7458,7 @@
             ],
             "support": {
                 "issues": "https://github.com/phpstan/phpstan/issues",
-                "source": "https://github.com/phpstan/phpstan/tree/1.8.10"
+                "source": "https://github.com/phpstan/phpstan/tree/1.8.11"
             },
             "funding": [
                 {
@@ -7473,7 +7474,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-10-17T14:23:35+00:00"
+            "time": "2022-10-24T15:45:13+00:00"
         },
         {
             "name": "rector/rector",

@@ -20,25 +20,27 @@ use yii\console\ExitCode;
  */
 class SyncController extends Controller
 {
-    public $defaultAction = 'all';
+    public $defaultAction = 'products';
 
-    
     public function actionAll()
     {
-        $this->actionProducts();
+        $this->_syncProducts();
     }
-    
+
     /**
      * Reset Commerce data.
      */
     public function actionProducts(): int
     {
-        $this->stdout('Syncing Shopify products…' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
-
-        Plugin::getInstance()->getProducts()->syncAllProducts();
-        
-        $this->stdout('Syncing Shopify products…' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
-        
+        $this->_syncProducts();
         return ExitCode::OK;
+    }
+
+    private function _syncProducts(): void
+    {
+        $this->stdout('Syncing Shopify products…' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
+        Plugin::getInstance()->getProducts()->syncAllProducts();
+        $this->stdout('Finished' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
+
     }
 }

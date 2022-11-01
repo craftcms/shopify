@@ -33,7 +33,7 @@ class Products extends Component
             $this->createOrUpdateProduct($data);
         }
 
-        // Remove any products that are no longer in Shopify.
+        // Remove any products that are no longer in Shopify just in case.
         $shopifyIds = collect($allData)->pluck('id')->all();
         $deleteAbleProductElements = Product::find()->shopifyId(['not', $shopifyIds])->all();
         foreach ($deleteAbleProductElements as $element) {
@@ -137,6 +137,7 @@ class Products extends Component
             'updatedAt' => $product['updated_at'],
             'variants' => $product['variants'],
             'vendor' => $product['vendor'],
+            'metaFields' => $product['metaFields'],
         ];
     }
 }
