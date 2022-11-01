@@ -117,6 +117,7 @@ Attribute | Description | Type
 `tags` | Tags associated with the product in Shopify. | `Array`
 `templateSuffix` | [Liquid template suffix](https://shopify.dev/themes/architecture/templates#name-structure) used for the product page in Shopify. | `String`
 `vendor` | Vendor of the product. | `String`
+`metaFields` | [Metafields](https://shopify.dev/api/admin-rest/2022-10/resources/metafield#resource-object) associated with the product. | `Array`
 `images` | Images attached to the product in Shopify. The complete [Product Image resources](https://shopify.dev/api/admin-rest/2022-10/resources/product-image#resource-object) are stored in Craft. | `Array`
 `options` | Product options, as configured in Shopify. Each option has a `name`, `position`, and an array of `values`. | `Array`
 `createdAt` | When the product was created in your Shopify store. | `DateTime`
