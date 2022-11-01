@@ -64,7 +64,7 @@ class Product extends Element
     /**
      * @var ?DateTime
      */
-    public ?DateTime $createdAt;
+    public ?DateTime $createdAt = null;
 
     /**
      * @var string
@@ -82,6 +82,27 @@ class Product extends Element
     private array $_options = [];
 
     /**
+     * @var array
+     */
+    private array $_metaFields = [];
+
+    /**
+     * @inheritdoc
+     */
+    public static function searchableAttributes(): array
+    {
+        return array_merge(parent::searchableAttributes(), [
+            'bodyHtml',
+            'handle',
+            'vendor',
+            'productType',
+            'tags',
+            'options',
+            'metaFields',
+        ]);
+    }
+
+    /**
      * @var string
      */
     public string $productType;
@@ -89,7 +110,7 @@ class Product extends Element
     /**
      * @var ?DateTime
      */
-    public ?DateTime $publishedAt;
+    public ?DateTime $publishedAt = null;
 
     /**
      * @var string
@@ -114,7 +135,7 @@ class Product extends Element
     /**
      * @var ?DateTime
      */
-    public ?DateTime $updatedAt;
+    public ?DateTime $updatedAt = null;
 
     /**
      * @var array
@@ -140,7 +161,7 @@ class Product extends Element
     public static function statuses(): array
     {
         return [
-            self::STATUS_LIVE => Craft::t('commerce', 'Live'),
+            self::STATUS_LIVE => Craft::t('shopify', 'Live'),
             self::STATUS_SHOPIFY_DRAFT => ['label' => Craft::t('shopify', 'Draft in Shopify'), 'color' => 'orange'],
             self::STATUS_SHOPIFY_ARCHIVED => ['label' => Craft::t('shopify', 'Archived in Shopify'), 'color' => 'red'],
             self::STATUS_DISABLED => Craft::t('app', 'Disabled'),
@@ -226,6 +247,27 @@ class Product extends Element
     public function getOptions(): array
     {
         return $this->_options ?? [];
+    }
+
+    /**
+     * @param string|array $value
+     * @return void
+     */
+    public function setMetaFields(string|array $value): void
+    {
+        if (is_string($value)) {
+            $value = Json::decodeIfJson($value);
+        }
+
+        $this->_metaFields = $value;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMetaFields(): array
+    {
+        return $this->_metaFields ?? [];
     }
 
     /**
@@ -506,7 +548,7 @@ class Product extends Element
         return [
             [
                 'key' => '*',
-                'label' => Craft::t('commerce', 'All products'),
+                'label' => Craft::t('shopify', 'All products'),
                 'criteria' => [
                 ],
                 'defaultSort' => ['id', 'desc'],
@@ -588,19 +630,19 @@ class Product extends Element
         $sortOptions = parent::defineSortOptions();
 
         $sortOptions['title'] = [
-            'label' => Craft::t('commerce', 'Title'),
+            'label' => Craft::t('app', 'Title'),
             'orderBy' => 'shopify_productdata.title',
             'defaultDir' => SORT_DESC,
         ];
 
         $sortOptions['shopifyId'] = [
-            'label' => Craft::t('commerce', 'Shopify Id'),
+            'label' => Craft::t('shopify', 'Shopify Id'),
             'orderBy' => 'shopify_productdata.shopifyId',
             'defaultDir' => SORT_DESC,
         ];
 
         $sortOptions['shopifyStatus'] = [
-            'label' => Craft::t('commerce', 'Shopify Status'),
+            'label' => Craft::t('shopify', 'Shopify Status'),
             'orderBy' => 'shopify_productdata.shopifyStatus',
             'defaultDir' => SORT_DESC,
         ];
@@ -623,13 +665,13 @@ class Product extends Element
             case 'shopifyId':
                 return $this->$attribute;
             case 'options':
-                return collect($this->getOptions())->map(function ($option) {
+                return collect($this->getOptions())->map(function($option) {
                     return Html::tag('span', $option['name'], [
                         'title' => $option['name'] . ' option values: ' . collect($option['values'])->join(', '),
                     ]);
                 })->join(',&nbsp;');
             case 'tags':
-                return collect($this->getTags())->map(function ($tag) {
+                return collect($this->getTags())->map(function($tag) {
                     return Html::tag('div', $tag, [
                         'style' => 'margin-bottom: 2px;',
                         'class' => 'token',
@@ -719,6 +761,7 @@ class Product extends Element
         $labels['updatedAt'] = Craft::t('shopify', 'Updated at');
         $labels['variants'] = Craft::t('shopify', 'Variants');
         $labels['vendor'] = Craft::t('shopify', 'Vendor');
+        $labels['metaFields'] = Craft::t('shopify', 'Meta Fields');
 
         return $labels;
     }

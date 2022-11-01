@@ -11,6 +11,7 @@ use Shopify\Auth\FileSessionStorage;
 use Shopify\Auth\Session;
 use Shopify\Clients\Rest;
 use Shopify\Context;
+use Shopify\Rest\Admin2022_10\Metafield;
 
 /**
  * Shopify API service.
@@ -26,7 +27,7 @@ class Api extends Component
     /**
      * @var string
      */
-    public const SHOPIFY_API_VERSION = '2022-04';
+    public const SHOPIFY_API_VERSION = '2022-10';
 
     /**
      * @var Session|null
@@ -40,9 +41,18 @@ class Api extends Component
     {
         $session = $this->getSession();
         $client = new Rest($session->getShop(), $session->getAccessToken());
-        $response = $client->get('products');
+        $response = $client->get('products', query: ['limit' => 250]);
         $products = [];
         $this->_getProductsFromResponse($response, $products);
+
+        foreach ($products as $key => $product) {
+            $data = Metafield::all(
+                $session, // Session
+                [], // Url Ids
+                ["metafield" => ["owner_id" => $product['id'], "owner_resource" => "product"]], // Params
+            );
+            $products[$key]['metaFields'] = $data;
+        }
 
         return $products;
     }
@@ -74,7 +84,15 @@ class Api extends Component
         $client = new Rest($session->getShop(), $session->getAccessToken());
         $response = $client->get('product/' . $id);
 
-        return $response->getDecodedBody()['product'];
+        $product = $response->getDecodedBody()['product'];
+
+        $product['metaFields'] = $data = Metafield::all(
+            $session, // Session
+            [], // Url Ids
+            ["metafield" => ["owner_id" => $product['id'], "owner_resource" => "product"]], // Params
+        );
+
+        return $product;
     }
 
     /**

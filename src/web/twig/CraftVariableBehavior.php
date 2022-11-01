@@ -10,6 +10,7 @@ namespace craft\shopify\web\twig;
 use Craft;
 use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\elements\Product;
+use craft\shopify\Plugin;
 use yii\base\Behavior;
 
 /**
@@ -20,6 +21,19 @@ use yii\base\Behavior;
  */
 class CraftVariableBehavior extends Behavior
 {
+    /**
+     * @var Plugin
+     */
+    public Plugin $shopify;
+
+    public function init(): void
+    {
+        parent::init();
+
+        // Point `craft.commerce` to the craft\commerce\Plugin instance
+        $this->shopify = Plugin::getInstance();
+    }
+
     /**
      * Returns a new ProductQuery instance.
      *
