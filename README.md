@@ -41,7 +41,6 @@ Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-a
 1. **App Name**: Choose something that identifies the integration, like “Craft CMS.”
 2. **Admin API access scopes**: The following scopes are required for the plugin to function correctly:
     - `read_products`
-    - `write_product_listings`
     - `read_product_listings`
 
     Additionally (at the bottom of this screen), the **Webhook subscriptions** &rarr; **Event version** should be `2022-04`.
