@@ -43,7 +43,7 @@ Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-a
     - `read_products`
     - `read_product_listings`
 
-    Additionally (at the bottom of this screen), the **Webhook subscriptions** &rarr; **Event version** should be `2022-04`.
+    Additionally (at the bottom of this screen), the **Webhook subscriptions** &rarr; **Event version** should be `2022-10`.
 3. **Admin API access token**: Reveal and copy this value into your `.env` file, as `SHOPIFY_ADMIN_ACCESS_TOKEN`.
 4. **API key and secret key**: Reveal and/or copy the **API key** and **API secret key** into your `.env` under `SHOPIFY_API_KEY` and `SHOPIFY_API_SECRET_KEY`, respectively.
 
