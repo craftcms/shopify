@@ -57,6 +57,7 @@ class ProductsController extends \craft\web\Controller
     public function actionRenderCardHtml(): string
     {
         $id = (int)Craft::$app->request->getParam('id');
+        /** @var Product $product */
         $product = Product::find()->id($id)->status(null)->one();
         return ProductHelper::renderCardHtml($product);
     }
