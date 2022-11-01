@@ -41,6 +41,5 @@ class SyncController extends Controller
         $this->stdout('Syncing Shopify products…' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
         Plugin::getInstance()->getProducts()->syncAllProducts();
         $this->stdout('Finished' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
-
     }
 }

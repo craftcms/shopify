@@ -4,7 +4,6 @@ namespace craft\shopify\migrations;
 
 use craft\db\Migration;
 use craft\db\Table as CraftTable;
-use craft\helpers\MigrationHelper;
 use craft\shopify\db\Table;
 
 /**

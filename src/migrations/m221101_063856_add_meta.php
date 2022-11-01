@@ -15,7 +15,6 @@ class m221101_063856_add_meta extends Migration
      */
     public function safeUp(): bool
     {
-
         if (!$this->db->columnExists(Table::PRODUCTDATA, 'metaFields')) {
             $this->addColumn(Table::PRODUCTDATA, 'metaFields', $this->text()->after('vendor'));
         }
