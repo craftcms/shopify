@@ -34,6 +34,7 @@ To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/sho
 
 The plugin works with Shopify’s [Custom Apps](https://help.shopify.com/en/manual/apps/custom-apps) system.
 
+> **Note**  
 > If you are not the owner of the Shopify store, have the owner add you as a collaborator or staff member with the [_Develop Apps_ permission](https://help.shopify.com/en/manual/apps/custom-apps#api-scope-permissions-for-custom-apps).
 
 Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-apps) for creating a private app (through the _Get the API credentials for a custom app_ section), and take these actions when prompted:
@@ -76,7 +77,8 @@ Now that you have credentials for your custom app, it’s time to add them to Cr
     - **Host Name**: `$SHOPIFY_HOSTNAME`
 3. Click **Save**.
 
-> :information_desk_person: These settings are stored in [Project Config](https://craftcms.com/docs/4.x/project-config.html), and will be automatically applied in other environments. [Webhooks](#set-up-webhooks) will still need to be configured for each environment!
+> **Note**  
+> These settings are stored in [Project Config](https://craftcms.com/docs/4.x/project-config.html), and will be automatically applied in other environments. [Webhooks](#set-up-webhooks) will still need to be configured for each environment!
 
 ### Set up Webhooks
 
@@ -84,9 +86,11 @@ Once your credentials have been added to Craft, a new **Webhooks** tab will appe
 
 Click **Generate** on the Webhooks screen to add the required webhooks to Shopify. The plugin will use the credentials you just configured to perform this operation—so this also serves as an initial communication test.
 
-> :rotating_light: You will need to add webhooks for each environment you deploy the plugin to, because each webhook is tied to a specific URL.
+> **Warning**  
+> You will need to add webhooks for each environment you deploy the plugin to, because each webhook is tied to a specific URL.
 
-> :bulb: If you need to test live synchronization in development, we recommend using the [ngrok](https://ngrok.com/) tool to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel.
+> **Note**  
+> If you need to test live synchronization in development, we recommend using the [ngrok](https://ngrok.com/) tool to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel.
 
 ## Product Element
 
@@ -100,7 +104,8 @@ Once the plugin has been configured, perform an initial synchronization via the 
 
     php craft shopify/sync/products
 
-> :bulb: Products can also be synchronized from the control panel using the **Shopify Sync** utility. Keep in mind that large stores (over a hundred products) may take some time to synchronize, and can quickly run through [PHP’s `max_execution_time`](https://www.php.net/manual/en/info.configuration.php#ini.max-execution-time).
+> **Note**  
+> Products can also be synchronized from the control panel using the **Shopify Sync** utility. Keep in mind that large stores (over a hundred products) may take some time to synchronize, and can quickly run through [PHP’s `max_execution_time`](https://www.php.net/manual/en/info.configuration.php#ini.max-execution-time).
 
 ### Native Attributes
 
@@ -126,7 +131,8 @@ Attribute | Description | Type
 
 All of these properties are available when working with a product element [in your templates](#templating).
 
-> :bulb: See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-04/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
+> **Note**  
+> See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-04/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
 
 ### Custom Fields
 
@@ -138,7 +144,8 @@ The product field layout can be edited by going to **Shopify** &rarr; **Settings
 
 A product’s `status` in Craft is a combination of its `shopifyStatus` attribute ('active', 'draft', or 'archived') and its enabled state. The former can only be changed from Shopify; the latter is set in the Craft control panel.
 
-> :information_desk_person: Statuses in Craft are often a synthesis of multiple properties. For example, an entry with the _Pending_ status just means it is `enabled` _and_ has a `postDate` in the future.
+> **Note**  
+> Statuses in Craft are often a synthesis of multiple properties. For example, an entry with the _Pending_ status just means it is `enabled` _and_ has a `postDate` in the future.
 
 In most cases, you’ll only need to display “Live” products, or those which are _Active_ in Shopify and _Enabled_ in Craft:
 
@@ -300,7 +307,8 @@ The above includes quote (`"`) literals, because it’s attempting to locate a k
 
 Products behave just like any other element, in Twig. Once you’ve loaded a product via a [query](#querying-products), you can output its native [Shopify attributes](#native-attributes) and [custom field](#custom-fields) data.
 
-> :information_desk_person: Keep in mind that some attributes are stored as JSON, which inherently limits which types nested properties can use. Dates may be slightly more difficult to work with, as a result.
+> **Note**  
+> Keep in mind that some attributes are stored as JSON, which inherently limits which types nested properties can use. Dates may be slightly more difficult to work with, as a result.
 
 ```twig
 {# Standard element title: #}
@@ -361,7 +369,7 @@ In addition to [product element methods](#methods), the plugin exposes its API t
 
 #### API Service
 
-> **Warning**
+> **Warning**  
 > Use of API calls in Twig blocks rendering and—depending on traffic—may cause timeouts and/or failures due to rate limits. Consider using the [`{% cache %}` tag](https://craftcms.com/docs/4.x/dev/tags.html#cache) with a key and specific expiry time to avoid making a request every time a template is rendered:
 > ```twig
 > {% cache using key "shopify:collections" for 10 minutes %}
@@ -401,7 +409,8 @@ The plugin provides a _Shopify Products_ field, which uses the familiar [relatio
 
 Relationships defined with the _Shopify Products_ field use stable element IDs under the hood. When Shopify products are archived or deleted, the corresponding elements will also be updated in Craft, and naturally filtered out of your query results—including those explicitly attached via a _Shopify Products_ field.
 
-> :information_desk_person: Upgrading? Check out the [migration](#migrating-from-v2x) notes for more info.
+> **Note**  
+> Upgrading? Check out the [migration](#migrating-from-v2x) notes for more info.
 
 ---
 
@@ -409,11 +418,13 @@ Relationships defined with the _Shopify Products_ field use stable element IDs u
 
 If you are upgrading a Craft 3 project to Craft 4 and have existing “Shopify Product” fields, you’ll need show the plugin how to translate plain Shopify IDs (stored as a JSON array) into element IDs, within Craft’s relations system.
 
-> :rotating_light: Before getting started with the migration, make sure you have [synchronized](#synchronization) your product catalog.
+> **Warning**  
+> Before getting started with the migration, make sure you have [synchronized](#synchronization) your product catalog.
 
 It’s safe to remove the old plugin package (`nmaier95/shopify-product-fetcher`) from your `composer.json`—but **do not uninstall it** from the control panel. We want the field’s data to stick around, but don’t need the old field class to work with it.
 
-> :information_desk_person: You may see a “missing field” in your field layouts during this process—that’s OK! Your data is still there.
+> **Note**  
+You may see a “missing field” in your field layouts during this process—that’s OK! Your data is still there.
 
 For each legacy Shopify Product field in your project, do the following:
 
