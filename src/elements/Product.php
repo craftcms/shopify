@@ -698,9 +698,9 @@ class Product extends Element
     /**
      * @return string
      */
-    public function getShopifyUrl(): string
+    public function getShopifyUrl(array $params = []): string
     {
-        return Plugin::getInstance()->getStore()->getUrl('products/' . $this->handle);
+        return Plugin::getInstance()->getStore()->getUrl("products/{$this->handle}", $params);
     }
 
     /**
