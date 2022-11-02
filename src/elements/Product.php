@@ -12,10 +12,11 @@ use craft\base\Element;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\User;
 use craft\helpers\App;
-use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+use craft\helpers\Template;
 use craft\helpers\UrlHelper;
+use \yii\helpers\Html as HtmlHelper;
 use craft\models\FieldLayout;
 use craft\shopify\elements\conditions\products\ProductCondition;
 use craft\shopify\elements\db\ProductQuery;
@@ -659,20 +660,20 @@ class Product extends Element
     {
         switch ($attribute) {
             case 'shopifyEdit':
-                return Html::a('', $this->getShopifyEditUrl(), ['target' => '_blank', 'data' => ['icon' => 'external']]);
+                return HtmlHelper::a('', $this->getShopifyEditUrl(), ['target' => '_blank', 'data' => ['icon' => 'external']]);
             case 'shopifyStatus':
                 return $this->getShopifyStatusHtml();
             case 'shopifyId':
                 return $this->$attribute;
             case 'options':
-                return collect($this->getOptions())->map(function($option) {
-                    return Html::tag('span', $option['name'], [
+                return collect($this->getOptions())->map(function ($option) {
+                    return HtmlHelper::tag('span', $option['name'], [
                         'title' => $option['name'] . ' option values: ' . collect($option['values'])->join(', '),
                     ]);
                 })->join(',&nbsp;');
             case 'tags':
-                return collect($this->getTags())->map(function($tag) {
-                    return Html::tag('div', $tag, [
+                return collect($this->getTags())->map(function ($tag) {
+                    return HtmlHelper::tag('div', $tag, [
                         'style' => 'margin-bottom: 2px;',
                         'class' => 'token',
                     ]);
@@ -693,6 +694,24 @@ class Product extends Element
     {
         $path = sprintf('shopify/products/%s', $this->getCanonicalId());
         return UrlHelper::cpUrl($path);
+    }
+
+    /**
+     * @return string
+     */
+    public function getShopifyUrl(): string
+    {
+        return Plugin::getInstance()->getStore()->getUrl('products/' . $this->handle);
+    }
+
+    /**
+     * @return string
+     * @see self::getLink()
+     */
+    public function getShopifyLink(?string $text = null, array $attributes = []): string
+    {
+        $link = HtmlHelper::a($text ?: $this->title, $this->getShopifyUrl(), $attributes);
+        return Template::raw($link);
     }
 
     /**

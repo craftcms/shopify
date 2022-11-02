@@ -25,6 +25,7 @@ use craft\shopify\handlers\Product as ProductHandler;
 use craft\shopify\models\Settings;
 use craft\shopify\services\Api;
 use craft\shopify\services\Products;
+use craft\shopify\services\Store;
 use craft\shopify\utilities\Sync;
 use craft\shopify\web\twig\CraftVariableBehavior;
 use craft\web\twig\variables\CraftVariable;
@@ -71,6 +72,7 @@ class Plugin extends BasePlugin
             'components' => [
                 'api' => ['class' => Api::class],
                 'products' => ['class' => Products::class],
+                'store' => ['class' => Store::class],
             ],
         ];
     }
@@ -139,6 +141,18 @@ class Plugin extends BasePlugin
     public function getProducts(): Products
     {
         return $this->get('products');
+    }
+
+    /**
+     * Returns the API service
+     *
+     * @return Store The Store service
+     * @throws InvalidConfigException
+     * @since 3.0
+     */
+    public function getStore(): Store
+    {
+        return $this->get('store');
     }
 
     /**
