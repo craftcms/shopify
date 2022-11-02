@@ -6,11 +6,8 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\App;
 use craft\helpers\UrlHelper;
-use craft\shopify\elements\Product;
-use craft\shopify\models\Settings;
 use craft\shopify\Plugin;
-use craft\shopify\records\ProductData as ProductDataRecord;
-use yii\helpers\Url;
+use yii\base\InvalidConfigException;
 
 /**
  * Shopify Store service.
@@ -24,25 +21,23 @@ use yii\helpers\Url;
 class Store extends Component
 {
     /**
-     * Creates a URL to the external shopify store
+     * Creates a URL to the external Shopify store
      *
      * @param string $path
      * @param array|string|null $params
      * @param string|null $scheme
+     * @throws InvalidConfigException when no hostname is set up.
      * @return string
      */
-    public function getUrl(string $path = '', array|string|null $params = null, ?string $scheme = 'https'): string
+    public function getUrl(string $path = '', array|string|null $params = null, ?string $scheme = 'https://'): string
     {
         $settings = Plugin::getInstance()->getSettings();
-        if ($settings->hostName) {
-            $query = UrlHelper::buildQuery($params ?? []);
-            $query = $query ? "?$query" : '';
-            $path = $path ? '/' . $path : '';
-            $scheme = ($scheme ?: 'https') . '://';
-            $base = App::parseEnv($settings->hostName);
-            return $scheme . $base . $path . $query;
+        $host = App::parseEnv($settings->hostName);
+
+        if (!$host) {
+            throw new InvalidConfigException('Shopify URLs cannot be generated without a hostname configured.');
         }
 
-        return '';
+        return UrlHelper::url("{$scheme}{$host}/{$path}", $params);
     }
 }

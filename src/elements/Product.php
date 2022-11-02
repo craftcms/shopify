@@ -399,8 +399,7 @@ class Product extends Element
      */
     public function getShopifyEditUrl(): ?string
     {
-        $baseUrl = Plugin::getInstance()->getSettings()->hostName;
-        return UrlHelper::url('https://' . App::parseEnv($baseUrl) . '/admin/products/' . $this->shopifyId);
+        return Plugin::getInstance()->getStore()->getUrl("admin/products/{$this->shopifyId}");
     }
 
     /**
@@ -707,6 +706,7 @@ class Product extends Element
     /**
      * @return string
      * @see self::getLink()
+     * @see self::getShopifyUrl()
      */
     public function getShopifyLink(?string $text = null, array $attributes = []): string
     {
