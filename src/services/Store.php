@@ -24,12 +24,12 @@ class Store extends Component
      * Creates a URL to the external Shopify store
      *
      * @param string $path
-     * @param array|string|null $params
+     * @param array $params
      * @param string|null $scheme
      * @throws InvalidConfigException when no hostname is set up.
      * @return string
      */
-    public function getUrl(string $path = '', array|string|null $params = null, ?string $scheme = 'https://'): string
+    public function getUrl(string $path = '', array $params = [], ?string $scheme = 'https://'): string
     {
         $settings = Plugin::getInstance()->getSettings();
         $host = App::parseEnv($settings->hostName);
