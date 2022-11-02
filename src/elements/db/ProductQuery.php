@@ -203,6 +203,7 @@ class ProductQuery extends ElementQuery
             'shopify_productdata.templateSuffix',
             'shopify_productdata.updatedAt',
             'shopify_productdata.vendor',
+            'shopify_productdata.metaFields',
             'shopify_productdata.images',
             'shopify_productdata.options',
             'shopify_productdata.variants',
