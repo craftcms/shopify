@@ -149,6 +149,27 @@ Status | Shopify | Craft
 `shopifyArchived` | Archived | Enabled
 `disabled` | Any | Disabled
 
+### Methods
+
+The product element also has a couple of methods you might find useful in your [templates](#templating):
+
+```twig
+{# Get a link to the product’s page on Shopify: #}
+<a href="{{ product.getShopifyUrl() }}">View on our store</a>
+
+{# Link to a product with a specific variant pre-selected: #}
+<a href="{{ product.getShopifyUrl({ variant: variant.id }) }}">Buy now</a>
+```
+
+For your administrators, you can even link directly to the Shopify admin:
+
+```twig
+{# Assuming you’ve created a custom group for Shopify admin: #}
+{% if currentUser and currentUser.isInGroup('clerks') %}
+  <a href="{{ product.getShopifyEditUrl() }}">Edit product on Shopify</a>
+{% endif %}
+```
+
 ## Querying Products
 
 Products can be queried like any other element in the system.
@@ -321,7 +342,7 @@ Your customers can add products to their cart directly from your Craft site:
 ```twig
 {% set product = craft.shopifyProducts.one() %}
 
-<form action="https://{{ getenv('SHOPIFY_HOSTNAME') }}/cart/add" method="post">
+<form action="{{ craft.shopify.store.getUrl('cart/add') }}" method="post">
   <select name="id">
     {% for variant in product.variants %}
       <option value="{{ variant.id }}">{{ variant.title }}</option>
@@ -332,6 +353,46 @@ Your customers can add products to their cart directly from your Craft site:
 
   <button>Add to Cart</button>
 </form>
+```
+
+### Helpers
+
+In addition to [product element methods](#methods), the plugin exposes its API to Twig via `craft.shopify`.
+
+#### API Service
+
+> **Warning**
+> Use of API calls in Twig blocks rendering and—depending on traffic—may cause timeouts and/or failures due to rate limits. Consider using the [`{% cache %}` tag](https://craftcms.com/docs/4.x/dev/tags.html#cache) with a key and specific expiry time to avoid making a request every time a template is rendered:
+> ```twig
+> {% cache using key "shopify:collections" for 10 minutes %}
+>   {# API calls + output... #}
+> {% endcache %}
+> ```
+
+Issue requests to the Shopify Admin API via `craft.shopify.api`:
+
+```twig
+{% set req = craft.shopify.api.get('custom_collections') %}
+{% set collections = req.response.custom_collections %}
+```
+
+The schema for each API resource will differ. Consult the [Shopify API documentation](https://shopify.dev/api/admin-rest) for more information.
+
+#### Store Service
+
+A simple URL generator is available via `craft.shopify.store`. You may have noticed it in the [cart](#cart) example, above—but it is a little more versatile than that!
+
+```twig
+{# Create a link to add a product/variant to the cart: #}
+{{ tag('a', {
+  href: craft.shopify.store.getUrl('cart/add', {
+    id: variant.id
+  }),
+  text: 'Add to Cart',
+  target: '_blank',
+}) }}
+
+{# Link to a product page #}
 ```
 
 ## Product Field
