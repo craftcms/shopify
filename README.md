@@ -161,7 +161,10 @@ A new query begins with the `craft.shopifyProducts` factory function:
 
 ### Query Parameters
 
-The following element query parameters are supported, in addition to [Craft’s standard set](https://craftcms.com/docs/4.x/element-queries.html):
+The following element query parameters are supported, in addition to [Craft’s standard set](https://craftcms.com/docs/4.x/element-queries.html).
+
+> **Note**
+> Fields stored as JSON (like `options` and `metadata`) are only queryable as plain text. If you need to do advanced organization or filtering, we recommend using custom Category or Tag fields in your Product [field layout](#custom-fields).
 
 #### `shopifyId`
 
@@ -226,8 +229,13 @@ Show only products that are published to a matching sales channel.
 
 #### `tags`
 
+Tags are stored as a comma-separated list. You may have better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+
 ```twig
-{# Todo: JSON blob? #}
+{# Find products whose tags include the term in either position, with variations on casing: #}
+{% set clogs = craft.shopifyProducts
+  .tags('*clog*', '*Clog*')
+  .all() %}
 ```
 
 #### `vendor`
@@ -235,6 +243,7 @@ Show only products that are published to a matching sales channel.
 Filter by the vendor information from Shopify.
 
 ```twig
+{# Find products with a vendor matching either option: #}
 {% set fancyBags = craft.shopifyProducts
   .vendor(['Louis Vuitton', 'Jansport'])
   .all() %}
@@ -242,15 +251,27 @@ Filter by the vendor information from Shopify.
 
 #### `images`
 
+Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2022-04/resources/product-image#resource-object) values can be difficult and unpredictable—you may have better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+
 ```twig
-{# Todo: JSON blob? #}
+{# Find products that have an image resource mentioning "stripes": #}
+{% set clogs = craft.shopifyProducts
+  .images('*stripes*')
+  .all() %}
 ```
 
 #### `options`
 
+Options are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. You may have better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+
 ```twig
-{# Todo: JSON blob? #}
+{# Find products that use a "color" option: #}
+{% set clogs = craft.shopifyProducts
+  .options('"Color"')
+  .all() %}
 ```
+
+The above includes quote (`"`) literals, because it’s attempting to locate a key in a JSON array, which will always be surrounded by double-quotes.
 
 ## Templating
 
