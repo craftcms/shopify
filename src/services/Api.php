@@ -76,6 +76,18 @@ class Api extends Component
     }
 
     /**
+     * @see Rest::get();
+     */
+    public function get($path, array $query = [], array $headers = [], ?int $tries = null)
+    {
+        $session = $this->getSession();
+        $client = new Rest($session->getShop(), $session->getAccessToken());
+        $response = $client->get($path, $headers, $query, $tries);
+        $pageInfo = $response->getPageInfo();
+        return ['response' => $response->getDecodedBody(), 'pageInfo' => $pageInfo];
+    }
+
+    /**
      * @return array
      */
     public function getProductByShopifyId($id): array

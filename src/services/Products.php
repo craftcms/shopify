@@ -9,7 +9,7 @@ use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
 
 /**
- * Shopify API service.
+ * Shopify Products service.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 3.0
@@ -26,7 +26,6 @@ class Products extends Component
      */
     public function syncAllProducts(): void
     {
-        // TODO: move this to a queue and add pagination
         $allData = Plugin::getInstance()->getApi()->getAllProducts();
 
         foreach ($allData as $data) {
