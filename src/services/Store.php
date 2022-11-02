@@ -25,11 +25,10 @@ class Store extends Component
      *
      * @param string $path
      * @param array $params
-     * @param string|null $scheme
      * @throws InvalidConfigException when no hostname is set up.
      * @return string
      */
-    public function getUrl(string $path = '', array $params = [], ?string $scheme = 'https://'): string
+    public function getUrl(string $path = '', array $params = []): string
     {
         $settings = Plugin::getInstance()->getSettings();
         $host = App::parseEnv($settings->hostName);
@@ -38,6 +37,6 @@ class Store extends Component
             throw new InvalidConfigException('Shopify URLs cannot be generated without a hostname configured.');
         }
 
-        return UrlHelper::url("{$scheme}{$host}/{$path}", $params);
+        return UrlHelper::url("https://{$host}/{$path}", $params);
     }
 }
