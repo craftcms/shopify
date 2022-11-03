@@ -90,7 +90,7 @@ Click **Generate** on the Webhooks screen to add the required webhooks to Shopif
 > You will need to add webhooks for each environment you deploy the plugin to, because each webhook is tied to a specific URL.
 
 > **Note**  
-> If you need to test live synchronization in development, we recommend using the [ngrok](https://ngrok.com/) tool to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel.
+> If you need to test live synchronization in development, we recommend using [ngrok](https://ngrok.com/) to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel, then regenerate your webhooks.
 
 ## Product Element
 
