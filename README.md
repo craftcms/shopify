@@ -260,7 +260,7 @@ Show only products that are published to a matching sales channel.
 Tags are stored as a comma-separated list. You may have better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
 
 ```twig
-{# Find products whose tags include the term in either position, with variations on casing: #}
+{# Find products whose tags include the term in any position, with variations on casing: #}
 {% set clogs = craft.shopifyProducts
   .tags('*clog*', '*Clog*')
   .all() %}
