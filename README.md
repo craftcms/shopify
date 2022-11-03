@@ -299,7 +299,7 @@ Options are stored as a blob of JSON, and only intended for use in a template in
   .all() %}
 ```
 
-The above includes quote (`"`) literals, because it’s attempting to locate a key in a JSON array, which will always be surrounded by double-quotes.
+The above includes quote (`"`) literals, because it’s attempting to locate a specific key in a JSON array, which will always be surrounded by double-quotes.
 
 ## Templating
 
