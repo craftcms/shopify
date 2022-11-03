@@ -257,7 +257,7 @@ Show only products that are published to a matching sales channel.
 
 #### `tags`
 
-Tags are stored as a comma-separated list. You may have better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+Tags are stored as a comma-separated list. You may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
 
 ```twig
 {# Find products whose tags include the term in any position, with variations on casing: #}
@@ -279,7 +279,7 @@ Filter by the vendor information from Shopify.
 
 #### `images`
 
-Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2022-04/resources/product-image#resource-object) values can be difficult and unpredictable—you may have better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2022-04/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
 
 ```twig
 {# Find products that have an image resource mentioning "stripes": #}
@@ -290,7 +290,7 @@ Images are stored as a blob of JSON, and only intended for use in a template in 
 
 #### `options`
 
-Options are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. You may have better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+Options are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. You may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
 
 ```twig
 {# Find products that use a "color" option: #}
