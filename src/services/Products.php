@@ -4,9 +4,14 @@ namespace craft\shopify\services;
 
 use Craft;
 use craft\base\Component;
-use craft\shopify\elements\Product;
+use craft\helpers\ArrayHelper;
+use craft\shopify\elements\Product as ProductElement;
+use craft\shopify\events\ShopifyProductSyncEvent;
+use craft\shopify\helpers\Metafields as MetafieldsHelper;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
+use Shopify\Rest\Admin2022_10\Product as ShopifyProduct;
+use Shopify\Rest\Admin2022_10\Metafield as ShopifyMetafield;
 
 /**
  * Shopify Products service.
@@ -20,22 +25,45 @@ use craft\shopify\records\ProductData as ProductDataRecord;
 class Products extends Component
 {
     /**
+     * @event ShopifyProductSyncEvent Event triggered just before Shopify product data is saved to a product element.
+     * 
+     * ---
+     * 
+     * ```php
+     * use craft\shopify\events\ShopifyProductSyncEvent;
+     * use craft\shopify\services\Products;
+     * use yii\base\Event;
+     *
+     * Event::on(Products::class,
+     *     Products::EVENT_REGISTER_ELEMENT_TYPES,
+     *     function(ShopifyProductSyncEvent $event) {
+     *         $event->element->setFieldValue('myCustomField', $event->metafields ???)
+     *     }
+     * );
+     * ```
+     */
+    public const EVENT_BEFORE_SYNCHRONIZE_PRODUCT = 'beforeSynchronizeProduct';
+
+    /**
      * @return void
      * @throws \Throwable
      * @throws \yii\base\InvalidConfigException
      */
     public function syncAllProducts(): void
     {
-        $allData = Plugin::getInstance()->getApi()->getAllProducts();
+        $api = Plugin::getInstance()->getApi();
+        $products = $api->getAllProducts();
 
-        foreach ($allData as $data) {
-            $this->createOrUpdateProduct($data);
+        foreach ($products as $product) {
+            $metafields = $api->getMetafieldsByProductId($product->id);
+            $this->createOrUpdateProduct($product, $metafields);
         }
 
         // Remove any products that are no longer in Shopify just in case.
-        $shopifyIds = collect($allData)->pluck('id')->all();
-        $deleteAbleProductElements = Product::find()->shopifyId(['not', $shopifyIds])->all();
-        foreach ($deleteAbleProductElements as $element) {
+        $shopifyIds = ArrayHelper::getColumn($products, 'id');
+        $deletableProductElements = ProductElement::find()->shopifyId(['not', $shopifyIds])->all();
+
+        foreach ($deletableProductElements as $element) {
             Craft::$app->elements->deleteElement($element);
         }
     }
@@ -47,44 +75,94 @@ class Products extends Component
      */
     public function syncProductByShopifyId($id): void
     {
-        $data = Plugin::getInstance()->getApi()->getProductByShopifyId($id);
-        $this->createOrUpdateProduct($data);
+        $api = Plugin::getInstance()->getApi();
+
+        $product = $api->getProductByShopifyId($id);
+        $metafields = $api->getMetafieldsByProductId($id);
+
+        $this->createOrUpdateProduct($product, $metafields);
     }
 
     /**
      * This takes the shopify data from the REST API and creates or updates a product element.
      *
-     * @param array $shopifyProductData
-     * @return Product
+     * @param ShopifyProduct $product
+     * @param ShopifyMetafield[] $metafields
+     * @return bool Whether or not the synchronization succeeded.
      */
-    public function createOrUpdateProduct(array $shopifyProductData): Product
+    public function createOrUpdateProduct(ShopifyProduct $product, array $metafields = []): bool
     {
-        // Transform data into the stuff we care about with the correct key names
-        $shopifyProductData = $this->_getDataArray($shopifyProductData);
+        // Expand any JSON-like properties:
+        $metafields = MetafieldsHelper::unpack($metafields);
+
+        // Build our attribute set from the Shopify product data:
+        $attributes = [
+            'shopifyId' => $product->id,
+            'title' => $product->title,
+            'bodyHtml' => $product->body_html,
+            'createdAt' => $product->created_at,
+            'handle' => $product->handle,
+            'images' => $product->images,
+            'options' => $product->options,
+            'productType' => $product->product_type,
+            'publishedAt' => $product->published_at,
+            'publishedScope' => $product->published_scope,
+            'shopifyStatus' => $product->status,
+            'tags' => $product->tags,
+            'templateSuffix' => $product->template_suffix,
+            'updatedAt' => $product->updated_at,
+            'variants' => $product->variants,
+            'vendor' => $product->vendor,
+            // This one is unusual, because we’re merging two different Shopify API resources:
+            'metaFields' => $metafields,
+        ];
 
         // Find the product data or create one
-        $productDataRecord = ProductDataRecord::find()->where(['shopifyId' => $shopifyProductData['shopifyId']])->one() ?: new ProductDataRecord();
-        $productDataRecord->setAttributes($shopifyProductData, false);
+        $productDataRecord = ProductDataRecord::find()->where(['shopifyId' => $product->id])->one() ?: new ProductDataRecord();
+
+        // Set attributes and save:
+        $productDataRecord->setAttributes($attributes, false);
         $productDataRecord->save();
 
         // Find the product element or create one
-        /** @var Product|null $productElement */
-        $productElement = Product::find()->shopifyId($shopifyProductData['shopifyId'])->status(null)->one();
+        /** @var ProductElement|null $productElement */
+        $productElement = ProductElement::find()
+            ->shopifyId($product->id)
+            ->status(null)
+            ->one();
 
         if ($productElement === null) {
-            /** @var Product $productElement */
-            $productElement = new Product();
+            /** @var ProductElement $productElement */
+            $productElement = new ProductElement();
         }
 
-        $productElement->setAttributes($shopifyProductData, false);
+        // Set attributes on the element to emulate it having been loaded with JOINed data:
+        $productElement->setAttributes($attributes, false);
 
-        Craft::$app->getElements()->saveElement($productElement);
+        $event = new ShopifyProductSyncEvent([
+            'element' => $productElement,
+            'source' => $product,
+            'metafields' => $metafields,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_SYNCHRONIZE_PRODUCT, $event);
 
-        return $productElement;
+        if (!$event->isValid) {
+            Craft::warning("Synchronization of Shopify product ID #{$product->id} was stopped by a plugin.", 'shopify');
+
+            return false;
+        }
+
+        if (!Craft::$app->getElements()->saveElement($productElement)) {
+            Craft::error("Failed to synchronize Shopify product ID #{$product->id}.", 'shopify');
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
-     * Deletes a product element by the shopify ID.
+     * Deletes a product element by the Shopify ID.
      *
      * @param $id
      * @return void
@@ -92,11 +170,11 @@ class Products extends Component
     public function deleteProductByShopifyId($id): void
     {
         if ($id) {
-            if ($product = Product::find()->shopifyId($id)->one()) {
+            if ($product = ProductElement::find()->shopifyId($id)->one()) {
                 // We hard delete because it will have been hard deleted in Shopify
                 Craft::$app->getElements()->deleteElement($product, true);
             }
-            if ($productData = ProductDataRecord::find()->where(['id' => $id])->one()) {
+            if ($productData = ProductDataRecord::find()->where(['shopifyId' => $id])->one()) {
                 $productData->delete();
             }
         }
@@ -110,33 +188,6 @@ class Products extends Component
      */
     public function getProductIdByShopifyId($id): int
     {
-        return Product::find()->shopifyId($id)->one()->id;
-    }
-
-    /**
-     * @param array $product
-     * @return array
-     */
-    private function _getDataArray(array $product): array
-    {
-        return [
-            'shopifyId' => $product['id'],
-            'title' => $product['title'],
-            'bodyHtml' => $product['body_html'],
-            'createdAt' => $product['created_at'],
-            'handle' => $product['handle'],
-            'images' => $product['images'],
-            'options' => $product['options'],
-            'productType' => $product['product_type'],
-            'publishedAt' => $product['published_at'],
-            'publishedScope' => $product['published_scope'],
-            'shopifyStatus' => $product['status'],
-            'tags' => $product['tags'],
-            'templateSuffix' => $product['template_suffix'],
-            'updatedAt' => $product['updated_at'],
-            'variants' => $product['variants'],
-            'vendor' => $product['vendor'],
-            'metaFields' => $product['metaFields'],
-        ];
+        return ProductElement::find()->shopifyId($id)->one()->id;
     }
 }

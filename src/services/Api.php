@@ -1,4 +1,9 @@
 <?php
+/**
+ * @link https://craftcms.com/
+ * @copyright Copyright (c) Pixel & Tonic, Inc.
+ * @license https://craftcms.github.io/license/
+ */
 
 namespace craft\shopify\services;
 
@@ -11,7 +16,9 @@ use Shopify\Auth\FileSessionStorage;
 use Shopify\Auth\Session;
 use Shopify\Clients\Rest;
 use Shopify\Context;
-use Shopify\Rest\Admin2022_10\Metafield;
+use Shopify\Rest\Admin2022_10\Metafield as ShopifyMetafield;
+use Shopify\Rest\Admin2022_10\Product as ShopifyProduct;
+use Shopify\Rest\Base as ShopifyBaseResource;
 
 /**
  * Shopify API service.
@@ -35,99 +42,116 @@ class Api extends Component
     private ?Session $_session = null;
 
     /**
-     * @return array
+     * @var Rest|null
+     */
+    private ?Rest $_client = null;
+
+    /**
+     * Retrieve all a shop’s products.
+     * 
+     * @return ShopifyProduct[]
      */
     public function getAllProducts(): array
     {
-        $session = $this->getSession();
-        $client = new Rest($session->getShop(), $session->getAccessToken());
-        $response = $client->get('products', query: ['limit' => 250]);
-        $products = [];
-        $this->_getProductsFromResponse($response, $products);
-
-        foreach ($products as $key => $product) {
-            $data = Metafield::all(
-                $session, // Session
-                [], // Url Ids
-                ["metafield" => ["owner_id" => $product['id'], "owner_resource" => "product"]], // Params
-            );
-            $products[$key]['metaFields'] = $data;
-        }
-
-        return $products;
+        return $this->getAll(ShopifyProduct::class);
     }
 
     /**
-     * Loops through all pages of the response to get all products
-     *
-     * @param $response
-     * @param $products
+     * Retrieve a single product by its Shopify ID.
+     * 
+     * @return ShopifyProduct|null
      */
-    private function _getProductsFromResponse($response, &$products)
+    public function getProductByShopifyId($id): ShopifyProduct
     {
-        $session = $this->getSession();
-        $client = new Rest($session->getShop(), $session->getAccessToken());
-        $products = array_merge($products, $response->getDecodedBody()['products'] ?? []);
-        $pageInfo = $response->getPageInfo();
-        if ($pageInfo && $pageInfo->hasNextPage()) {
-            $response = $client->get('products', [], $pageInfo->getNextPageQuery());
-            $this->_getProductsFromResponse($response, $products);
-        }
+        return ShopifyProduct::find($this->getSession(), $id);
     }
 
     /**
+     * Retrieves "metafields" for the provided Shopify product ID.
+     * 
+     * @param int $id Shopify Product ID
+     */
+    public function getMetafieldsByProductId(int $id): array
+    {
+        return $this->getAll(ShopifyMetafield::class, [
+            'metafield' => [
+                'owner_id' => $id,
+                'owner_resource' => 'product',
+            ],
+        ]);
+    }
+
+    /**
+     * Shortcut for retrieving arbitrary API resources. A plain (parsed) response body is returned, so it’s the caller’s responsibility for unpacking it properly.
+     * 
      * @see Rest::get();
      */
-    public function get($path, array $query = [], array $headers = [], ?int $tries = null)
+    public function get($path, array $query = [])
     {
-        $session = $this->getSession();
-        $client = new Rest($session->getShop(), $session->getAccessToken());
-        $response = $client->get($path, $headers, $query, $tries);
-        $pageInfo = $response->getPageInfo();
-        return ['response' => $response->getDecodedBody(), 'pageInfo' => $pageInfo];
+        $response = $this->getClient()->get($path, [], $query);
+
+        return $response->getDecodedBody();
     }
 
     /**
-     * @return array
+     * Iteratively retrieves a paginated collection of API resources.
+     * 
+     * @param string $type Stripe API resource class
+     * @param array $params
+     * @return ShopifyBaseResource[]
      */
-    public function getProductByShopifyId($id): array
+    public function getAll(string $type, array $params = []): array
     {
-        $session = $this->getSession();
-        $client = new Rest($session->getShop(), $session->getAccessToken());
-        $response = $client->get('product/' . $id);
+        $resources = [];
 
-        $product = $response->getDecodedBody()['product'];
+        // Force maximum page size:
+        $params['limit'] = 250;
 
-        $product['metaFields'] = $data = Metafield::all(
-            $session, // Session
-            [], // Url Ids
-            ["metafield" => ["owner_id" => $product['id'], "owner_resource" => "product"]], // Params
-        );
+        do {
+            $resources = array_merge($resources, $type::all(
+                $this->getSession(),
+                [],
+                $type::$NEXT_PAGE_QUERY ?: $params,
+            ));
+        } while ($type::$NEXT_PAGE_QUERY);
 
-        return $product;
+        return $resources;
     }
 
     /**
+     * Returns or sets up a Rest API client.
+     * 
+     * @return Rest
+     */
+    public function getClient(): Rest
+    {
+        if ($this->_client === null) {
+            $session = $this->getSession();
+            $this->_client = new Rest($session->getShop(), $session->getAccessToken());
+        }
+
+        return $this->_client;
+    }
+
+    /**
+     * Returns or initializes a context + session.
+     * 
      * @return Session|null
      * @throws \Shopify\Exception\MissingArgumentException
-     * @throws \yii\base\Exception
      */
     public function getSession(): ?Session
     {
         $pluginSettings = Plugin::getInstance()->getSettings();
 
-        if (!$pluginSettings->apiKey || !$pluginSettings->accessToken || !$pluginSettings->hostName || !$pluginSettings->apiSecretKey) {
-            Craft::error('Can not access Shopify API. Shopify API credentials are not configured.', __METHOD__);
-            return null;
-        }
-
         if ($this->_session === null) {
             /** @var MonologTarget $webLogTarget */
             $webLogTarget = Craft::$app->getLog()->targets['web'];
+
             Context::initialize(
                 apiKey: App::parseEnv($pluginSettings->apiKey),
                 apiSecretKey: App::parseEnv($pluginSettings->apiSecretKey),
                 scopes: ['write_products', 'read_products'],
+                // This `hostName` is different from the `shop` value used when creating a Session! Shopify wants a name for the host/environment that is initiating the connection.
                 hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
                 sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
                 apiVersion: self::SHOPIFY_API_VERSION,
@@ -144,6 +168,7 @@ class Api extends Component
                 isOnline: false,
                 state: 'NA'
             );
+
             $this->_session->setAccessToken($accessToken); // this is the most important part of the authentication
         }
 
