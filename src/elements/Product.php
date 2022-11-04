@@ -11,12 +11,10 @@ use Craft;
 use craft\base\Element;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\User;
-use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
-use \yii\helpers\Html as HtmlHelper;
 use craft\models\FieldLayout;
 use craft\shopify\elements\conditions\products\ProductCondition;
 use craft\shopify\elements\db\ProductQuery;
@@ -28,6 +26,7 @@ use craft\web\CpScreenResponseBehavior;
 use DateTime;
 use Exception;
 use yii\base\InvalidConfigException;
+use yii\helpers\Html as HtmlHelper;
 use yii\web\Response;
 
 /**
@@ -665,13 +664,13 @@ class Product extends Element
             case 'shopifyId':
                 return $this->$attribute;
             case 'options':
-                return collect($this->getOptions())->map(function ($option) {
+                return collect($this->getOptions())->map(function($option) {
                     return HtmlHelper::tag('span', $option['name'], [
                         'title' => $option['name'] . ' option values: ' . collect($option['values'])->join(', '),
                     ]);
                 })->join(',&nbsp;');
             case 'tags':
-                return collect($this->getTags())->map(function ($tag) {
+                return collect($this->getTags())->map(function($tag) {
                     return HtmlHelper::tag('div', $tag, [
                         'style' => 'margin-bottom: 2px;',
                         'class' => 'token',
