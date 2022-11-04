@@ -151,7 +151,8 @@ class Api extends Component
                 apiKey: App::parseEnv($pluginSettings->apiKey),
                 apiSecretKey: App::parseEnv($pluginSettings->apiSecretKey),
                 scopes: ['write_products', 'read_products'],
-                // This `hostName` is different from the `shop` value used when creating a Session! Shopify wants a name for the host/environment that is initiating the connection.
+                // This `hostName` is different from the `shop` value used when creating a Session!
+                // Shopify wants a name for the host/environment that is initiating the connection.
                 hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
                 sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
                 apiVersion: self::SHOPIFY_API_VERSION,
