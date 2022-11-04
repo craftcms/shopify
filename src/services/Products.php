@@ -34,10 +34,14 @@ class Products extends Component
      * use craft\shopify\services\Products;
      * use yii\base\Event;
      *
-     * Event::on(Products::class,
-     *     Products::EVENT_REGISTER_ELEMENT_TYPES,
+     * Event::on(
+     *     Products::class,
+     *     Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT,
      *     function(ShopifyProductSyncEvent $event) {
-     *         $event->element->setFieldValue('myCustomField', $event->metafields ???)
+     *         // Cancel the sync if a flag is set via a Shopify metafield:
+     *         if ($event->metafields['do_not_sync'] ?? false) {
+     *             $event->isValid = false;
+     *         }
      *     }
      * );
      * ```
