@@ -453,6 +453,8 @@ After your content is re-saved, update your templates:
 
 #### Before
 
+In v2.x, you were responsible for looking up product details in the template:
+
 ```twig
 {# Product references were stored as a list of IDs: #}
 {% set productIds = entry.oldShopifyField %}
@@ -469,10 +471,10 @@ After your content is re-saved, update your templates:
 
 #### After
 
-There is no need to query the Shopify API to render product details in your templates—all of the data is ready in the returned elements!
+There is no need to query the Shopify API to render product details in your templates—all of the data is available on the returned elements!
 
 ```twig
-{# Execute query from relational field: #}
+{# Execute element query from your new relational field: #}
 {% set relatedProducts = entry.newShopifyField.all() %}
 
 <ul>
@@ -484,6 +486,41 @@ There is no need to query the Shopify API to render product details in your temp
 ```
 
 ## Going Further
+
+### Events
+
+#### `craft\shopify\services\Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT`
+
+Emitted just prior to a product element being saved with new Shopify data. The `craft\shopify\events\ShopifyProductSyncEvent` extends `craft\events\CancelableEvent`, so setting `$event->isValid` allows you to prevent the new data from being saved.
+
+The event object has three properties:
+
+- `element`: The product element being updated.
+- `source`: The Shopify product object that was applied.
+- `metafields`: Additional metafields from Shopify that the plugin discovered while performing the synchronization.
+
+```php
+use craft\shopify\events\ShopifyProductSyncEvent;
+use craft\shopify\services\Products;
+use yii\base\Event;
+
+Event::on(
+    Products::class,
+    Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT,
+    function(ShopifyProductSyncEvent $event) {
+        // Example 1: Cancel the sync if a flag is set via a Shopify metafield:
+        if ($event->metafields['do_not_sync'] ?? false) {
+            $event->isValid = false;
+        }
+
+        // Example 2: Set a field value from metafield data:
+        $event->element->setFieldValue('myNumberFieldHandle', $event->metafields['cool_factor']);
+    }
+);
+```
+
+> **Warning**
+> Do not manually save changes made in this event handler. The plugin will take care of this for you!
 
 ### Element API
 
