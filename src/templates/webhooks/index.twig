@@ -10,15 +10,14 @@
 
     <h3>{{ "Webhook Management"|t('shopify') }}</h3>
 
-    <p>{{ "Register the shopify webhooks for the current environment"|t('shopify') }}</p>
+    <p>{{ "Create the webhooks for the current environmemnt."|t('shopify') }}</p>
 
     <form method="POST">
         {{ actionInput('shopify/webhooks/create') }}
         {{ redirectInput('shopify/webhooks') }}
         {{ csrfInput() }}
-        <button class="btn primary" type="submit">{{ "Generate"|t('shopify') }}</button>
+        <button class="btn primary" type="submit">{{ "Create"|t('shopify') }}</button>
     </form>
-
 
     <div class="field">
         <div id="webhooks-container">
