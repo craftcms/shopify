@@ -143,13 +143,17 @@ class Api extends Component
     {
         $pluginSettings = Plugin::getInstance()->getSettings();
 
-        if ($this->_session === null) {
+        if (
+            $this->_session === null &&
+            ($apiKey = App::parseEnv($pluginSettings->apiKey)) &&
+            ($apiSecretKey = App::parseEnv($pluginSettings->apiSecretKey))
+        ) {
             /** @var MonologTarget $webLogTarget */
             $webLogTarget = Craft::$app->getLog()->targets['web'];
 
             Context::initialize(
-                apiKey: App::parseEnv($pluginSettings->apiKey),
-                apiSecretKey: App::parseEnv($pluginSettings->apiSecretKey),
+                apiKey: $apiKey,
+                apiSecretKey: $apiSecretKey,
                 scopes: ['write_products', 'read_products'],
                 // This `hostName` is different from the `shop` value used when creating a Session!
                 // Shopify wants a name for the host/environment that is initiating the connection.
