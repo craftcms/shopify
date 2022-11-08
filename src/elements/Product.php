@@ -59,7 +59,7 @@ class Product extends Element
     /**
      * @var string
      */
-    public string $bodyHtml;
+    public ?string $bodyHtml = null;
 
     /**
      * @var ?DateTime
@@ -69,7 +69,7 @@ class Product extends Element
     /**
      * @var string
      */
-    public string $handle;
+    public ?string $handle = null;
 
     /**
      * @var array
@@ -87,25 +87,9 @@ class Product extends Element
     private array $_metaFields = [];
 
     /**
-     * @inheritdoc
-     */
-    public static function searchableAttributes(): array
-    {
-        return array_merge(parent::searchableAttributes(), [
-            'bodyHtml',
-            'handle',
-            'vendor',
-            'productType',
-            'tags',
-            'options',
-            'metaFields',
-        ]);
-    }
-
-    /**
      * @var string
      */
-    public string $productType;
+    public ?string $productType = null;
 
     /**
      * @var ?DateTime
@@ -115,7 +99,14 @@ class Product extends Element
     /**
      * @var string
      */
-    public string $publishedScope;
+    public ?string $publishedScope = null;
+
+    /**
+     * The product ID in the Shopify store
+     *
+     * @var int|null
+     */
+    public ?int $shopifyId = null;
 
     /**
      * @var string
@@ -125,12 +116,12 @@ class Product extends Element
     /**
      * @var array
      */
-    public array $_tags = [];
+    private array $_tags = [];
 
     /**
      * @var string
      */
-    public string $templateSuffix;
+    public ?string $templateSuffix = null;
 
     /**
      * @var ?DateTime
@@ -145,15 +136,23 @@ class Product extends Element
     /**
      * @var string
      */
-    public string $vendor;
+    public ?string $vendor = null;
 
     /**
-     * The product ID in the Shopify store
-     *
-     * @var int|null
+     * @inheritdoc
      */
-    public ?int $shopifyId = null;
-
+    public static function searchableAttributes(): array
+    {
+        return array_merge(parent::searchableAttributes(), [
+            'bodyHtml',
+            'handle',
+            'vendor',
+            'productType',
+            'tags',
+            'options',
+            'metaFields',
+        ]);
+    }
 
     /**
      * @inheritdoc
