@@ -10,8 +10,8 @@ use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\helpers\Metafields as MetafieldsHelper;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
-use Shopify\Rest\Admin2022_10\Product as ShopifyProduct;
 use Shopify\Rest\Admin2022_10\Metafield as ShopifyMetafield;
+use Shopify\Rest\Admin2022_10\Product as ShopifyProduct;
 
 /**
  * Shopify Products service.
@@ -26,9 +26,9 @@ class Products extends Component
 {
     /**
      * @event ShopifyProductSyncEvent Event triggered just before Shopify product data is saved to a product element.
-     * 
+     *
      * ---
-     * 
+     *
      * ```php
      * use craft\shopify\events\ShopifyProductSyncEvent;
      * use craft\shopify\services\Products;

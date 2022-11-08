@@ -48,18 +48,21 @@ class Api extends Component
 
     /**
      * Retrieve all a shop’s products.
-     * 
+     *
      * @return ShopifyProduct[]
      */
     public function getAllProducts(): array
     {
-        return $this->getAll(ShopifyProduct::class);
+        /** @var ShopifyProduct[] $all */
+        $all = $this->getAll(ShopifyProduct::class);
+
+        return $all;
     }
 
     /**
      * Retrieve a single product by its Shopify ID.
-     * 
-     * @return ShopifyProduct|null
+     *
+     * @return ShopifyProduct
      */
     public function getProductByShopifyId($id): ShopifyProduct
     {
@@ -68,7 +71,7 @@ class Api extends Component
 
     /**
      * Retrieves "metafields" for the provided Shopify product ID.
-     * 
+     *
      * @param int $id Shopify Product ID
      */
     public function getMetafieldsByProductId(int $id): array
@@ -83,7 +86,7 @@ class Api extends Component
 
     /**
      * Shortcut for retrieving arbitrary API resources. A plain (parsed) response body is returned, so it’s the caller’s responsibility for unpacking it properly.
-     * 
+     *
      * @see Rest::get();
      */
     public function get($path, array $query = [])
@@ -95,7 +98,7 @@ class Api extends Component
 
     /**
      * Iteratively retrieves a paginated collection of API resources.
-     * 
+     *
      * @param string $type Stripe API resource class
      * @param array $params
      * @return ShopifyBaseResource[]
@@ -120,7 +123,7 @@ class Api extends Component
 
     /**
      * Returns or sets up a Rest API client.
-     * 
+     *
      * @return Rest
      */
     public function getClient(): Rest
@@ -135,7 +138,7 @@ class Api extends Component
 
     /**
      * Returns or initializes a context + session.
-     * 
+     *
      * @return Session|null
      * @throws \Shopify\Exception\MissingArgumentException
      */

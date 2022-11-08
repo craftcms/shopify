@@ -32,7 +32,7 @@ class Metafields
 
     /**
      * Unpacks metadata from the Shopify API.
-     * 
+     *
      * @param ShopifyMetafield[] $fields
      * @return array
      */
