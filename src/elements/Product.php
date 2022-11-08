@@ -303,7 +303,7 @@ class Product extends Element
      */
     public static function lowerDisplayName(): string
     {
-        return Craft::t('app', 'shopify product');
+        return Craft::t('app', 'Shopify product');
     }
 
     /**
@@ -319,7 +319,7 @@ class Product extends Element
      */
     public static function pluralLowerDisplayName(): string
     {
-        return Craft::t('app', 'shopify products');
+        return Craft::t('app', 'Shopify products');
     }
 
     /**
