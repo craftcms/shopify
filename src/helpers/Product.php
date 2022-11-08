@@ -63,31 +63,39 @@ class Product
 
         // Options
         if (count($product->getOptions()) > 0) {
-            $meta[Craft::t('shopify', 'Options')] =
-                collect($product->options)->map(function($option) {
+            $meta[Craft::t('shopify', 'Options')] = collect($product->options)
+                ->map(function($option) {
                     return Html::tag('span', $option['name'], [
-                        'title' => $option['name'] . ' option values: ' . collect($option['values'])->join(', '),
+                        'title' => Craft::t('shopify', '{name} option values: {values}', [
+                            'name' => $option['name'],
+                            'values' => join(', ', $option['values']),
+                        ]),
                     ]);
-                })->join(',&nbsp;');
+                })
+                ->join(', ');
         }
 
         // Tags
         if (count($product->tags) > 0) {
-            $tags = collect($product->tags)->map(function($tag) {
-                return Html::tag('span', $tag, [
-                    'class' => 'token',
-                ]);
-            })->join('&nbsp;');
+            $tags = collect($product->tags)
+                ->map(function($tag) {
+                    return Html::tag('span', $tag, [
+                        'class' => 'token',
+                    ]);
+                })
+                ->join(' ');
 
             $meta[Craft::t('shopify', 'Tags')] = Html::tag('div', $tags);
         }
 
         // Variants
         if (count($product->getVariants()) > 0) {
-            $meta[Craft::t('shopify', 'Variants')] = collect($product->getVariants())->pluck('title')->map(fn($title) => StringHelper::toTitleCase($title))->join(',&nbsp;');
+            $meta[Craft::t('shopify', 'Variants')] = collect($product->getVariants())
+                ->pluck('title')
+                ->join(', ');
         }
 
-        $meta[Craft::t('shopify', 'Shopify ID')] = $product->shopifyId;
+        $meta[Craft::t('shopify', 'Shopify ID')] = Html::tag('code', $product->shopifyId);
 
         $meta[Craft::t('shopify', 'Created at')] = $formatter->asDatetime($product->createdAt, Formatter::FORMAT_WIDTH_SHORT);
         $meta[Craft::t('shopify', 'Published at')] = $formatter->asDatetime($product->publishedAt, Formatter::FORMAT_WIDTH_SHORT);

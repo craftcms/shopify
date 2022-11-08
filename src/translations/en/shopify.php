@@ -15,4 +15,5 @@
  */
 return [
     'Shopify plugin loaded' => 'Shopify plugin loaded',
+    '{name} option values: {values}' => '{name} option values: {values}',
 ];
