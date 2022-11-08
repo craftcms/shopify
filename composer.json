@@ -40,7 +40,7 @@
   "extra": {
     "handle": "shopify",
     "name": "Shopify",
-    "description": "Sync shopify products into your content model",
+    "description": "Synchronize and extend product data from Shopify.",
     "developer": "Pixel & Tonic",
     "documentationUrl": "https://github.com/craftcms/shopify"
   },
