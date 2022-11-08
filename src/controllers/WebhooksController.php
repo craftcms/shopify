@@ -40,9 +40,24 @@ class WebhooksController extends Controller
             throw new MethodNotAllowedHttpException('No Shopify API session found, check credentials in settings.');
         }
 
-        $webhooks = Webhook::all($session);
+        $webhooks = collect(Webhook::all($session));
 
-        return $this->renderTemplate('shopify/webhooks/index', compact('webhooks'));
+        // If we don't have all webhooks needed for the current environment show the create button
+
+        $containsAllWebhooks = (
+            $webhooks->contains(function($item) {
+                return str_contains($item->address, Craft::$app->getRequest()->getHostName()) && $item->topic === 'products/create';
+            }) &&
+            $webhooks->contains(function($item) {
+                return str_contains($item->address, Craft::$app->getRequest()->getHostName()) && $item->topic === 'products/delete';
+            }) &&
+            $webhooks->contains(function($item) {
+                return str_contains($item->address, Craft::$app->getRequest()->getHostName()) && $item->topic === 'products/update';
+            })
+        );
+
+
+        return $this->renderTemplate('shopify/webhooks/index', compact('webhooks', 'containsAllWebhooks'));
     }
 
     /**
