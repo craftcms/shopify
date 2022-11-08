@@ -88,13 +88,7 @@ class Product
         }
 
         $meta[Craft::t('shopify', 'Shopify ID')] = $product->shopifyId;
-//        $meta['Images'] = collect($product->getImages())->pluck('src')->map(static function($image){
-//            return Html::img($image,[
-//                'width' => 50,
-//                'height' => 50,
-//                'style' => 'margin-left:6px'
-//            ]);
-//        })->join("\n");
+
         $meta[Craft::t('shopify', 'Created at')] = $formatter->asDatetime($product->createdAt, Formatter::FORMAT_WIDTH_SHORT);
         $meta[Craft::t('shopify', 'Published at')] = $formatter->asDatetime($product->publishedAt, Formatter::FORMAT_WIDTH_SHORT);
         $meta[Craft::t('shopify', 'Updated at')] = $formatter->asDatetime($product->updatedAt, Formatter::FORMAT_WIDTH_SHORT);
