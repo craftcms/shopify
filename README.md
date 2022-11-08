@@ -84,13 +84,13 @@ Now that you have credentials for your custom app, it’s time to add them to Cr
 
 Once your credentials have been added to Craft, a new **Webhooks** tab will appear in the **Shopify** section of the control panel.
 
-Click **Generate** on the Webhooks screen to add the required webhooks to Shopify. The plugin will use the credentials you just configured to perform this operation—so this also serves as an initial communication test.
+Click **Create** on the Webhooks screen to add the required webhooks to Shopify. The plugin will use the credentials you just configured to perform this operation—so this also serves as an initial communication test.
 
 > **Warning**  
 > You will need to add webhooks for each environment you deploy the plugin to, because each webhook is tied to a specific URL.
 
 > **Note**  
-> If you need to test live synchronization in development, we recommend using [ngrok](https://ngrok.com/) to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel, then regenerate your webhooks.
+> If you need to test live synchronization in development, we recommend using [ngrok](https://ngrok.com/) to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel, then recreate your webhooks.
 
 ## Product Element
 

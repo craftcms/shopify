@@ -635,7 +635,7 @@ class Product extends Element
         ];
 
         $sortOptions['shopifyId'] = [
-            'label' => Craft::t('shopify', 'Shopify Id'),
+            'label' => Craft::t('shopify', 'Shopify ID'),
             'orderBy' => 'shopify_productdata.shopifyId',
             'defaultDir' => SORT_DESC,
         ];
@@ -765,6 +765,7 @@ class Product extends Element
     {
         $labels = parent::attributeLabels();
 
+        $labels['shopifyId'] = Craft::t('shopify', 'Shopify ID');
         $labels['bodyHtml'] = Craft::t('shopify', 'Body HTML');
         $labels['createdAt'] = Craft::t('shopify', 'Created at');
         $labels['handle'] = Craft::t('shopify', 'Handle');
