@@ -15,7 +15,7 @@ use craft\web\Controller;
 use Shopify\Rest\Admin2022_10\Webhook;
 use Shopify\Webhooks\Registry;
 use Shopify\Webhooks\Topics;
-use yii\web\MethodNotAllowedHttpException;
+use yii\web\ConflictHttpException;
 use yii\web\Response as YiiResponse;
 
 /**
@@ -37,7 +37,7 @@ class WebhooksController extends Controller
         $view->registerAssetBundle(AdminTableAsset::class);
 
         if (!$session = Plugin::getInstance()->getApi()->getSession()) {
-            throw new MethodNotAllowedHttpException('No Shopify API session found, check credentials in settings.');
+            throw new ConflictHttpException('No Shopify API session found, check credentials in settings.');
         }
 
         $webhooks = collect(Webhook::all($session));
@@ -72,11 +72,10 @@ class WebhooksController extends Controller
         $view = $this->getView();
         $view->registerAssetBundle(AdminTableAsset::class);
 
-        $session = Plugin::getInstance()->getApi()->getSession();
         $pluginSettings = Plugin::getInstance()->getSettings();
 
-        if (!$session) {
-            throw new MethodNotAllowedHttpException('No Shopify API session found, check credentials in settings.');
+        if (!$session = Plugin::getInstance()->getApi()->getSession()) {
+            throw new ConflictHttpException('No Shopify API session found, check credentials in settings.');
         }
 
         $responseCreate = Registry::register(
