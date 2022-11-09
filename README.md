@@ -511,17 +511,17 @@ use craft\shopify\services\Products;
 use yii\base\Event;
 
 Event::on(
-    Products::class,
-    Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT,
-    function(ShopifyProductSyncEvent $event) {
-        // Example 1: Cancel the sync if a flag is set via a Shopify metafield:
-        if ($event->metafields['do_not_sync'] ?? false) {
-            $event->isValid = false;
-        }
-
-        // Example 2: Set a field value from metafield data:
-        $event->element->setFieldValue('myNumberFieldHandle', $event->metafields['cool_factor']);
+  Products::class,
+  Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT,
+  function(ShopifyProductSyncEvent $event) {
+    // Example 1: Cancel the sync if a flag is set via a Shopify metafield:
+    if ($event->metafields['do_not_sync'] ?? false) {
+      $event->isValid = false;
     }
+
+    // Example 2: Set a field value from metafield data:
+    $event->element->setFieldValue('myNumberFieldHandle', $event->metafields['cool_factor']);
+  }
 );
 ```
 
