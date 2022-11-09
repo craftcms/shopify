@@ -444,7 +444,7 @@ Run the following command (substituting appropriate values) for each place you a
     php craft resave/entries \
       --section=mySectionHandle \
       --set=newShopifyField \
-      --to="fn(\$entry) => collect(json_decode(\$entry->oldShopifyField))->map(fn (\$item) => \craft\shopify\Plugin::getInstance()->getProducts()->getProductIdByShopifyId(\$item))->unique()->all()"
+      --to="fn(\$entry) => collect(json_decode(\$entry->oldShopifyField))->map(fn (\$id) => \craft\shopify\Plugin::getInstance()->getProducts()->getProductIdByShopifyId(\$id))->unique()->all()"
     ```
 
 ### Updating Templates
