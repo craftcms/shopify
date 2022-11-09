@@ -4,11 +4,9 @@
 
 Connect your [Craft CMS](https://craftcms.com/) site to a [Shopify](https://shopify.com) store and keep your products in sync.
 
-## Requirements
+## Installation
 
 The Shopify plugin requires Craft CMS 4.0.0 or later.
-
-## Installation
 
 To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/shopify) from your Craft project, or follow these instructions.
 
@@ -139,6 +137,12 @@ All of these properties are available when working with a product element [in yo
 Products synchronized from Shopify have a dedicated field layout, which means they support Craft’s full array of [content tools](https://craftcms.com/docs/4.x/fields.html).
 
 The product field layout can be edited by going to **Shopify** &rarr; **Settings** &rarr; **Products**, and scrolling down to **Field Layout**.
+
+### Routing
+
+You can give synchronized products their own on-site URLs. To set up the URI format (and the template that will be loaded when a product URL is requested), go to **Shopify** &rarr; **Settings** &rarr; **Products**.
+
+If you would prefer your customers to view individual products on Shopify, clear out the **Product URI Format** field on the settings page, and use `product.shopifyUrl` instead of `product.url` in your templates.
 
 ### Product Status
 
@@ -308,7 +312,7 @@ The above includes quote (`"`) literals, because it’s attempting to locate a s
 Products behave just like any other element, in Twig. Once you’ve loaded a product via a [query](#querying-products) (or have a reference to one on its template), you can output its native [Shopify attributes](#native-attributes) and [custom field](#custom-fields) data.
 
 > **Note**  
-> Keep in mind that some attributes are stored as JSON, which inherently limits which types nested properties can use. Dates may be slightly more difficult to work with, as a result.
+> Some attributes are stored as JSON, which limits nested properties’s types. As a result, dates may be slightly more difficult to work with.
 
 ```twig
 {# Standard element title: #}
@@ -362,6 +366,88 @@ Your customers can add products to their cart directly from your Craft site:
   <button>Add to Cart</button>
 </form>
 ```
+
+### JS Buy SDK
+
+Cart management and checkout are not currently supported in a native way.
+
+However, Shopify maintains the [Javascript Buy SDK](https://shopify.dev/custom-storefronts/tools/js-buy) as a means of interacting with their [Storefront API](https://shopify.dev/api/storefront) to create completely custom shopping experiences.
+
+> **Note**  
+> Use of the Storefront API requires a different [access key](https://help.shopify.com/en/manual/apps/custom-apps#update-storefront-api-access-scopes-for-a-custom-app), and assumes that you have published your products into the Storefront app’s “sales channel.”
+
+The plugin makes no assumptions about how you use your product data in the front-end, but provides the tools necessary to connect it with the SDK. As an example, let’s look at how you might render a list of products in Twig, and hook up a custom client-side cart…
+
+#### Shop Template: `templates/shop.twig`
+
+```twig
+{# Include the Buy SDK on this page: #}
+{% do view.registerJsFile('https://sdks.shopifycdn.com/js-buy-sdk/v2/latest/index.umd.min.js') %}
+
+{# Register your own script file (see “Custom Script,” below): #}
+{% do view.registerJsFile('/assets/js/shop.js') %}
+
+{# Load some products: #}
+{% set products = craft.shopifyProducts().all() %}
+
+<ul>
+  {% for product in products %}
+    {# For now, we’re only handling a single variant: #}
+    {% set defaultVariant = product.variants | first %}
+
+    <li>
+      {{ product.title }}
+      <button
+        class="buy-button"
+        data-default-variant-id="{{ defaultVariant.id }}">Add to Cart</button>
+    </li>
+  {% endfor %}
+</ul>
+```
+
+#### Custom Script: `assets/js/shop.js`
+
+```js
+// Initialize a client:
+const client = ShopifyBuy.buildClient({
+  domain: 'my-storefront.myshopify.com',
+  storefrontAccessToken: '...',
+});
+
+// Create a simple logger for the cart’s state:
+const logCart = (c) => {
+  console.log(c.lineItems);
+  console.log(`Checkout URL: ${c.webUrl}`);
+};
+
+// Create a cart or “checkout” (or perhaps load one from `localStorage`):
+client.checkout.create().then((checkout) => {
+  const $buyButtons = document.querySelectorAll('.buy-button');
+
+  // Add a listener to each button:
+  $buyButtons.forEach(($b) => {
+    $b.addEventListener('click', (e) => {
+      // Read the variant ID off the product:
+      client.checkout.addLineItems(checkout.id, [
+        {
+          // Build the Storefront-style resource identifier:
+          variantId: `gid://shopify/ProductVariant/${$b.dataset.defaultVariantId}`,
+          quantity: 1,
+        }
+      ]).then(logCart); // <- Log the changes!
+    });
+  });
+});
+```
+
+### Buy Button JS
+
+The above example can be simplified with the [Buy Button JS](https://shopify.dev/custom-storefronts/tools/buy-button), but the principles are the same:
+
+1. Make products available in the appropriate sales channels;
+2. Output synchronized product data in your front-end;
+3. Initialize or attach library functionality in response to events;
+4. 
 
 ### Helpers
 
@@ -425,9 +511,9 @@ Relationships defined with the _Shopify Products_ field use stable element IDs u
 If you are upgrading a Craft 3 project to Craft 4 and have existing “Shopify Product” fields, you’ll need show the plugin how to translate plain Shopify IDs (stored as a JSON array) into element IDs, within Craft’s relations system.
 
 > **Warning**  
-> Before getting started with the migration, make sure you have [synchronized](#synchronization) your product catalog.
+> Before getting started with the field data migration, make sure you have [synchronized](#synchronization) your product catalog.
 
-It’s safe to remove the old plugin package (`nmaier95/shopify-product-fetcher`) from your `composer.json`—but **do not uninstall it** from the control panel. We want the field’s data to stick around, but don’t need the old field class to work with it.
+It’s safe to remove the old plugin package (`nmaier95/shopify-product-fetcher`) from your `composer.json`—but **do not use the control panel to uninstall it**. We want the field’s _data_ to stick around, but don’t need the old field _class_ to work with it.
 
 > **Note**  
 You may see a “missing field” in your field layouts during this process—that’s OK! Your data is still there.
