@@ -399,8 +399,14 @@ A simple URL generator is available via `craft.shopify.store`. You may have noti
   text: 'Add to Cart',
   target: '_blank',
 }) }}
+```
 
-{# Link to a product page #}
+The same params argument can be passed to a product element’s `getShopifyUrl()` method:
+
+```twig
+{% for variant in product.variants %}
+  <a href="{{ product.getShopifyUrl({ id: variant.id }) }}">{{ variant.title }}</a>
+{% endfor %}
 ```
 
 ## Product Field
