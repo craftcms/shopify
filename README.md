@@ -444,10 +444,17 @@ client.checkout.create().then((checkout) => {
 
 The above example can be simplified with the [Buy Button JS](https://shopify.dev/custom-storefronts/tools/buy-button), but the principles are the same:
 
-1. Make products available in the appropriate sales channels;
+1. Make products available via the appropriate sales channels in Shopify;
 2. Output synchronized product data in your front-end;
-3. Initialize or attach library functionality in response to events;
-4. 
+3. Initialize, attach, or trigger SDK functionality in response to events, using Shopify-specific identifiers from step #2;
+
+_Buy Button JS_ provides some ready-made UI components, like a fully-featured cart.
+
+### Checkout
+
+While solutions exist for creating a customized shopping experience, _checkout will always happen on Shopify’s platform_. This is not a technical limitation so much as it is a policy—Shopify’s checkout flow is fast, reliable, secure, and familiar to many shoppers.
+
+If you want your customers’ entire journey to be kept on-site, we encourage you to try out our powerful ecommerce plugin, [Commerce](https://craftcms.com/commerce).
 
 ### Helpers
 
