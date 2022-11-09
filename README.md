@@ -374,7 +374,7 @@ Cart management and checkout are not currently supported in a native way.
 However, Shopify maintains the [Javascript Buy SDK](https://shopify.dev/custom-storefronts/tools/js-buy) as a means of interacting with their [Storefront API](https://shopify.dev/api/storefront) to create completely custom shopping experiences.
 
 > **Note**  
-> Use of the Storefront API requires a different [access key](https://help.shopify.com/en/manual/apps/custom-apps#update-storefront-api-access-scopes-for-a-custom-app), and assumes that you have published your products into the Storefront app’s “sales channel.”
+> Use of the Storefront API requires a different [access key](https://help.shopify.com/en/manual/apps/custom-apps#update-storefront-api-access-scopes-for-a-custom-app), and assumes that you have published your products into the Storefront app’s [sales channel](https://shopify.dev/custom-storefronts/tools/js-buy#step-2-make-your-products-and-collections-available).
 
 The plugin makes no assumptions about how you use your product data in the front-end, but provides the tools necessary to connect it with the SDK. As an example, let’s look at how you might render a list of products in Twig, and hook up a custom client-side cart…
 
@@ -442,13 +442,11 @@ client.checkout.create().then((checkout) => {
 
 ### Buy Button JS
 
-The above example can be simplified with the [Buy Button JS](https://shopify.dev/custom-storefronts/tools/buy-button), but the principles are the same:
+The above example can be simplified with the [Buy Button JS](https://shopify.dev/custom-storefronts/tools/buy-button), which provides some ready-made UI components, like a fully-featured cart. The principles are the same:
 
 1. Make products available via the appropriate sales channels in Shopify;
 2. Output synchronized product data in your front-end;
 3. Initialize, attach, or trigger SDK functionality in response to events, using Shopify-specific identifiers from step #2;
-
-_Buy Button JS_ provides some ready-made UI components, like a fully-featured cart.
 
 ### Checkout
 
