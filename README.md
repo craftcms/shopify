@@ -435,10 +435,10 @@ For each legacy Shopify Product field in your project, do the following:
 
 Run the following command (substituting appropriate values) for each place you added the field in step #2, above:
 
-    - `resave/entries` &rarr; The [re-save command](https://craftcms.com/docs/4.x/console-commands.html#resave) for the element type the field layout is attached to;
-    - `mySectionHandle` &rarr; A stand-in for any criteria that need to be applied to the element type you’re re-saving;
-    - `oldShopifyField` &rarr; Field handle from the old version of the plugin (used inside the `--to` argument closure);
-    - `newShopifyField` &rarr; New field handle created in step #1, above;
+- `resave/entries` &rarr; The [re-save command](https://craftcms.com/docs/4.x/console-commands.html#resave) for the element type the field layout is attached to;
+- `mySectionHandle` &rarr; A stand-in for any criteria that need to be applied to the element type you’re re-saving;
+- `oldShopifyField` &rarr; Field handle from the old version of the plugin (used inside the `--to` argument closure);
+- `newShopifyField` &rarr; New field handle created in step #1, above;
 
     ```bash
     php craft resave/entries \
