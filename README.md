@@ -4,6 +4,14 @@
 
 Connect your [Craft CMS](https://craftcms.com/) site to a [Shopify](https://shopify.com) store and keep your products in sync.
 
+## Topics
+
+- :package: [Installation](#installation): Set up the plugin and get connected to Shopify.
+- :card_file_box: [Working with Products](#product-element): Learn what kind of data is available and how to access it.
+- :bookmark_tabs: [Templating](#templating): Tips and tricks for using products in Twig.
+- :leaves: [Upgrading](#migrating-from-v2x): Take advantage of new features and performance improvements.
+- :telescope: [Advanced Features](#going-further): Go further with your integration.
+
 ## Installation
 
 The Shopify plugin requires Craft CMS 4.0.0 or later.
