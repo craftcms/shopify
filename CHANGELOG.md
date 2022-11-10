@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## 3.0.1 - 2022-11-10
+## Unreleased
 
 - Fixed a PHP error that occurred when saving invalid settings. ([#39](https://github.com/craftcms/shopify/pull/39),[#40](https://github.com/craftcms/shopify/pull/40))
 
