@@ -73,14 +73,17 @@ class SettingsController extends Controller
         $pluginSettings->setProductFieldLayout($fieldLayout);
 
         if (!$settingsSuccess) {
-            return $this->asFailure(
-                message: Craft::t('shopify', 'Couldn’t save settings.'),
-                routeParams: ['settings' => $plugin->getSettings()]
+            return $this->asModelFailure(
+                $pluginSettings,
+                Craft::t('shopify', 'Couldn’t save settings.'),
+                'settings',
             );
         }
 
-        return $this->asSuccess(
-            message: Craft::t('shopify', 'Settings saved.'),
+        return $this->asModelSuccess(
+            $pluginSettings,
+            Craft::t('shopify', 'Settings saved.'),
+            'settings',
         );
     }
 }
