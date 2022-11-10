@@ -55,7 +55,7 @@ class SettingsController extends Controller
     public function actionSaveSettings(): ?Response
     {
         $settings = Craft::$app->getRequest()->getParam('settings');
-        $plugin = Craft::$app->getPlugins()->getPlugin('shopify');
+        $plugin = Plugin::getInstance();
         /** @var Settings $pluginSettings */
         $pluginSettings = $plugin->getSettings();
 
