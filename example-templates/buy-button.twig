@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Example Shopify Store</title>
+    <script src="https://sdks.shopifycdn.com/buy-button/1.0.0/buybutton.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        var client = ShopifyBuy.buildClient({
+            domain: '{{ parseEnv(craft.shopify.settings.hostName) }}',
+            storefrontAccessToken: '<ENTER-STOREFRONT-ACCESS-TOKEN-HERE>'
+        });
+        var ui = ShopifyBuy.UI.init(client);
+    </script>
+    <style>
+    </style>
+</head>
+<body class="p-10">
+<h1 class="text-2xl font-bold tracking-tight text-gray-900 my-4">Shopify BuyButton.js Example</h1>
+
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
+    {% for product in craft.shopifyProducts.status('live').all() %}
+        <div id="product-{{ product.shopifyId }}" class="border p-4 rounded-lg drop-shadow-md"></div>
+        <script>
+            ui.createComponent('product', {
+                id: '{{ product.shopifyId }}',
+                node: document.getElementById('product-{{ product.shopifyId }}'),
+                options: {
+                    product: {
+                        styles: {
+                            button : {
+                                'border-radius' : '5px',
+                                'background-color': '#255283',
+                                ':hover': {
+                                    'background-color': '#1b3f69'
+                                }
+                            }
+                        }
+                    },
+                    cart: {
+                        styles: {
+                            button : {
+                                'border-radius' : '5px',
+                            }
+                        },
+                        popup: false,
+                    }
+                }
+            });
+        </script>
+    {% endfor %}
+</div>
+</body>
+</html>
