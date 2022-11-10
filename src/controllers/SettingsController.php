@@ -12,7 +12,7 @@ use craft\shopify\elements\Product;
 use craft\shopify\models\Settings;
 use craft\shopify\Plugin;
 use craft\web\Controller;
-use yii\web\Response as YiiResponse;
+use craft\web\Response;
 
 /**
  * The SettingsController handles modifying and saving the general settings.
@@ -25,9 +25,9 @@ class SettingsController extends Controller
     /**
      * Product index listing
      *
-     * @return YiiResponse
+     * @return Response
      */
-    public function actionIndex(?Settings $settings = null): YiiResponse
+    public function actionIndex(?Settings $settings = null): Response
     {
         if ($settings == null) {
             $settings = Plugin::getInstance()->getSettings();
@@ -50,9 +50,9 @@ class SettingsController extends Controller
     /**
      * Save the settings.
      *
-     * @return YiiResponse
+     * @return ?Response
      */
-    public function actionSaveSettings(): YiiResponse
+    public function actionSaveSettings(): ?Response
     {
         $settings = Craft::$app->getRequest()->getParam('settings');
         $plugin = Craft::$app->getPlugins()->getPlugin('shopify');
