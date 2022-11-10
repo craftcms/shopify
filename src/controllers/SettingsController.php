@@ -23,7 +23,7 @@ use craft\web\Response;
 class SettingsController extends Controller
 {
     /**
-     * Product index listing
+     * Display a form to allow an administrator to update plugin settings.
      *
      * @return Response
      */
