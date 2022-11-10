@@ -10,7 +10,7 @@
     <script>
         var client = ShopifyBuy.buildClient({
             domain: '{{ parseEnv(craft.shopify.settings.hostName) }}',
-            storefrontAccessToken: '<ENTER-STOREFRONT-ACCESS-TOKEN-HERE>'
+            storefrontAccessToken: '...'
         });
         var ui = ShopifyBuy.UI.init(client);
     </script>
@@ -22,30 +22,15 @@
 
 <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
     {% for product in craft.shopifyProducts.status('live').all() %}
-        <div id="product-{{ product.shopifyId }}" class="border p-4 rounded-lg drop-shadow-md"></div>
+        {% set productId = "product-#{product.shopifyId}" %}
+        <div id="{{ productId }}" class="border p-4 rounded-lg drop-shadow-md"></div>
         <script>
             ui.createComponent('product', {
                 id: '{{ product.shopifyId }}',
-                node: document.getElementById('product-{{ product.shopifyId }}'),
-                options: {
-                    product: {
-                        styles: {
-                            button : {
-                                'border-radius' : '5px',
-                                'background-color': '#255283',
-                                ':hover': {
-                                    'background-color': '#1b3f69'
-                                }
-                            }
-                        }
-                    },
+                node: document.getElementById('{{ productId }}'),
+                options: { // See options at https://shopify.github.io/buy-button-js/customization/
                     cart: {
-                        styles: {
-                            button : {
-                                'border-radius' : '5px',
-                            }
-                        },
-                        popup: false,
+                        popup: false, // Redirects to shopify checkout instead of using a popup window checkout
                     }
                 }
             });
