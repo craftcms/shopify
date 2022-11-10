@@ -30,7 +30,6 @@ class CraftVariableBehavior extends Behavior
     {
         parent::init();
 
-        // Point `craft.commerce` to the craft\commerce\Plugin instance
         $this->shopify = Plugin::getInstance();
     }
 
