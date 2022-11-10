@@ -35,6 +35,21 @@ class Settings extends Model
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels(): array
+    {
+        return [
+            'apiKey' => Craft::t('shopify', 'Shopify API Key'),
+            'apiSecretKey' => Craft::t('shopify', 'Shopify API Secret Key'),
+            'accessToken' => Craft::t('shopify', 'Shopify Access Token'),
+            'hostName' => Craft::t('shopify', 'Shopify Host Name'),
+            'uriFormat' => Craft::t('shopify', 'Product URI format'),
+            'template' => Craft::t('shopify', 'Product Template'),
+        ];
+    }
+
     public function getProductFieldLayout()
     {
         if (!isset($this->_productFieldLayout)) {
