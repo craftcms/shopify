@@ -50,9 +50,9 @@ class SettingsController extends Controller
     /**
      * Save the settings.
      *
-     * @return YiiResponse
+     * @return YiiResponse|null
      */
-    public function actionSaveSettings(): YiiResponse
+    public function actionSaveSettings(): ?YiiResponse
     {
         $settings = Craft::$app->getRequest()->getParam('settings');
         $plugin = Craft::$app->getPlugins()->getPlugin('shopify');
