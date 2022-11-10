@@ -2,8 +2,7 @@
 
 ## 3.0.1 - 2022-11-10
 
-- Fixed a return type bug in Settings controller (#39, #40, thanks to @vnali!)
-- Added attribute labels to Settings model
+- Fixed a PHP error that occurred when saving invalid settings. ([#39](https://github.com/craftcms/shopify/pull/39),[#40](https://github.com/craftcms/shopify/pull/40))
 
 ## 3.0.0.1 - 2022-11-08
 
