@@ -2,7 +2,7 @@
 
 <h1 align="center">Shopify for Craft CMS</h1>
 
-Connect your [Craft CMS](https://craftcms.com/) site to a [Shopify](https://shopify.com) store and keep your products in sync.
+Build a content-driven storefront by synchronizing [Shopify](https://shopify.com) products into [Craft CMS](https://craftcms.com/).
 
 ## Topics
 
