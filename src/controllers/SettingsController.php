@@ -12,7 +12,7 @@ use craft\shopify\elements\Product;
 use craft\shopify\models\Settings;
 use craft\shopify\Plugin;
 use craft\web\Controller;
-use yii\web\Response as YiiResponse;
+use craft\web\Response;
 
 /**
  * The SettingsController handles modifying and saving the general settings.
@@ -23,11 +23,11 @@ use yii\web\Response as YiiResponse;
 class SettingsController extends Controller
 {
     /**
-     * Product index listing
+     * Display a form to allow an administrator to update plugin settings.
      *
-     * @return YiiResponse
+     * @return Response
      */
-    public function actionIndex(?Settings $settings = null): YiiResponse
+    public function actionIndex(?Settings $settings = null): Response
     {
         if ($settings == null) {
             $settings = Plugin::getInstance()->getSettings();
@@ -50,12 +50,12 @@ class SettingsController extends Controller
     /**
      * Save the settings.
      *
-     * @return YiiResponse
+     * @return ?Response
      */
-    public function actionSaveSettings(): YiiResponse
+    public function actionSaveSettings(): ?Response
     {
         $settings = Craft::$app->getRequest()->getParam('settings');
-        $plugin = Craft::$app->getPlugins()->getPlugin('shopify');
+        $plugin = Plugin::getInstance();
         /** @var Settings $pluginSettings */
         $pluginSettings = $plugin->getSettings();
 
@@ -73,14 +73,17 @@ class SettingsController extends Controller
         $pluginSettings->setProductFieldLayout($fieldLayout);
 
         if (!$settingsSuccess) {
-            return $this->asFailure(
-                message: Craft::t('shopify', 'Couldn’t save settings.'),
-                routeParams: ['settings' => $plugin->getSettings()]
+            return $this->asModelFailure(
+                $pluginSettings,
+                Craft::t('shopify', 'Couldn’t save settings.'),
+                'settings',
             );
         }
 
-        return $this->asSuccess(
-            message: Craft::t('shopify', 'Settings saved.'),
+        return $this->asModelSuccess(
+            $pluginSettings,
+            Craft::t('shopify', 'Settings saved.'),
+            'settings',
         );
     }
 }
