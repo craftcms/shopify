@@ -291,6 +291,26 @@ class Product extends Element
     }
 
     /**
+     * Gets the cheapest variant.
+     *
+     * @return array
+     */
+    public function getCheapestVariant(): array
+    {
+        return collect($this->getVariants())->sortBy('price')->first();
+    }
+
+    /**
+     * Gets the first variant which is Shopify's default variant.
+     *
+     * @return array
+     */
+    public function getDefaultVariant(): array
+    {
+        return collect($this->getVariants())->first();
+    }
+
+    /**
      * @inheritdoc
      */
     public static function displayName(): string
@@ -663,13 +683,13 @@ class Product extends Element
             case 'shopifyId':
                 return $this->$attribute;
             case 'options':
-                return collect($this->getOptions())->map(function($option) {
+                return collect($this->getOptions())->map(function ($option) {
                     return HtmlHelper::tag('span', $option['name'], [
                         'title' => $option['name'] . ' option values: ' . collect($option['values'])->join(', '),
                     ]);
                 })->join(',&nbsp;');
             case 'tags':
-                return collect($this->getTags())->map(function($tag) {
+                return collect($this->getTags())->map(function ($tag) {
                     return HtmlHelper::tag('div', $tag, [
                         'style' => 'margin-bottom: 2px;',
                         'class' => 'token',
