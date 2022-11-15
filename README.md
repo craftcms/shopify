@@ -140,6 +140,74 @@ All of these properties are available when working with a product element [in yo
 > **Note**  
 > See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
 
+### Methods
+
+The product element has a few methods you might find useful in your [templates](#templating).
+
+#### `Product::getVariants()`
+
+Returns the [variants](#variants-and-pricing) belonging to the product.
+
+```twig
+{% set variants = product.getVariants() %}
+
+<select name="variantId">
+  {% for variant in variants %}
+    <option value="{{ variant.id }}">{{ variant.title }}</option>
+  {% endfor %}
+</select>
+```
+
+#### `Product::getDefaultVariant()`
+
+Shortcut for getting the first/default [variant](#variants-and-pricing) belonging to the product.
+
+```twig
+{% set products = craft.shopifyProducts.all() %}
+
+<ul>
+  {% for product in products %}
+    {% set defaultVariant = product.getDefaultVariant() %}
+
+    <li>
+      <a href="{{ product.url }}">{{ product.title }}</a>
+      <span>{{ defaultVariant.price | currency }}</span>
+    </li>
+  {% endfor %}
+</ul>
+```
+
+#### `Product::getCheapestVariant()`
+
+Shortcut for getting the lowest-priced [variant](#variants-and-pricing) belonging to the product.
+
+```twig
+{% set cheapestVariant = product.getCheapestVariant() %}
+
+Starting at {{ cheapestVariant.price | currency }}!
+```
+
+#### `Product::getShopifyUrl()`
+
+```twig
+{# Get a link to the product’s page on Shopify: #}
+<a href="{{ product.getShopifyUrl() }}">View on our store</a>
+
+{# Link to a product with a specific variant pre-selected: #}
+<a href="{{ product.getShopifyUrl({ variant: variant.id }) }}">Buy now</a>
+```
+
+#### `Product::getShopifyEditUrl()`
+
+For your administrators, you can even link directly to the Shopify admin:
+
+```twig
+{# Assuming you’ve created a custom group for Shopify admin: #}
+{% if currentUser and currentUser.isInGroup('clerks') %}
+  <a href="{{ product.getShopifyEditUrl() }}">Edit product on Shopify</a>
+{% endif %}
+```
+
 ### Custom Fields
 
 Products synchronized from Shopify have a dedicated field layout, which means they support Craft’s full array of [content tools](https://craftcms.com/docs/4.x/fields.html).
@@ -167,27 +235,6 @@ Status | Shopify | Craft
 `shopifyDraft` | Draft | Enabled
 `shopifyArchived` | Archived | Enabled
 `disabled` | Any | Disabled
-
-### Methods
-
-The product element also has a couple of methods you might find useful in your [templates](#templating):
-
-```twig
-{# Get a link to the product’s page on Shopify: #}
-<a href="{{ product.getShopifyUrl() }}">View on our store</a>
-
-{# Link to a product with a specific variant pre-selected: #}
-<a href="{{ product.getShopifyUrl({ variant: variant.id }) }}">Buy now</a>
-```
-
-For your administrators, you can even link directly to the Shopify admin:
-
-```twig
-{# Assuming you’ve created a custom group for Shopify admin: #}
-{% if currentUser and currentUser.isInGroup('clerks') %}
-  <a href="{{ product.getShopifyEditUrl() }}">Edit product on Shopify</a>
-{% endif %}
-```
 
 ## Querying Products
 
@@ -348,12 +395,28 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
 {% endfor %}
 
 {# Variants: #}
-<select name="variant">
-  {% for variant in product.variants %}
-    <option value="{{ variant.id }}">{{ variant.title }}</option>
+<select name="variantId">
+  {% for variant in product.getVariants() %}
+    <option value="{{ variant.id }}">{{ variant.title }} ({{ variant.price | currency }})</option>
   {% endfor %}
 </select>
 ```
+
+#### Variants and Pricing
+
+Products don’t have a price, despite what the Shopify UI might imply—instead, every product has at least one 
+[Variant](https://shopify.dev/api/admin-rest/2022-10/resources/product-variant#resource-object).
+
+You can get an array of variant objects for a product by calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants, but you can filter them however you like with Craft’s [`collect()`](https://craftcms.com/docs/4.x/dev/functions.html#collect) Twig function.
+
+> **Note**  
+> The built-in [`currency`](https://craftcms.com/docs/4.x/dev/filters.html#currency) Twig filter is a great way to format money values.
+
+Unlike products, variants…
+- …are represented exactly as the API returns them;
+- …use Shopify’s convention of underscores in property names instead of exposing [camel-cased equivalents](#native-attributes);
+- …are plain associative arrays;
+- …have no methods of their own;
 
 ### Cart
 
@@ -364,7 +427,7 @@ Your customers can add products to their cart directly from your Craft site:
 
 <form action="{{ craft.shopify.store.getUrl('cart/add') }}" method="post">
   <select name="id">
-    {% for variant in product.variants %}
+    {% for variant in product.getVariants() %}
       <option value="{{ variant.id }}">{{ variant.title }}</option>
     {% endfor %}
   </select>
@@ -403,7 +466,7 @@ The plugin makes no assumptions about how you use your product data in the front
 <ul>
   {% for product in products %}
     {# For now, we’re only handling a single variant: #}
-    {% set defaultVariant = product.variants | first %}
+    {% set defaultVariant = product.getVariants() | first %}
 
     <li>
       {{ product.title }}
@@ -505,7 +568,7 @@ A simple URL generator is available via `craft.shopify.store`. You may have noti
 The same params argument can be passed to a product element’s `getShopifyUrl()` method:
 
 ```twig
-{% for variant in product.variants %}
+{% for variant in product.getVariants() %}
   <a href="{{ product.getShopifyUrl({ id: variant.id }) }}">{{ variant.title }}</a>
 {% endfor %}
 ```
