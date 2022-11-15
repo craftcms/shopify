@@ -10,15 +10,15 @@
 
     <h3>{{ "Webhook Management"|t('shopify') }}</h3>
 
-    {% if not containsAllWebhooks %}
-    <p>{{ "Create the webhooks for the current environment."|t('shopify') }}</p>
-    <form method="POST">
-        {{ actionInput('shopify/webhooks/create') }}
-        {{ redirectInput('shopify/webhooks') }}
-        {{ csrfInput() }}
-        <button class="btn primary" type="submit">{{ "Create"|t('shopify') }}</button>
-    </form>
-    {% endif %}
+    <div class="{{ containsAllWebhooks ? 'hidden' : '' }}">
+        <p>{{ "Create the webhooks for the current environment."|t('shopify') }}</p>
+        <form method="POST">
+            {{ actionInput('shopify/webhooks/create') }}
+            {{ redirectInput('shopify/webhooks') }}
+            {{ csrfInput() }}
+            <button class="btn primary" type="submit">{{ "Create"|t('shopify') }}</button>
+        </form>
+    </div>
 
     {# Divs needed for the Admin Table js below #}
     <div class="field">
@@ -37,23 +37,24 @@
 
     {% js %}
         var columns = [
-            { name: '__slot:title', title: '{{ 'Topic'|t('shopify') }}' },
-            { name: 'address', title: '{{ 'URL'|t('shopify') }}' }
+        { name: '__slot:title', title: '{{ 'Topic'|t('shopify') }}' },
+        { name: 'address', title: '{{ 'URL'|t('shopify') }}' }
         ];
 
         new Craft.VueAdminTable({
-            fullPane: false,
-            columns: columns,
-            container: '#webhooks-container',
-            deleteAction: 'shopify/webhooks/delete',
-            deleteConfirmationMessage: Craft.t('shopify', "Are you sure you want to delete this webhook?"),
-            deleteFailMessage: Craft.t('shopify', "Webhook could not be deleted"),
-            deleteSuccessMessage: Craft.t('shopify', "Webhook deleted"),
-            emptyMessage: Craft.t('shopify', 'No webhooks exist yet.'),
-            tableData: {{ tableData|json_encode|raw }},
-            deleteCallback: function(){
-                window.location.reload(); // We need to reload to get the create button showing again
-            }
+        fullPane: false,
+        columns: columns,
+        container: '#webhooks-container',
+        deleteAction: 'shopify/webhooks/delete',
+        deleteConfirmationMessage: Craft.t('shopify', "Are you sure you want to delete this webhook?"),
+        deleteFailMessage: Craft.t('shopify', "Webhook could not be deleted"),
+        deleteSuccessMessage: Craft.t('shopify', "Webhook deleted"),
+        emptyMessage: Craft.t('shopify', 'No webhooks exist yet.'),
+        tableData: {{ tableData|json_encode|raw }},
+        deleteCallback: function(){
+        window.location.reload(); // We need to reload to get the create button showing again
+        }
         });
     {% endjs %}
+{% endblock %}
 
