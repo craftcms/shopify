@@ -138,7 +138,7 @@ Attribute | Description | Type
 All of these properties are available when working with a product element [in your templates](#templating).
 
 > **Note**  
-> See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-04/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
+> See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
 
 ### Custom Fields
 
@@ -291,7 +291,7 @@ Filter by the vendor information from Shopify.
 
 #### `images`
 
-Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2022-04/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2022-10/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
 
 ```twig
 {# Find products that have an image resource mentioning "stripes": #}
