@@ -8,7 +8,7 @@
     "shopify"
   ],
   "homepage": "https://github.com/craftcms/shopify",
-  "license": "proprietary",
+  "license": "MIT",
   "support": {
     "email": "support@craftcms.com",
     "issues": "https://github.com/craftcms/shopify/issues?state=open",
