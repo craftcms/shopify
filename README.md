@@ -402,21 +402,29 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
 </select>
 ```
 
-#### Variants and Pricing
+### Variants and Pricing
 
 Products don’t have a price, despite what the Shopify UI might imply—instead, every product has at least one 
 [Variant](https://shopify.dev/api/admin-rest/2022-10/resources/product-variant#resource-object).
 
 You can get an array of variant objects for a product by calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants, but you can filter them however you like with Craft’s [`collect()`](https://craftcms.com/docs/4.x/dev/functions.html#collect) Twig function.
 
-> **Note**  
-> The built-in [`currency`](https://craftcms.com/docs/4.x/dev/filters.html#currency) Twig filter is a great way to format money values.
-
-Unlike products, variants…
-- …are represented exactly as the API returns them;
+Unlike products, variants in Craft…
+- …are represented exactly as [the API](https://shopify.dev/api/admin-rest/2022-10/resources/product-variant#resource-object) returns them;
 - …use Shopify’s convention of underscores in property names instead of exposing [camel-cased equivalents](#native-attributes);
 - …are plain associative arrays;
 - …have no methods of their own;
+
+Once you have a reference to a variant, you can output its properties:
+
+```twig
+{% set defaultVariant = product.getDefaultVariant() %}
+
+{{ variant.price | currency }}
+```
+
+> **Note**  
+> The built-in [`currency`](https://craftcms.com/docs/4.x/dev/filters.html#currency) Twig filter is a great way to format money values.
 
 ### Cart
 
