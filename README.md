@@ -115,7 +115,7 @@ Once the plugin has been configured, perform an initial synchronization via the 
 
 ### Native Attributes
 
-In addition to the standard element fields like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Product resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object):
+In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Product resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object):
 
 Attribute | Description | Type
 --------- | ----------- | ----
@@ -138,7 +138,75 @@ Attribute | Description | Type
 All of these properties are available when working with a product element [in your templates](#templating).
 
 > **Note**  
-> See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-04/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
+> See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
+
+### Methods
+
+The product element has a few methods you might find useful in your [templates](#templating).
+
+#### `Product::getVariants()`
+
+Returns the [variants](#variants-and-pricing) belonging to the product.
+
+```twig
+{% set variants = product.getVariants() %}
+
+<select name="variantId">
+  {% for variant in variants %}
+    <option value="{{ variant.id }}">{{ variant.title }}</option>
+  {% endfor %}
+</select>
+```
+
+#### `Product::getDefaultVariant()`
+
+Shortcut for getting the first/default [variant](#variants-and-pricing) belonging to the product.
+
+```twig
+{% set products = craft.shopifyProducts.all() %}
+
+<ul>
+  {% for product in products %}
+    {% set defaultVariant = product.getDefaultVariant() %}
+
+    <li>
+      <a href="{{ product.url }}">{{ product.title }}</a>
+      <span>{{ defaultVariant.price | currency }}</span>
+    </li>
+  {% endfor %}
+</ul>
+```
+
+#### `Product::getCheapestVariant()`
+
+Shortcut for getting the lowest-priced [variant](#variants-and-pricing) belonging to the product.
+
+```twig
+{% set cheapestVariant = product.getCheapestVariant() %}
+
+Starting at {{ cheapestVariant.price | currency }}!
+```
+
+#### `Product::getShopifyUrl()`
+
+```twig
+{# Get a link to the product’s page on Shopify: #}
+<a href="{{ product.getShopifyUrl() }}">View on our store</a>
+
+{# Link to a product with a specific variant pre-selected: #}
+<a href="{{ product.getShopifyUrl({ variant: variant.id }) }}">Buy now</a>
+```
+
+#### `Product::getShopifyEditUrl()`
+
+For your administrators, you can even link directly to the Shopify admin:
+
+```twig
+{# Assuming you’ve created a custom group for Shopify admin: #}
+{% if currentUser and currentUser.isInGroup('clerks') %}
+  <a href="{{ product.getShopifyEditUrl() }}">Edit product on Shopify</a>
+{% endif %}
+```
 
 ### Custom Fields
 
@@ -167,27 +235,6 @@ Status | Shopify | Craft
 `shopifyDraft` | Draft | Enabled
 `shopifyArchived` | Archived | Enabled
 `disabled` | Any | Disabled
-
-### Methods
-
-The product element also has a couple of methods you might find useful in your [templates](#templating):
-
-```twig
-{# Get a link to the product’s page on Shopify: #}
-<a href="{{ product.getShopifyUrl() }}">View on our store</a>
-
-{# Link to a product with a specific variant pre-selected: #}
-<a href="{{ product.getShopifyUrl({ variant: variant.id }) }}">Buy now</a>
-```
-
-For your administrators, you can even link directly to the Shopify admin:
-
-```twig
-{# Assuming you’ve created a custom group for Shopify admin: #}
-{% if currentUser and currentUser.isInGroup('clerks') %}
-  <a href="{{ product.getShopifyEditUrl() }}">Edit product on Shopify</a>
-{% endif %}
-```
 
 ## Querying Products
 
@@ -291,7 +338,7 @@ Filter by the vendor information from Shopify.
 
 #### `images`
 
-Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2022-04/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2022-10/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
 
 ```twig
 {# Find products that have an image resource mentioning "stripes": #}
@@ -302,7 +349,7 @@ Images are stored as a blob of JSON, and only intended for use in a template in 
 
 #### `options`
 
-Options are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. You may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+[Options](#using-options) are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. You may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
 
 ```twig
 {# Find products that use a "color" option: #}
@@ -348,12 +395,134 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
 {% endfor %}
 
 {# Variants: #}
-<select name="variant">
-  {% for variant in product.variants %}
-    <option value="{{ variant.id }}">{{ variant.title }}</option>
+<select name="variantId">
+  {% for variant in product.getVariants() %}
+    <option value="{{ variant.id }}">{{ variant.title }} ({{ variant.price | currency }})</option>
   {% endfor %}
 </select>
 ```
+
+### Variants and Pricing
+
+Products don’t have a price, despite what the Shopify UI might imply—instead, every product has at least one 
+[Variant](https://shopify.dev/api/admin-rest/2022-10/resources/product-variant#resource-object).
+
+You can get an array of variant objects for a product by calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants, but you can filter them however you like with Craft’s [`collect()`](https://craftcms.com/docs/4.x/dev/functions.html#collect) Twig function.
+
+Unlike products, variants in Craft…
+- …are represented exactly as [the API](https://shopify.dev/api/admin-rest/2022-10/resources/product-variant#resource-object) returns them;
+- …use Shopify’s convention of underscores in property names instead of exposing [camel-cased equivalents](#native-attributes);
+- …are plain associative arrays;
+- …have no methods of their own;
+
+Once you have a reference to a variant, you can output its properties:
+
+```twig
+{% set defaultVariant = product.getDefaultVariant() %}
+
+{{ variant.price | currency }}
+```
+
+> **Note**  
+> The built-in [`currency`](https://craftcms.com/docs/4.x/dev/filters.html#currency) Twig filter is a great way to format money values.
+
+### Using Options
+
+Options are Shopify’s way of distinguishing variants on multiple axes.
+
+If you want to let customers pick from options instead of directly select variants, you will need to resolve which variant a given combination points to.
+
+<details>
+<summary>Form</summary>
+
+```twig
+<form id="add-to-cart" method="post" action="{{ craft.shopify.store.getUrl('cart/add') }}">
+  {# Create a hidden input to send the resolved variant ID to Shopify: #}
+  {{ hiddenInput('id', null, {
+    id: 'variant',
+    data: {
+      variants: product.variants,
+    },
+  }) }}
+
+  {# Create a dropdown for each set of options: #}
+  {% for option in product.options %}
+    <label>
+      {{ option.name }}
+      {# The dropdown includes the option’s `position`, which helps match it with the variant, later: #}
+      <select data-option="{{ option.position }}">
+        {% for val in option.values %}
+          <option value="{{ val }}">{{ val }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  {% endfor %}
+
+  <button>Add to Cart</button>
+</form>
+```
+
+</details>
+
+<details>
+
+<summary>Script</summary>
+
+The code below can be added to a [`{% js %}` tag](https://craftcms.com/docs/4.x/dev/tags.html#js), alongside the form code.
+
+```js
+// Store references to <form> elements:
+const $form = document.getElementById('add-to-cart');
+const $variantInput = document.getElementById('variant');
+const $optionInputs = document.querySelectorAll('[data-option]');
+
+// Create a helper function to test a map of options against known variants:
+const findVariant = (options) => {
+  const variants = JSON.parse($variantInput.dataset.variants);
+
+  // Use labels for the inner and outer loop so we can break out early:
+  variant: for (const v in variants) {
+    option: for (const o in options) {
+      // Option values are stored as `option1`, `option2`, or `option3` on each variant:
+      if (variants[v][`option${o}`] !== options[o]) {
+        // Didn't match one of the options? Bail:
+        continue variant;
+      }
+    }
+
+    // Nice, all options matched this variant! Return it:
+    return variants[v];
+  }
+};
+
+// Listen for change events on the form, rather than the individual option menus:
+$form.addEventListener('change', (e) => {
+  const selectedOptions = {};
+
+  // Loop over option menus and build an object of selected values:
+  $optionInputs.forEach(($input) => {
+    // Add the value under the "position" key
+    selectedOptions[$input.dataset.option] = $input.value;
+  });
+
+  // Use our helper function to resolve a variant:
+  const variant = findVariant(selectedOptions);
+
+  if (!variant) {
+    console.warn('No variant exists for options:', selectedOptions);
+
+    return;
+  }
+
+  // Assign the resolved variant’s ID to the hidden input:
+  $variantInput.value = variant.id;
+});
+
+// Trigger an initial `change` event to simulate a selection:
+$form.dispatchEvent(new Event('change'));
+```
+
+</details>
 
 ### Cart
 
@@ -364,7 +533,7 @@ Your customers can add products to their cart directly from your Craft site:
 
 <form action="{{ craft.shopify.store.getUrl('cart/add') }}" method="post">
   <select name="id">
-    {% for variant in product.variants %}
+    {% for variant in product.getVariants() %}
       <option value="{{ variant.id }}">{{ variant.title }}</option>
     {% endfor %}
   </select>
@@ -403,7 +572,7 @@ The plugin makes no assumptions about how you use your product data in the front
 <ul>
   {% for product in products %}
     {# For now, we’re only handling a single variant: #}
-    {% set defaultVariant = product.variants | first %}
+    {% set defaultVariant = product.getVariants() | first %}
 
     <li>
       {{ product.title }}
@@ -505,7 +674,7 @@ A simple URL generator is available via `craft.shopify.store`. You may have noti
 The same params argument can be passed to a product element’s `getShopifyUrl()` method:
 
 ```twig
-{% for variant in product.variants %}
+{% for variant in product.getVariants() %}
   <a href="{{ product.getShopifyUrl({ id: variant.id }) }}">{{ variant.title }}</a>
 {% endfor %}
 ```
