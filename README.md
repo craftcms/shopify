@@ -476,13 +476,14 @@ const $form = document.getElementById('add-to-cart');
 const $variantInput = document.getElementById('variant');
 const $optionInputs = document.querySelectorAll('[data-option]');
 
-// Create a helper function to 
+// Create a helper function to test a map of options against known variants:
 const findVariant = (options) => {
   const variants = JSON.parse($variantInput.dataset.variants);
 
   // Use labels for the inner and outer loop so we can break out early:
   variant: for (const v in variants) {
     option: for (const o in options) {
+      // Option values are stored as `option1`, `option2`, or `option3` on each variant:
       if (variants[v][`option${o}`] !== options[o]) {
         // Didn't match one of the options? Bail:
         continue variant;
@@ -500,6 +501,7 @@ $form.addEventListener('change', (e) => {
 
   // Loop over option menus and build an object of selected values:
   $optionInputs.forEach(($input) => {
+    // Add the value under the "position" key
     selectedOptions[$input.dataset.option] = $input.value;
   });
 
@@ -507,7 +509,7 @@ $form.addEventListener('change', (e) => {
   const variant = findVariant(selectedOptions);
 
   if (!variant) {
-    console.warn('No variant found!', options);
+    console.warn('No variant exists for options:', selectedOptions);
 
     return;
   }
