@@ -349,7 +349,7 @@ Images are stored as a blob of JSON, and only intended for use in a template in 
 
 #### `options`
 
-Options are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. You may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+[Options](#using-options) are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. You may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
 
 ```twig
 {# Find products that use a "color" option: #}
@@ -425,6 +425,102 @@ Once you have a reference to a variant, you can output its properties:
 
 > **Note**  
 > The built-in [`currency`](https://craftcms.com/docs/4.x/dev/filters.html#currency) Twig filter is a great way to format money values.
+
+### Using Options
+
+Options are Shopify’s way of distinguishing variants on multiple axes.
+
+If you want to let customers pick from options instead of directly select variants, you will need to resolve which variant a given combination points to.
+
+<details>
+<summary>Form</summary>
+
+```twig
+<form id="add-to-cart" method="post" action="{{ craft.shopify.store.getUrl('cart/add') }}">
+  {# Create a hidden input to send the resolved variant ID to Shopify: #}
+  {{ hiddenInput('id', null, {
+    id: 'variant',
+    data: {
+      variants: product.variants,
+    },
+  }) }}
+
+  {# Create a dropdown for each set of options: #}
+  {% for option in product.options %}
+    <label>
+      {{ option.name }}
+      {# The dropdown includes the option’s `position`, which helps match it with the variant, later: #}
+      <select data-option="{{ option.position }}">
+        {% for val in option.values %}
+          <option value="{{ val }}">{{ val }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  {% endfor %}
+
+  <button>Add to Cart</button>
+</form>
+```
+
+</details>
+
+<details>
+
+<summary>Script</summary>
+
+The code below can be added to a [`{% js %}` tag](https://craftcms.com/docs/4.x/dev/tags.html#js), alongside the form code.
+
+```js
+// Store references to <form> elements:
+const $form = document.getElementById('add-to-cart');
+const $variantInput = document.getElementById('variant');
+const $optionInputs = document.querySelectorAll('[data-option]');
+
+// Create a helper function to 
+const findVariant = (options) => {
+  const variants = JSON.parse($variantInput.dataset.variants);
+
+  // Use labels for the inner and outer loop so we can break out early:
+  variant: for (const v in variants) {
+    option: for (const o in options) {
+      if (variants[v][`option${o}`] !== options[o]) {
+        // Didn't match one of the options? Bail:
+        continue variant;
+      }
+    }
+
+    // Nice, all options matched this variant! Return it:
+    return variants[v];
+  }
+};
+
+// Listen for change events on the form, rather than the individual option menus:
+$form.addEventListener('change', (e) => {
+  const selectedOptions = {};
+
+  // Loop over option menus and build an object of selected values:
+  $optionInputs.forEach(($input) => {
+    selectedOptions[$input.dataset.option] = $input.value;
+  });
+
+  // Use our helper function to resolve a variant:
+  const variant = findVariant(selectedOptions);
+
+  if (!variant) {
+    console.warn('No variant found!', options);
+
+    return;
+  }
+
+  // Assign the resolved variant’s ID to the hidden input:
+  $variantInput.value = variant.id;
+});
+
+// Trigger an initial `change` event to simulate a selection:
+$form.dispatchEvent(new Event('change'));
+```
+
+</details>
 
 ### Cart
 
