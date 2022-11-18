@@ -20,21 +20,21 @@ To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/sho
 
 1. Navigate to your Craft project in a new terminal:
 
-    ```bash
-    cd /path/to/project
-    ```
+   ```bash
+   cd /path/to/project
+   ```
 
 2. Require the package with Composer:
 
-    ```bash
-    composer require craftcms/shopify -w
-    ```
+   ```bash
+   composer require craftcms/shopify -w
+   ```
 
 3. In the Control Panel, go to **Settings** → **Plugins** and click the “Install” button for Shopify, or run:
 
-    ```bash
-    php craft plugin/install shopify
-    ```
+   ```bash
+   php craft plugin/install shopify
+   ```
 
 ### Create a Shopify App
 
@@ -47,10 +47,12 @@ Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-a
 
 1. **App Name**: Choose something that identifies the integration, like “Craft CMS.”
 2. **Admin API access scopes**: The following scopes are required for the plugin to function correctly:
-    - `read_products`
-    - `read_product_listings`
 
-    Additionally (at the bottom of this screen), the **Webhook subscriptions** &rarr; **Event version** should be `2022-10`.
+   - `read_products`
+   - `read_product_listings`
+
+   Additionally (at the bottom of this screen), the **Webhook subscriptions** &rarr; **Event version** should be `2022-10`.
+
 3. **Admin API access token**: Reveal and copy this value into your `.env` file, as `SHOPIFY_ADMIN_ACCESS_TOKEN`.
 4. **API key and secret key**: Reveal and/or copy the **API key** and **API secret key** into your `.env` under `SHOPIFY_API_KEY` and `SHOPIFY_API_SECRET_KEY`, respectively.
 
@@ -77,10 +79,10 @@ Now that you have credentials for your custom app, it’s time to add them to Cr
 
 1. Visit the **Shopify** &rarr; **Settings** screen in your project’s control panel.
 2. Assign the four environment variables to the corresponding settings, using the special [config syntax](https://craftcms.com/docs/4.x/config/#control-panel-settings):
-    - **API Key**: `$SHOPIFY_API_KEY`
-    - **API Secret Key**: `$SHOPIFY_API_SECRET_KEY`
-    - **Access Token**: `$SHOPIFY_ACCESS_TOKEN`
-    - **Host Name**: `$SHOPIFY_HOSTNAME`
+   - **API Key**: `$SHOPIFY_API_KEY`
+   - **API Secret Key**: `$SHOPIFY_API_SECRET_KEY`
+   - **Access Token**: `$SHOPIFY_ACCESS_TOKEN`
+   - **Host Name**: `$SHOPIFY_HOSTNAME`
 3. Click **Save**.
 
 > **Note**  
@@ -117,23 +119,23 @@ Once the plugin has been configured, perform an initial synchronization via the 
 
 In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Product resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object):
 
-Attribute | Description | Type
---------- | ----------- | ----
-`shopifyId` | The unique product identifier in your Shopify store. | `String`
-`shopifyStatus` | The status of the product in your Shopify store. Values can be `active`, `draft`, or `archived`. | `String`
-`handle` | The product’s “URL handle” in Shopify, equivalent to a “slug” in Craft. For existing products, this is visible under the **Search engine listing** section of the edit screen. | `String`
-`productType` | The product type of the product in your Shopify store. | `String`
-`bodyHtml` | Product description. Use the `\|raw` filter to output it in Twig—but only if the content is trusted. | `String`
-`publishedScope` | Published scope of the product in Shopify store. Common values are `web` (for web-only products) and `global` (for web and point-of-sale products). | `String`
-`tags` | Tags associated with the product in Shopify. | `Array`
-`templateSuffix` | [Liquid template suffix](https://shopify.dev/themes/architecture/templates#name-structure) used for the product page in Shopify. | `String`
-`vendor` | Vendor of the product. | `String`
-`metaFields` | [Metafields](https://shopify.dev/api/admin-rest/2022-10/resources/metafield#resource-object) associated with the product. | `Array`
-`images` | Images attached to the product in Shopify. The complete [Product Image resources](https://shopify.dev/api/admin-rest/2022-10/resources/product-image#resource-object) are stored in Craft. | `Array`
-`options` | Product options, as configured in Shopify. Each option has a `name`, `position`, and an array of `values`. | `Array`
-`createdAt` | When the product was created in your Shopify store. | `DateTime`
-`publishedAt` | When the product was published in your Shopify store. | `DateTime`
-`updatedAt` | When the product was last updated in your Shopify store. | `DateTime`
+| Attribute        | Description                                                                                                                                                                                | Type       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| `shopifyId`      | The unique product identifier in your Shopify store.                                                                                                                                       | `String`   |
+| `shopifyStatus`  | The status of the product in your Shopify store. Values can be `active`, `draft`, or `archived`.                                                                                           | `String`   |
+| `handle`         | The product’s “URL handle” in Shopify, equivalent to a “slug” in Craft. For existing products, this is visible under the **Search engine listing** section of the edit screen.             | `String`   |
+| `productType`    | The product type of the product in your Shopify store.                                                                                                                                     | `String`   |
+| `bodyHtml`       | Product description. Use the `\|raw` filter to output it in Twig—but only if the content is trusted.                                                                                       | `String`   |
+| `publishedScope` | Published scope of the product in Shopify store. Common values are `web` (for web-only products) and `global` (for web and point-of-sale products).                                        | `String`   |
+| `tags`           | Tags associated with the product in Shopify.                                                                                                                                               | `Array`    |
+| `templateSuffix` | [Liquid template suffix](https://shopify.dev/themes/architecture/templates#name-structure) used for the product page in Shopify.                                                           | `String`   |
+| `vendor`         | Vendor of the product.                                                                                                                                                                     | `String`   |
+| `metaFields`     | [Metafields](https://shopify.dev/api/admin-rest/2022-10/resources/metafield#resource-object) associated with the product.                                                                  | `Array`    |
+| `images`         | Images attached to the product in Shopify. The complete [Product Image resources](https://shopify.dev/api/admin-rest/2022-10/resources/product-image#resource-object) are stored in Craft. | `Array`    |
+| `options`        | Product options, as configured in Shopify. Each option has a `name`, `position`, and an array of `values`.                                                                                 | `Array`    |
+| `createdAt`      | When the product was created in your Shopify store.                                                                                                                                        | `DateTime` |
+| `publishedAt`    | When the product was published in your Shopify store.                                                                                                                                      | `DateTime` |
+| `updatedAt`      | When the product was last updated in your Shopify store.                                                                                                                                   | `DateTime` |
 
 All of these properties are available when working with a product element [in your templates](#templating).
 
@@ -229,12 +231,12 @@ A product’s `status` in Craft is a combination of its `shopifyStatus` attribut
 
 In most cases, you’ll only need to display “Live” products, or those which are _Active_ in Shopify and _Enabled_ in Craft:
 
-Status | Shopify | Craft
------- | ------- | -----
-`live` | Active | Enabled
-`shopifyDraft` | Draft | Enabled
-`shopifyArchived` | Archived | Enabled
-`disabled` | Any | Disabled
+| Status            | Shopify  | Craft    |
+| ----------------- | -------- | -------- |
+| `live`            | Active   | Enabled  |
+| `shopifyDraft`    | Draft    | Enabled  |
+| `shopifyArchived` | Archived | Enabled  |
+| `disabled`        | Any      | Disabled |
 
 ## Querying Products
 
@@ -404,12 +406,13 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
 
 ### Variants and Pricing
 
-Products don’t have a price, despite what the Shopify UI might imply—instead, every product has at least one 
+Products don’t have a price, despite what the Shopify UI might imply—instead, every product has at least one
 [Variant](https://shopify.dev/api/admin-rest/2022-10/resources/product-variant#resource-object).
 
 You can get an array of variant objects for a product by calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants, but you can filter them however you like with Craft’s [`collect()`](https://craftcms.com/docs/4.x/dev/functions.html#collect) Twig function.
 
 Unlike products, variants in Craft…
+
 - …are represented exactly as [the API](https://shopify.dev/api/admin-rest/2022-10/resources/product-variant#resource-object) returns them;
 - …use Shopify’s convention of underscores in property names instead of exposing [camel-cased equivalents](#native-attributes);
 - …are plain associative arrays;
@@ -472,9 +475,9 @@ The code below can be added to a [`{% js %}` tag](https://craftcms.com/docs/4.x/
 
 ```js
 // Store references to <form> elements:
-const $form = document.getElementById('add-to-cart');
-const $variantInput = document.getElementById('variant');
-const $optionInputs = document.querySelectorAll('[data-option]');
+const $form = document.getElementById("add-to-cart");
+const $variantInput = document.getElementById("variant");
+const $optionInputs = document.querySelectorAll("[data-option]");
 
 // Create a helper function to test a map of options against known variants:
 const findVariant = (options) => {
@@ -496,7 +499,7 @@ const findVariant = (options) => {
 };
 
 // Listen for change events on the form, rather than the individual option menus:
-$form.addEventListener('change', (e) => {
+$form.addEventListener("change", (e) => {
   const selectedOptions = {};
 
   // Loop over option menus and build an object of selected values:
@@ -509,7 +512,7 @@ $form.addEventListener('change', (e) => {
   const variant = findVariant(selectedOptions);
 
   if (!variant) {
-    console.warn('No variant exists for options:', selectedOptions);
+    console.warn("No variant exists for options:", selectedOptions);
 
     return;
   }
@@ -519,7 +522,7 @@ $form.addEventListener('change', (e) => {
 });
 
 // Trigger an initial `change` event to simulate a selection:
-$form.dispatchEvent(new Event('change'));
+$form.dispatchEvent(new Event("change"));
 ```
 
 </details>
@@ -552,7 +555,7 @@ However, Shopify maintains the [Javascript Buy SDK](https://shopify.dev/custom-s
 
 > **Note**  
 > Use of the Storefront API requires a different [access key](https://help.shopify.com/en/manual/apps/custom-apps#update-storefront-api-access-scopes-for-a-custom-app), and assumes that you have published your products into the Storefront app’s [sales channel](https://shopify.dev/custom-storefronts/tools/js-buy#step-2-make-your-products-and-collections-available).
-> 
+>
 > Your public Storefront API token can be stored with your other credentials in `.env` and output in your front-end with the `{{ getenv('...') }}` Twig helper—or just baked into a Javascript bundle. **Keep your other secrets safe!** This is the only one that can be disclosed.
 
 The plugin makes no assumptions about how you use your product data in the front-end, but provides the tools necessary to connect it with the SDK. As an example, let’s look at how you might render a list of products in Twig, and hook up a custom client-side cart…
@@ -589,8 +592,8 @@ The plugin makes no assumptions about how you use your product data in the front
 ```js
 // Initialize a client:
 const client = ShopifyBuy.buildClient({
-  domain: 'my-storefront.myshopify.com',
-  storefrontAccessToken: '...',
+  domain: "my-storefront.myshopify.com",
+  storefrontAccessToken: "...",
 });
 
 // Create a simple logger for the cart’s state:
@@ -601,19 +604,21 @@ const logCart = (c) => {
 
 // Create a cart or “checkout” (or perhaps load one from `localStorage`):
 client.checkout.create().then((checkout) => {
-  const $buyButtons = document.querySelectorAll('.buy-button');
+  const $buyButtons = document.querySelectorAll(".buy-button");
 
   // Add a listener to each button:
   $buyButtons.forEach(($b) => {
-    $b.addEventListener('click', (e) => {
+    $b.addEventListener("click", (e) => {
       // Read the variant ID off the product:
-      client.checkout.addLineItems(checkout.id, [
-        {
-          // Build the Storefront-style resource identifier:
-          variantId: `gid://shopify/ProductVariant/${$b.dataset.defaultVariantId}`,
-          quantity: 1,
-        }
-      ]).then(logCart); // <- Log the changes!
+      client.checkout
+        .addLineItems(checkout.id, [
+          {
+            // Build the Storefront-style resource identifier:
+            variantId: `gid://shopify/ProductVariant/${$b.dataset.defaultVariantId}`,
+            quantity: 1,
+          },
+        ])
+        .then(logCart); // <- Log the changes!
     });
   });
 });
@@ -641,6 +646,7 @@ In addition to [product element methods](#methods), the plugin exposes its API t
 
 > **Warning**  
 > Use of API calls in Twig blocks rendering and—depending on traffic—may cause timeouts and/or failures due to rate limits. Consider using the [`{% cache %}` tag](https://craftcms.com/docs/4.x/dev/tags.html#cache) with a key and specific expiry time to avoid making a request every time a template is rendered:
+>
 > ```twig
 > {% cache using key "shopify:collections" for 10 minutes %}
 >   {# API calls + output... #}
@@ -700,7 +706,7 @@ If you are upgrading a Craft 3 project to Craft 4 and have existing “Shopify P
 It’s safe to remove the old plugin package (`nmaier95/shopify-product-fetcher`) from your `composer.json`—but **do not use the control panel to uninstall it**. We want the field’s _data_ to stick around, but don’t need the old field _class_ to work with it.
 
 > **Note**  
-You may see a “missing field” in your field layouts during this process—that’s OK! Your data is still there.
+> You may see a “missing field” in your field layouts during this process—that’s OK! Your data is still there.
 
 For each legacy Shopify Product field in your project, do the following:
 
@@ -716,12 +722,12 @@ Run the following command (substituting appropriate values) for each place you a
 - `oldShopifyField` &rarr; Field handle from the old version of the plugin (used inside the `--to` argument closure);
 - `newShopifyField` &rarr; New field handle created in step #1, above;
 
-    ```bash
-    php craft resave/entries \
-      --section=mySectionHandle \
-      --set=newShopifyField \
-      --to="fn(\$entry) => collect(json_decode(\$entry->oldShopifyField))->map(fn (\$id) => \craft\shopify\Plugin::getInstance()->getProducts()->getProductIdByShopifyId(\$id))->unique()->all()"
-    ```
+  ```bash
+  php craft resave/entries \
+    --section=mySectionHandle \
+    --set=newShopifyField \
+    --to="fn(\$entry) => collect(json_decode(\$entry->oldShopifyField))->map(fn (\$id) => \craft\shopify\Plugin::getInstance()->getProducts()->getProductIdByShopifyId(\$id))->unique()->all()"
+  ```
 
 ### Updating Templates
 
@@ -829,3 +835,4 @@ return [
     },
   ],
 ];
+```
