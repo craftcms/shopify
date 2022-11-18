@@ -50,6 +50,9 @@ class Settings extends Model
         ];
     }
 
+    /**
+     * @return \craft\models\FieldLayout|mixed
+     */
     public function getProductFieldLayout()
     {
         if (!isset($this->_productFieldLayout)) {
