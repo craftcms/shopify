@@ -15,13 +15,18 @@ use craft\web\Controller;
 use craft\web\Response;
 
 /**
- * The SettingsController handles modifying and saving the general settings.
+ * The StoresController handles modifying and saving the general settings.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 3.0
  */
-class SettingsController extends Controller
+class StoresController extends Controller
 {
+
+    public function actionIndex(){
+        $stores = Plugin::getInstance()->getStores()->getAllStores();
+    }
+
     /**
      * Display a form to allow an administrator to update plugin settings.
      *

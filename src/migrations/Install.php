@@ -35,6 +35,7 @@ class Install extends Migration
         $this->archiveTableIfExists(Table::PRODUCTS);
         $this->createTable(Table::PRODUCTS, [
             'id' => $this->integer()->notNull(),
+            'storeId' => $this->string()->notNull(),
             'shopifyId' => $this->string(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
@@ -66,6 +67,22 @@ class Install extends Migration
             'uid' => $this->string(),
             'PRIMARY KEY(shopifyId)',
         ]);
+
+        $this->archiveTableIfExists(Table::STORES);
+        $this->createTable(Table::STORES, [
+            'id' => $this->primaryKey(),
+            'name' => $this->string(),
+            'hostName' => $this->string(),
+            'apiKey' => $this->string(),
+            'apiSecretKey' => $this->string(),
+            'accessToken' => $this->string(),
+            'uriFormat' => $this->string(),
+            'template' => $this->string(),
+            'productFieldLayoutId' => $this->integer(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->string(),
+        ]);
     }
 
     /**
@@ -74,6 +91,8 @@ class Install extends Migration
     public function createIndexes(): void
     {
         $this->createIndex(null, Table::PRODUCTDATA, ['shopifyId'], true);
+        $this->createIndex(null, Table::STORES, ['id'], true);
+        $this->createIndex(null, Table::STORES, ['productFieldLayoutId'], true);
     }
 
     /**
@@ -83,6 +102,8 @@ class Install extends Migration
     {
         $this->addForeignKey(null, Table::PRODUCTS, ['shopifyId'], Table::PRODUCTDATA, ['shopifyId'], 'CASCADE', 'CASCADE');
         $this->addForeignKey(null, Table::PRODUCTS, ['id'], CraftTable::ELEMENTS, ['id'], 'CASCADE', 'CASCADE');
+        $this->addForeignKey(null, Table::PRODUCTS, ['storeId'], Table::STORES, ['id'], 'CASCADE', 'CASCADE');
+        $this->addForeignKey(null, Table::STORES, ['productFieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'SET NULL');
     }
 
     /**
