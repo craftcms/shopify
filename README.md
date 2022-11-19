@@ -173,7 +173,7 @@ Shortcut for getting the first/default [variant](#variants-and-pricing) belongin
 
     <li>
       <a href="{{ product.url }}">{{ product.title }}</a>
-      <span>{{ defaultVariant.price | currency }}</span>
+      <span>{{ defaultVariant.price|currency }}</span>
     </li>
   {% endfor %}
 </ul>
@@ -186,7 +186,7 @@ Shortcut for getting the lowest-priced [variant](#variants-and-pricing) belongin
 ```twig
 {% set cheapestVariant = product.getCheapestVariant() %}
 
-Starting at {{ cheapestVariant.price | currency }}!
+Starting at {{ cheapestVariant.price|currency }}!
 ```
 
 #### `Product::getShopifyUrl()`
@@ -377,16 +377,16 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
   {# -> Root Beer #}
 
 {# Shopify HTML content: #}
-{{ product.bodyHtml | raw }}
+{{ product.bodyHtml|raw }}
   {# -> <p>...</p> #}
 
 {# Tags, as list: #}
-{{ product.tags | join(', ') }}
+{{ product.tags|join(', ') }}
   {# -> sweet, spicy, herbal #}
 
 {# Tags, as filter links: #}
 {% for tag in tags %}
-  <a href="{{ siteUrl('products', { tag: tag }) }}">{{ tag | title }}</a>
+  <a href="{{ siteUrl('products', { tag: tag }) }}">{{ tag|title }}</a>
   {# -> <a href="https://mydomain.com/products?tag=herbal">Herbal</a> #}
 {% endfor %}
 
@@ -399,7 +399,7 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
 {# Variants: #}
 <select name="variantId">
   {% for variant in product.getVariants() %}
-    <option value="{{ variant.id }}">{{ variant.title }} ({{ variant.price | currency }})</option>
+    <option value="{{ variant.id }}">{{ variant.title }} ({{ variant.price|currency }})</option>
   {% endfor %}
 </select>
 ```
@@ -423,7 +423,7 @@ Once you have a reference to a variant, you can output its properties:
 ```twig
 {% set defaultVariant = product.getDefaultVariant() %}
 
-{{ variant.price | currency }}
+{{ variant.price|currency }}
 ```
 
 > **Note**  
@@ -575,7 +575,7 @@ The plugin makes no assumptions about how you use your product data in the front
 <ul>
   {% for product in products %}
     {# For now, we’re only handling a single variant: #}
-    {% set defaultVariant = product.getVariants() | first %}
+    {% set defaultVariant = product.getVariants()|first %}
 
     <li>
       {{ product.title }}
