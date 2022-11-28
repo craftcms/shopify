@@ -12,5 +12,12 @@
   },
   "browserslist": [
     "extends @craftcms/browserslist-config"
-  ]
+  ],
+  "devDependencies": {
+    "@craftcms/webpack": "^1.1.0",
+    "craftcms-sass": "^3.5.6",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.4.0",
+    "prettier": "^2.7.1"
+  }
 }
