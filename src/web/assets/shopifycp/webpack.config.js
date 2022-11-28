@@ -1,12 +1,12 @@
 /* jshint esversion: 6 */
 /* globals module, require */
-const { getConfig } = require("@craftcms/webpack");
+const {getConfig} = require('@craftcms/webpack');
 
 module.exports = getConfig({
   context: __dirname,
   config: {
     entry: {
-      shopifycp: "./shopifycp.js",
+      shopifycp: './shopifycp.js',
     },
   },
 });
