@@ -13,11 +13,15 @@ namespace craft\shopify;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
+use craft\commerce\services\Gateways;
+use craft\commerce\services\ProductTypes;
+use craft\events\DeleteSiteEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\services\Fields;
+use craft\services\Sites;
 use craft\services\Utilities;
 use craft\shopify\elements\Product;
 use craft\shopify\fields\Products as ProductsField;
@@ -25,7 +29,7 @@ use craft\shopify\handlers\Product as ProductHandler;
 use craft\shopify\models\Settings;
 use craft\shopify\services\Api;
 use craft\shopify\services\Products;
-use craft\shopify\services\Store;
+use craft\shopify\services\Stores;
 use craft\shopify\utilities\Sync;
 use craft\shopify\web\twig\CraftVariableBehavior;
 use craft\web\twig\variables\CraftVariable;
@@ -51,7 +55,7 @@ class Plugin extends BasePlugin
     /**
      * @var string
      */
-    public string $schemaVersion = '4.0.4'; // For some reason the 2.2+ version of the plugin was at 4.0 schema version
+    public string $schemaVersion = '4.1.0'; // For some reason the 2.2+ version of the plugin was at 4.0 schema version
 
     /**
      * @inheritdoc
@@ -72,9 +76,28 @@ class Plugin extends BasePlugin
             'components' => [
                 'api' => ['class' => Api::class],
                 'products' => ['class' => Products::class],
-                'store' => ['class' => Store::class],
+                'store' => ['class' => Stores::class],
             ],
         ];
+    }
+
+    /**
+     * Register Shopify’s project config event listeners
+     */
+    private function _registerProjectConfigEventListeners(): void
+    {
+        $projectConfigService = Craft::$app->getProjectConfig();
+
+        $storesService = $this->getStores();
+        $projectConfigService->onAdd(Stores::CONFIG_STORES_KEY . '.{uid}', [$storesService, 'handleChangedProductType'])
+            ->onUpdate(Stores::CONFIG_STORES_KEY . '.{uid}', [$storesService, 'handleChangedProductType'])
+            ->onRemove(Stores::CONFIG_STORES_KEY . '.{uid}', [$storesService, 'handleDeletedProductType']);
+
+        Event::on(Sites::class, Sites::EVENT_AFTER_DELETE_SITE, function(DeleteSiteEvent $event) use ($productTypeService) {
+            if (!Craft::$app->getProjectConfig()->getIsApplyingExternalChanges()) {
+                $productTypeService->pruneDeletedSite($event);
+            }
+        });
     }
 
     /**
@@ -104,6 +127,7 @@ class Plugin extends BasePlugin
         $this->_registerUtilityTypes();
         $this->_registerFieldTypes();
         $this->_registerVariables();
+        $this->_registerProjectConfigEventListeners();
 
         if (!$request->getIsConsoleRequest()) {
             if ($request->getIsCpRequest()) {
@@ -146,11 +170,11 @@ class Plugin extends BasePlugin
     /**
      * Returns the API service
      *
-     * @return Store The Store service
+     * @return Stores The Store service
      * @throws InvalidConfigException
      * @since 3.0
      */
-    public function getStore(): Store
+    public function getStore(): Stores
     {
         return $this->get('store');
     }

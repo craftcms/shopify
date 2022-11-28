@@ -17,4 +17,5 @@ abstract class Table
 {
     public const PRODUCTDATA = '{{%shopify_productdata}}';
     public const PRODUCTS = '{{%shopify_products}}';
+    public const STORES = '{{%shopify_stores}}';
 }
