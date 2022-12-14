@@ -13,7 +13,7 @@ use craft\shopify\elements\Product;
 use craft\shopify\models\Settings;
 use craft\shopify\Plugin;
 use craft\web\Controller;
-use craft\web\Response;
+use yii\web\Response;
 
 /**
  * The SettingsController handles modifying and saving the general settings.

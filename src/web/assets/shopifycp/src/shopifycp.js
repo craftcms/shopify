@@ -1,5 +1,5 @@
 // SCSS
-import "./scss/shopifycp.scss";
+import './scss/shopifycp.scss';
 
 // JS
-import "./js/shopifycp";
+import './js/shopifycp';
