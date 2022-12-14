@@ -13,6 +13,9 @@ namespace craft\shopify;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
+use craft\console\Controller;
+use craft\console\controllers\ResaveController;
+use craft\events\DefineConsoleActionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
@@ -104,6 +107,7 @@ class Plugin extends BasePlugin
         $this->_registerUtilityTypes();
         $this->_registerFieldTypes();
         $this->_registerVariables();
+        $this->_registerResaveCommands();
 
         if (!$request->getIsConsoleRequest()) {
             if ($request->getIsCpRequest()) {
@@ -205,6 +209,21 @@ class Plugin extends BasePlugin
         Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, static function(Event $event) {
             $variable = $event->sender;
             $variable->attachBehavior('shopify', CraftVariableBehavior::class);
+        });
+    }
+
+    public function _registerResaveCommands(): void
+    {
+        Event::on(ResaveController::class, Controller::EVENT_DEFINE_ACTIONS, static function(DefineConsoleActionsEvent $e) {
+            $e->actions['shopifyProducts'] = [
+                'action' => function(): int {
+                    /** @var ResaveController $controller */
+                    $controller = Craft::$app->controller;
+                    return $controller->resaveElements(Product::class);
+                },
+                'options' => [],
+                'helpSummary' => 'Re-saves Shopify products.',
+            ];
         });
     }
 
