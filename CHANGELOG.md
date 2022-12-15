@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- Added the `resave/shopifyProducts` console command. ([#47](https://github.com/craftcms/shopify/issues/47))
-- Products are now automatically re-saved when the URI format setting is changed. ([#47](https://github.com/craftcms/shopify/issues/47))
+- Added the `resave/shopify-products` console command. ([#47](https://github.com/craftcms/shopify/issues/47))
+- Products are now automatically re-saved when the “Product URI Format” setting is changed. ([#47](https://github.com/craftcms/shopify/issues/47))
 - Products field layout is now stored in the Project Config.
 
 ## 3.0.1 - 2022-11-16
