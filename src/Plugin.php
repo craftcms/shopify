@@ -243,7 +243,7 @@ class Plugin extends BasePlugin
     public function _registerResaveCommands(): void
     {
         Event::on(ResaveController::class, Controller::EVENT_DEFINE_ACTIONS, static function(DefineConsoleActionsEvent $e) {
-            $e->actions['shopifyProducts'] = [
+            $e->actions['shopify-products'] = [
                 'action' => function(): int {
                     /** @var ResaveController $controller */
                     $controller = Craft::$app->controller;
