@@ -13,9 +13,15 @@ namespace craft\shopify;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
+use craft\console\Controller;
+use craft\console\controllers\ResaveController;
+use craft\events\ConfigEvent;
+use craft\events\DefineConsoleActionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\helpers\UrlHelper;
+use craft\models\FieldLayout;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Utilities;
@@ -48,10 +54,12 @@ use yii\base\InvalidConfigException;
  */
 class Plugin extends BasePlugin
 {
+    public const PC_PATH_PRODUCT_FIELD_LAYOUTS = 'shopify.productFieldLayout';
+
     /**
      * @var string
      */
-    public string $schemaVersion = '4.0.4'; // For some reason the 2.2+ version of the plugin was at 4.0 schema version
+    public string $schemaVersion = '4.0.5'; // For some reason the 2.2+ version of the plugin was at 4.0 schema version
 
     /**
      * @inheritdoc
@@ -104,6 +112,7 @@ class Plugin extends BasePlugin
         $this->_registerUtilityTypes();
         $this->_registerFieldTypes();
         $this->_registerVariables();
+        $this->_registerResaveCommands();
 
         if (!$request->getIsConsoleRequest()) {
             if ($request->getIsCpRequest()) {
@@ -112,6 +121,29 @@ class Plugin extends BasePlugin
                 $this->_registerSiteRoutes();
             }
         }
+
+        Craft::$app->getProjectConfig()->onUpdate(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, function(ConfigEvent $event) {
+            $data = $event->newValue;
+            $fieldsService = Craft::$app->getFields();
+
+            if (empty($data) || empty($config = reset($data))) {
+                $fieldsService->deleteLayoutsByType(Product::class);
+                return;
+            }
+
+            // Make sure fields are processed
+            ProjectConfigHelper::ensureAllFieldsProcessed();
+
+            // Save the field layout
+            $layout = FieldLayout::createFromConfig($config);
+            $layout->id = $fieldsService->getLayoutByType(Product::class)->id;
+            $layout->type = Product::class;
+            $layout->uid = key($data);
+            $fieldsService->saveLayout($layout, false);
+
+            // Invalidate product caches
+            Craft::$app->getElements()->invalidateCachesForElementType(Product::class);
+        });
 
         // Globally register shopify webhooks registry event handlers
         Registry::addHandler(Topics::PRODUCTS_CREATE, new ProductHandler());
@@ -205,6 +237,21 @@ class Plugin extends BasePlugin
         Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, static function(Event $event) {
             $variable = $event->sender;
             $variable->attachBehavior('shopify', CraftVariableBehavior::class);
+        });
+    }
+
+    public function _registerResaveCommands(): void
+    {
+        Event::on(ResaveController::class, Controller::EVENT_DEFINE_ACTIONS, static function(DefineConsoleActionsEvent $e) {
+            $e->actions['shopify-products'] = [
+                'action' => function(): int {
+                    /** @var ResaveController $controller */
+                    $controller = Craft::$app->controller;
+                    return $controller->resaveElements(Product::class);
+                },
+                'options' => [],
+                'helpSummary' => 'Re-saves Shopify products.',
+            ];
         });
     }
 

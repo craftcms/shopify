@@ -1,5 +1,11 @@
 # Release Notes for Shopify
 
+## 3.1.0 - 2022-12-14
+
+- Added the `resave/shopify-products` console command. ([#47](https://github.com/craftcms/shopify/issues/47))
+- Products are now automatically re-saved when the “Product URI Format” setting is changed. ([#47](https://github.com/craftcms/shopify/issues/47))
+- The product field layout is now stored in the project config.
+
 ## 3.0.1 - 2022-11-16
 
 - Fixed a PHP error that occurred when saving invalid settings. ([#39](https://github.com/craftcms/shopify/pull/39), [#40](https://github.com/craftcms/shopify/pull/40))

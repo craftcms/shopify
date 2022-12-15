@@ -8,6 +8,8 @@
 namespace craft\shopify\controllers;
 
 use Craft;
+use craft\helpers\StringHelper;
+use craft\queue\jobs\ResaveElements;
 use craft\shopify\elements\Product;
 use craft\shopify\models\Settings;
 use craft\shopify\Plugin;
@@ -58,6 +60,7 @@ class SettingsController extends Controller
         $plugin = Plugin::getInstance();
         /** @var Settings $pluginSettings */
         $pluginSettings = $plugin->getSettings();
+        $originalUriFormat = $pluginSettings->uriFormat;
 
         // Remove from editable table namespace
         $settings['uriFormat'] = $settings['routing']['uriFormat'];
@@ -68,7 +71,11 @@ class SettingsController extends Controller
 
         $fieldLayout = Craft::$app->getFields()->assembleLayoutFromPost();
         $fieldLayout->type = Product::class;
-        Craft::$app->fields->saveLayout($fieldLayout);
+
+        $projectConfig = Craft::$app->getProjectConfig();
+        $uid = StringHelper::UUID();
+        $fieldLayoutConfig = $fieldLayout->getConfig();
+        $projectConfig->set(Plugin::PC_PATH_PRODUCT_FIELD_LAYOUTS, [$uid => $fieldLayoutConfig], 'Save the Shopify product field layout');
 
         $pluginSettings->setProductFieldLayout($fieldLayout);
 
@@ -78,6 +85,18 @@ class SettingsController extends Controller
                 Craft::t('shopify', 'Couldn’t save settings.'),
                 'settings',
             );
+        }
+
+        // Resave all products if the URI format changed
+        if ($originalUriFormat != $settings['uriFormat']) {
+            Craft::$app->getQueue()->push(new ResaveElements([
+                'elementType' => Product::class,
+                'criteria' => [
+                    'siteId' => '*',
+                    'unique' => true,
+                    'status' => null,
+                ],
+            ]));
         }
 
         return $this->asModelSuccess(
