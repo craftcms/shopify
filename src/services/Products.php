@@ -5,7 +5,6 @@ namespace craft\shopify\services;
 use Craft;
 use craft\base\Component;
 use craft\helpers\ArrayHelper;
-use craft\queue\Queue;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\helpers\Metafields as MetafieldsHelper;

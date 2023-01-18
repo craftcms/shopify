@@ -17,7 +17,7 @@ class UpdateProductMetadata extends BaseJob
     /**
      * @inheritdoc
      */
-    function execute($queue): void
+    public function execute($queue): void
     {
         $api = Plugin::getInstance()->getApi();
         $product = Product::find()->shopifyId($this->shopifyProductId)->one();
