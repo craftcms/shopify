@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a SQL error that occurred when syncing products with a large number of tags assigned in Shopify. ([#54](https://github.com/craftcms/shopify/issues/54))
+
 ## 3.1.0 - 2022-12-14
 
 - Added the `resave/shopify-products` console command. ([#47](https://github.com/craftcms/shopify/issues/47))
