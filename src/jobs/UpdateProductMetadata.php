@@ -12,7 +12,7 @@ use craft\shopify\Plugin;
  */
 class UpdateProductMetadata extends BaseJob
 {
-    public string $shopifyProductId;
+    public int $shopifyProductId;
 
     /**
      * @inheritdoc
