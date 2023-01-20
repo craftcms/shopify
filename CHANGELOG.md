@@ -1,5 +1,10 @@
 # Release Notes for Shopify
 
+## 3.1.1 - 2023-01-20
+
+- Fixed a SQL error that occurred when syncing products with several tags. ([#54](https://github.com/craftcms/shopify/issues/54))
+- Product metadata is now synced via a queue job to avoid the Shopify API rate limiting.
+
 ## 3.1.0 - 2022-12-14
 
 - Added the `resave/shopify-products` console command. ([#47](https://github.com/craftcms/shopify/issues/47))

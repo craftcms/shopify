@@ -8,6 +8,7 @@ use craft\helpers\ArrayHelper;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\helpers\Metafields as MetafieldsHelper;
+use craft\shopify\jobs\UpdateProductMetadata;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
 use Shopify\Rest\Admin2022_10\Metafield as ShopifyMetafield;
@@ -59,8 +60,13 @@ class Products extends Component
         $products = $api->getAllProducts();
 
         foreach ($products as $product) {
-            $metafields = $api->getMetafieldsByProductId($product->id);
-            $this->createOrUpdateProduct($product, $metafields);
+            $this->createOrUpdateProduct($product);
+            Craft::$app->getQueue()->push(new UpdateProductMetadata([
+                'description' => Craft::t('shopify', 'Updating product metadata for “{title}”', [
+                    'title' => $product->title,
+                ]),
+                'shopifyProductId' => $product->id,
+            ]));
         }
 
         // Remove any products that are no longer in Shopify just in case.

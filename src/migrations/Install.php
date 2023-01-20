@@ -55,7 +55,7 @@ class Install extends Migration
             'publishedAt' => $this->dateTime(),
             'publishedScope' => $this->string(),
             'shopifyStatus' => $this->string(),
-            'tags' => $this->string(),
+            'tags' => $this->text(),
             'templateSuffix' => $this->string(),
             'updatedAt' => $this->string(),
             'variants' => $this->text(),
