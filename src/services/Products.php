@@ -98,7 +98,7 @@ class Products extends Component
      *
      * @param ShopifyProduct $product
      * @param ShopifyMetafield[] $metafields
-     * @return bool Whether or not the synchronization succeeded.
+     * @return bool Whether the synchronization succeeded.
      */
     public function createOrUpdateProduct(ShopifyProduct $product, array $metafields = []): bool
     {
