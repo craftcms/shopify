@@ -71,7 +71,7 @@ class Products extends Component
 
         // Remove any products that are no longer in Shopify just in case.
         $shopifyIds = ArrayHelper::getColumn($products, 'id');
-        $deletableProductElements = ProductElement::find()->shopifyId(['not', $shopifyIds])->all();
+        $deletableProductElements = ProductElement::find()->shopifyId(array_merge(['not'], $shopifyIds))->all();
 
         foreach ($deletableProductElements as $element) {
             Craft::$app->elements->deleteElement($element);
