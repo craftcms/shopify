@@ -70,6 +70,24 @@ class Api extends Component
     }
 
     /**
+     * Retrieve a product ID by a variant's inventory item ID.
+     *
+     * @return ?int The product Shopify ID
+     */
+    public function getProductIdByInventoryItemId($id): ?int
+    {
+        $variant = Plugin::getInstance()->getApi()->get('variants', [
+            'inventory_item_id' => 43054370619426
+        ]);
+
+        if ($variant['variants']) {
+            return $variant['variants'][0]['product_id'];
+        }
+
+        return null;
+    }
+
+    /**
      * Retrieves "metafields" for the provided Shopify product ID.
      *
      * @param int $id Shopify Product ID

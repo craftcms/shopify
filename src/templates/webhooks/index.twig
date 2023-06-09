@@ -42,17 +42,17 @@
         ];
 
         new Craft.VueAdminTable({
-        fullPane: false,
-        columns: columns,
-        container: '#webhooks-container',
-        deleteAction: 'shopify/webhooks/delete',
-        deleteConfirmationMessage: Craft.t('shopify', "Are you sure you want to delete this webhook?"),
-        deleteFailMessage: Craft.t('shopify', "Webhook could not be deleted"),
-        deleteSuccessMessage: Craft.t('shopify', "Webhook deleted"),
-        emptyMessage: Craft.t('shopify', 'No webhooks exist yet.'),
-        tableData: {{ tableData|json_encode|raw }},
-        deleteCallback: function(){
-        window.location.reload(); // We need to reload to get the create button showing again
+            fullPane: false,
+            columns: columns,
+            container: '#webhooks-container',
+            deleteAction: 'shopify/webhooks/delete',
+            deleteConfirmationMessage: Craft.t('shopify', "Are you sure you want to delete this webhook?"),
+            deleteFailMessage: Craft.t('shopify', "Webhook could not be deleted"),
+            deleteSuccessMessage: Craft.t('shopify', "Webhook deleted"),
+            emptyMessage: Craft.t('shopify', 'No webhooks exist yet.'),
+            tableData: {{ tableData|json_encode|raw }},
+            deleteCallback: function(){
+            window.location.reload(); // We need to reload to get the create button showing again
         }
         });
     {% endjs %}

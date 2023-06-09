@@ -149,6 +149,7 @@ class Plugin extends BasePlugin
         Registry::addHandler(Topics::PRODUCTS_CREATE, new ProductHandler());
         Registry::addHandler(Topics::PRODUCTS_DELETE, new ProductHandler());
         Registry::addHandler(Topics::PRODUCTS_UPDATE, new ProductHandler());
+        Registry::addHandler(Topics::INVENTORY_LEVELS_UPDATE, new ProductHandler());
     }
 
     /**

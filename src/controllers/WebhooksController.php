@@ -53,6 +53,9 @@ class WebhooksController extends Controller
             }) &&
             $webhooks->contains(function($item) {
                 return str_contains($item->address, Craft::$app->getRequest()->getHostName()) && $item->topic === 'products/update';
+            }) &&
+            $webhooks->contains(function($item) {
+                return str_contains($item->address, Craft::$app->getRequest()->getHostName()) && $item->topic === 'inventory_levels/update';
             })
         );
 
@@ -97,7 +100,14 @@ class WebhooksController extends Controller
             accessToken: App::parseEnv($pluginSettings->accessToken)
         );
 
-        if (!$responseCreate->isSuccess() || !$responseUpdate->isSuccess() || !$responseDelete->isSuccess()) {
+        $responseInventoryUpdate = Registry::register(
+            path: 'shopify/webhook/handle',
+            topic: Topics::INVENTORY_LEVELS_UPDATE,
+            shop: App::parseEnv($pluginSettings->hostName),
+            accessToken: App::parseEnv($pluginSettings->accessToken)
+        );
+
+        if (!$responseCreate->isSuccess() || !$responseUpdate->isSuccess() || !$responseDelete->isSuccess() || !$responseInventoryUpdate->isSuccess()) {
             Craft::error('Could not register webhooks with Shopify API.', __METHOD__);
         }
 
