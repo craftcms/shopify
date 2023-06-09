@@ -39,7 +39,7 @@ class Install extends Migration
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
-            'PRIMARY KEY(id)',
+            'PRIMARY KEY([[id]])',
         ]);
 
         $this->archiveTableIfExists(Table::PRODUCTDATA);
@@ -64,7 +64,7 @@ class Install extends Migration
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->string(),
-            'PRIMARY KEY(shopifyId)',
+            'PRIMARY KEY([[shopifyId]])',
         ]);
     }
 

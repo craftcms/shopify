@@ -2,7 +2,10 @@
 
 ## Unreleased
 
+- Added support for keeping Variant inventory quantity synced. ([#61](https://github.com/craftcms/shopify/issues/61))
 - Added `craft\shopify\elements\db\ProductQuery::publishedScope()`. ([#65](https://github.com/craftcms/shopify/issues/65))
+- Fixed an SQL error when installing the plugin on PostgreSQL. ([#58](https://github.com/craftcms/shopify/issues/58)
+- 
 
 ## 3.1.1 - 2023-01-20
 
