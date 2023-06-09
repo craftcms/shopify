@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed a bug where project config changed to the product field layout did not apply correctly. ([#52](https://github.com/craftcms/shopify/issues/52)
 - Added support for keeping Variant inventory quantity synced. ([#61](https://github.com/craftcms/shopify/issues/61))
 - Added `craft\shopify\elements\db\ProductQuery::publishedScope()`. ([#65](https://github.com/craftcms/shopify/issues/65))
 - Fixed a PHP error that occurred when saving the plugin settings while headless mode was enabled. ([#68])https://github.com/craftcms/shopify/issues/68))

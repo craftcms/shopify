@@ -15,13 +15,10 @@ use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
 use craft\console\Controller;
 use craft\console\controllers\ResaveController;
-use craft\events\ConfigEvent;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
-use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\helpers\UrlHelper;
-use craft\models\FieldLayout;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Utilities;
@@ -122,28 +119,12 @@ class Plugin extends BasePlugin
             }
         }
 
-        Craft::$app->getProjectConfig()->onUpdate(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, function(ConfigEvent $event) {
-            $data = $event->newValue;
-            $fieldsService = Craft::$app->getFields();
+        $projectConfigService = Craft::$app->getProjectConfig();
+        $productsService = $this->getProducts();
 
-            if (empty($data) || empty($config = reset($data))) {
-                $fieldsService->deleteLayoutsByType(Product::class);
-                return;
-            }
-
-            // Make sure fields are processed
-            ProjectConfigHelper::ensureAllFieldsProcessed();
-
-            // Save the field layout
-            $layout = FieldLayout::createFromConfig($config);
-            $layout->id = $fieldsService->getLayoutByType(Product::class)->id;
-            $layout->type = Product::class;
-            $layout->uid = key($data);
-            $fieldsService->saveLayout($layout, false);
-
-            // Invalidate product caches
-            Craft::$app->getElements()->invalidateCachesForElementType(Product::class);
-        });
+        $projectConfigService->onAdd(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, [$productsService, 'handleChangedFieldLayout'])
+            ->onUpdate(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, [$productsService, 'handleChangedFieldLayout'])
+            ->onRemove(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, [$productsService, 'handleDeletedFieldLayout']);
 
         // Globally register shopify webhooks registry event handlers
         Registry::addHandler(Topics::PRODUCTS_CREATE, new ProductHandler());
