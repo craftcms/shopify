@@ -94,6 +94,14 @@ class Product
                 ->join(', ');
         }
 
+        // Metafields
+        if (count($product->getMetaFields()) > 0) {
+
+            $meta[Craft::t('shopify', 'Metafields')] = collect($product->getMetaFields())
+                ->keys()
+                ->join(', ');
+        }
+
         $meta[Craft::t('shopify', 'Shopify ID')] = Html::tag('code', (string)$product->shopifyId);
 
         $meta[Craft::t('shopify', 'Created at')] = $formatter->asDatetime($product->createdAt, Formatter::FORMAT_WIDTH_SHORT);

@@ -103,7 +103,7 @@ class Products extends Component
     public function createOrUpdateProduct(ShopifyProduct $product, array $metafields = []): bool
     {
         // Expand any JSON-like properties:
-        $metafields = MetafieldsHelper::unpack($metafields);
+        $metaFields = MetafieldsHelper::unpack($metafields);
 
         // Build our attribute set from the Shopify product data:
         $attributes = [
@@ -124,7 +124,7 @@ class Products extends Component
             'variants' => $product->variants,
             'vendor' => $product->vendor,
             // This one is unusual, because we’re merging two different Shopify API resources:
-            'metaFields' => $metafields,
+            'metaFields' => $metaFields,
         ];
 
         // Find the product data or create one
