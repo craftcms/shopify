@@ -104,8 +104,8 @@ class Products extends Component
 
         if ($productId = $api->getProductIdByInventoryItemId($id)) {
             $product = $api->getProductByShopifyId($productId);
-            $metafields = $api->getMetafieldsByProductId($product->id);
-            $this->createOrUpdateProduct($product, $metafields);
+            $metaFields = $api->getMetafieldsByProductId($product->id);
+            $this->createOrUpdateProduct($product, $metaFields);
         }
     }
 
@@ -144,6 +144,7 @@ class Products extends Component
         ];
 
         // Find the product data or create one
+        /** @var ProductDataRecord $productDataRecord */
         $productDataRecord = ProductDataRecord::find()->where(['shopifyId' => $product->id])->one() ?: new ProductDataRecord();
 
         // Set attributes and save:
