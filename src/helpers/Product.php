@@ -96,7 +96,6 @@ class Product
 
         // Metafields
         if (count($product->getMetaFields()) > 0) {
-
             $meta[Craft::t('shopify', 'Metafields')] = collect($product->getMetaFields())
                 ->keys()
                 ->join(', ');

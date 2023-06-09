@@ -33,7 +33,7 @@ use yii\db\ActiveQueryInterface;
  * @property string $updatedAt
  * @property array $variants
  * @property string $vendor
- * @property string $metaFields
+ * @property array $metaFields
  * @property string $dateUpdated
  *
  */

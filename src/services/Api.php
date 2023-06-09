@@ -77,7 +77,7 @@ class Api extends Component
     public function getProductIdByInventoryItemId($id): ?int
     {
         $variant = Plugin::getInstance()->getApi()->get('variants', [
-            'inventory_item_id' => 43054370619426
+            'inventory_item_id' => $id,
         ]);
 
         if ($variant['variants']) {

@@ -102,7 +102,7 @@ class Products extends Component
     {
         $api = Plugin::getInstance()->getApi();
 
-        if($productId = $api->getProductIdByInventoryItemId($id)){
+        if ($productId = $api->getProductIdByInventoryItemId($id)) {
             $product = $api->getProductByShopifyId($productId);
             $metafields = $api->getMetafieldsByProductId($product->id);
             $this->createOrUpdateProduct($product, $metafields);
