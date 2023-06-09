@@ -225,7 +225,7 @@ class Products extends Component
     /**
      * Handle field layout change
      *
-     * @throws Exception
+     * @throws \Throwable
      */
     public function handleChangedFieldLayout(ConfigEvent $event): void
     {
