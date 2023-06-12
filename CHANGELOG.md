@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-- Added support for keeping Variant inventory quantity in sync. ([#61](https://github.com/craftcms/shopify/issues/61))
+- Added support for syncing variant inventory levels. ([#61](https://github.com/craftcms/shopify/issues/61))
 - Added `craft\shopify\elements\db\ProductQuery::publishedScope()`. ([#65](https://github.com/craftcms/shopify/issues/65))
-- Fixed a PHP error that occurred when saving the plugin settings while headless mode was enabled. ([#68])https://github.com/craftcms/shopify/issues/68))
-- Fixed a bug where project config changed to the product field layout did not apply correctly. ([#52](https://github.com/craftcms/shopify/issues/52)
-- Fixed an SQL error when installing the plugin on PostgreSQL. ([#58](https://github.com/craftcms/shopify/issues/58)
+- Fixed a PHP error that occurred when saving the plugin settings in headless mode. ([#68])https://github.com/craftcms/shopify/issues/68))
+- Fixed a bug where changes to the product field layout in the project config weren’t applying correctly. ([#52](https://github.com/craftcms/shopify/issues/52)
+- Fixed an error that occurred when installing the plugin on PostgreSQL. ([#58](https://github.com/craftcms/shopify/issues/58)
 
 ## 3.1.1 - 2023-01-20
 
