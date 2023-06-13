@@ -219,7 +219,7 @@ class ProductQuery extends ElementQuery
         ]);
 
         if (isset($this->shopifyId)) {
-            $this->subQuery->andWhere(['shopify_productdata.shopifyId' => $this->shopifyId]);
+            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.shopifyId', $this->shopifyId));
         }
 
         if (isset($this->productType)) {
