@@ -23,6 +23,9 @@ class Product implements Handler
             case Topics::PRODUCTS_DELETE:
                 Plugin::getInstance()->getProducts()->deleteProductByShopifyId($body['id']);
                 break;
+            case Topics::INVENTORY_ITEMS_UPDATE:
+                Plugin::getInstance()->getProducts()->syncProductByInventoryItemId($body['inventory_item_id']);
+                break;
         }
     }
 }

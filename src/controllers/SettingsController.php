@@ -64,7 +64,10 @@ class SettingsController extends Controller
 
         // Remove from editable table namespace
         $settings['uriFormat'] = $settings['routing']['uriFormat'];
-        $settings['template'] = $settings['routing']['template'];
+        // Could be blank if in headless mode
+        if (isset($settings['template'])) {
+            $settings['template'] = $settings['routing']['template'];
+        }
         unset($settings['routing']);
 
         $settingsSuccess = Craft::$app->getPlugins()->savePluginSettings($plugin, $settings);

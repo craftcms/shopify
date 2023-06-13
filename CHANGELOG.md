@@ -1,5 +1,13 @@
 # Release Notes for Shopify
 
+## 3.2.0 - 2023-06-12
+
+- Added support for syncing variant inventory levels. ([#61](https://github.com/craftcms/shopify/issues/61))
+- Added `craft\shopify\elements\db\ProductQuery::publishedScope()`. ([#65](https://github.com/craftcms/shopify/issues/65))
+- Fixed a PHP error that occurred when saving the plugin settings in headless mode. ([#68])https://github.com/craftcms/shopify/issues/68))
+- Fixed a bug where changes to the product field layout in the project config weren’t applying correctly. ([#52](https://github.com/craftcms/shopify/issues/52)
+- Fixed an error that occurred when installing the plugin on PostgreSQL. ([#58](https://github.com/craftcms/shopify/issues/58)
+
 ## 3.1.1 - 2023-01-20
 
 - Fixed a SQL error that occurred when syncing products with several tags. ([#54](https://github.com/craftcms/shopify/issues/54))

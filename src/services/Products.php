@@ -4,7 +4,11 @@ namespace craft\shopify\services;
 
 use Craft;
 use craft\base\Component;
+use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;
+use craft\helpers\ProjectConfig;
+use craft\models\FieldLayout;
+use craft\shopify\elements\Product;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\helpers\Metafields as MetafieldsHelper;
@@ -94,16 +98,32 @@ class Products extends Component
     }
 
     /**
+     * @param $id
+     * @return void
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function syncProductByInventoryItemId($id): void
+    {
+        $api = Plugin::getInstance()->getApi();
+
+        if ($productId = $api->getProductIdByInventoryItemId($id)) {
+            $product = $api->getProductByShopifyId($productId);
+            $metaFields = $api->getMetafieldsByProductId($product->id);
+            $this->createOrUpdateProduct($product, $metaFields);
+        }
+    }
+
+    /**
      * This takes the shopify data from the REST API and creates or updates a product element.
      *
      * @param ShopifyProduct $product
      * @param ShopifyMetafield[] $metafields
-     * @return bool Whether or not the synchronization succeeded.
+     * @return bool Whether the synchronization succeeded.
      */
     public function createOrUpdateProduct(ShopifyProduct $product, array $metafields = []): bool
     {
         // Expand any JSON-like properties:
-        $metafields = MetafieldsHelper::unpack($metafields);
+        $metaFields = MetafieldsHelper::unpack($metafields);
 
         // Build our attribute set from the Shopify product data:
         $attributes = [
@@ -124,10 +144,11 @@ class Products extends Component
             'variants' => $product->variants,
             'vendor' => $product->vendor,
             // This one is unusual, because we’re merging two different Shopify API resources:
-            'metaFields' => $metafields,
+            'metaFields' => $metaFields,
         ];
 
         // Find the product data or create one
+        /** @var ProductDataRecord $productDataRecord */
         $productDataRecord = ProductDataRecord::find()->where(['shopifyId' => $product->id])->one() ?: new ProductDataRecord();
 
         // Set attributes and save:
@@ -199,5 +220,43 @@ class Products extends Component
     public function getProductIdByShopifyId($id): int
     {
         return ProductElement::find()->shopifyId($id)->one()->id;
+    }
+
+    /**
+     * Handle field layout change
+     *
+     * @throws \Throwable
+     */
+    public function handleChangedFieldLayout(ConfigEvent $event): void
+    {
+        $data = $event->newValue;
+
+        ProjectConfig::ensureAllFieldsProcessed();
+        $fieldsService = Craft::$app->getFields();
+
+        if (empty($data) || empty(reset($data))) {
+            // Delete the field layout
+            $fieldsService->deleteLayoutsByType(Product::class);
+            return;
+        }
+
+        // Save the field layout
+        $layout = FieldLayout::createFromConfig(reset($data));
+        $layout->id = $fieldsService->getLayoutByType(Product::class)->id;
+        $layout->type = Product::class;
+        $layout->uid = key($data);
+        $fieldsService->saveLayout($layout, false);
+
+
+        // Invalidate product caches
+        Craft::$app->getElements()->invalidateCachesForElementType(Product::class);
+    }
+
+    /**
+     * Handle field layout being deleted
+     */
+    public function handleDeletedFieldLayout(): void
+    {
+        Craft::$app->getFields()->deleteLayoutsByType(Product::class);
     }
 }

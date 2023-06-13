@@ -64,6 +64,15 @@ class ProductQuery extends ElementQuery
     }
 
     /**
+     * Narrows the query results based on the Shopify product type
+     */
+    public function publishedScope(mixed $value): self
+    {
+        $this->publishedScope = $value;
+        return $this;
+    }
+
+    /**
      * Narrows the query results based on the Shopify status
      */
     public function shopifyStatus(mixed $value): self
@@ -217,6 +226,10 @@ class ProductQuery extends ElementQuery
             $this->subQuery->andWhere(['shopify_productdata.productType' => $this->productType]);
         }
 
+        if (isset($this->publishedScope)) {
+            $this->subQuery->andWhere(['shopify_productdata.publishedScope' => $this->publishedScope]);
+        }
+        
         if (isset($this->shopifyStatus)) {
             $this->subQuery->andWhere(Db::parseParam('shopify_productdata.shopifyStatus', $this->shopifyStatus));
         }
