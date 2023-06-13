@@ -51,7 +51,6 @@ Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-a
    - `read_products`
    - `read_product_listings`
    - `read_inventory`
-   - `write_inventory`
 
    Additionally (at the bottom of this screen), the **Webhook subscriptions** &rarr; **Event version** should be `2022-10`.
 
