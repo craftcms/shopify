@@ -36,6 +36,12 @@ To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/sho
    php craft plugin/install shopify
    ```
 
+### Upgrading
+
+Before upgrading ensure that the **Admin API access scopes** match the [requirements below](#create-a-shopify-app). This ensures that all the new features of the plugin will work correctly.
+
+After upgrading, ensure that all required webhooks have been created by clicking the “Create” button on the **Shopify** &rarr; **Webhooks** screen in your project’s control panel page in the CP. If the “Create” button is not visible, all required webhooks have been created.
+
 ### Create a Shopify App
 
 The plugin works with Shopify’s [Custom Apps](https://help.shopify.com/en/manual/apps/custom-apps) system.
