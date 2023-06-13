@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 3.2.0 - 2023-06-12
 
 - Added support for syncing variant inventory levels. ([#61](https://github.com/craftcms/shopify/issues/61))
 - Added `craft\shopify\elements\db\ProductQuery::publishedScope()`. ([#65](https://github.com/craftcms/shopify/issues/65))
