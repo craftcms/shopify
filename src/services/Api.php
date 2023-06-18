@@ -175,7 +175,7 @@ class Api extends Component
             Context::initialize(
                 apiKey: $apiKey,
                 apiSecretKey: $apiSecretKey,
-                scopes: ['write_products', 'read_products'],
+                scopes: ['write_products', 'read_products', 'read_inventory'],
                 // This `hostName` is different from the `shop` value used when creating a Session!
                 // Shopify wants a name for the host/environment that is initiating the connection.
                 hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
