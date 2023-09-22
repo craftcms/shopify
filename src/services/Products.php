@@ -15,7 +15,6 @@ use craft\shopify\helpers\Metafields as MetafieldsHelper;
 use craft\shopify\jobs\UpdateProductMetadata;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
-use Shopify\Rest\Admin2022_01\Metafield;
 use Shopify\Rest\Admin2022_10\Metafield as ShopifyMetafield;
 use Shopify\Rest\Admin2022_10\Product as ShopifyProduct;
 
@@ -74,7 +73,6 @@ class Products extends Component
                     'shopifyProductId' => $product->id,
                 ]));
             } else {
-                /** @var Metafield $metaFields */
                 $metaFields = $api->getMetafieldsByProductId($product->id);
                 $this->createOrUpdateProduct($product, $metaFields);
             }
