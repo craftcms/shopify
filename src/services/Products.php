@@ -15,6 +15,7 @@ use craft\shopify\helpers\Metafields as MetafieldsHelper;
 use craft\shopify\jobs\UpdateProductMetadata;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
+use Shopify\Rest\Admin2022_01\Metafield;
 use Shopify\Rest\Admin2022_10\Metafield as ShopifyMetafield;
 use Shopify\Rest\Admin2022_10\Product as ShopifyProduct;
 
@@ -58,19 +59,25 @@ class Products extends Component
      * @throws \Throwable
      * @throws \yii\base\InvalidConfigException
      */
-    public function syncAllProducts(): void
+    public function syncAllProducts(bool $asynchronous = true): void
     {
         $api = Plugin::getInstance()->getApi();
         $products = $api->getAllProducts();
 
         foreach ($products as $product) {
-            $this->createOrUpdateProduct($product);
-            Craft::$app->getQueue()->push(new UpdateProductMetadata([
-                'description' => Craft::t('shopify', 'Updating product metadata for “{title}”', [
-                    'title' => $product->title,
-                ]),
-                'shopifyProductId' => $product->id,
-            ]));
+            if ($asynchronous) {
+                $this->createOrUpdateProduct($product);
+                Craft::$app->getQueue()->push(new UpdateProductMetadata([
+                    'description' => Craft::t('shopify', 'Updating product metafields for “{title}”', [
+                        'title' => $product->title,
+                    ]),
+                    'shopifyProductId' => $product->id,
+                ]));
+            } else {
+                /** @var Metafield $metaFields */
+                $metaFields = $api->getMetafieldsByProductId($product->id);
+                $this->createOrUpdateProduct($product, $metaFields);
+            }
         }
 
         // Remove any products that are no longer in Shopify just in case.
@@ -92,9 +99,9 @@ class Products extends Component
         $api = Plugin::getInstance()->getApi();
 
         $product = $api->getProductByShopifyId($id);
-        $metafields = $api->getMetafieldsByProductId($id);
+        $metaFields = $api->getMetafieldsByProductId($id);
 
-        $this->createOrUpdateProduct($product, $metafields);
+        $this->createOrUpdateProduct($product, $metaFields);
     }
 
     /**
