@@ -1,5 +1,10 @@
 # Release Notes for Shopify
 
+### Unreleased
+
+- Added an `async` flag to the `craft/shopify/sync` command.
+- Added an `async` param to the sync utility.
+
 ## 3.2.0 - 2023-06-12
 
 - Added support for syncing variant inventory levels. ([#61](https://github.com/craftcms/shopify/issues/61))
