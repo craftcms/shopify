@@ -4,6 +4,7 @@
 
 - Added an `async` flag to the `craft/shopify/sync` command.
 - Added an `async` param to the sync utility.
+- Fixed a bug where the template routing setting would not save. 
 
 ## 3.2.0 - 2023-06-12
 
