@@ -103,6 +103,18 @@ class Api extends Component
     }
 
     /**
+     * Retrieves "metafields" for the provided Shopify product ID.
+     *
+     * @param int $id Shopify Product ID
+     */
+    public function getVariantsByProductId(int $id): array
+    {
+        $variants = $this->get("products/{$id}/variants");
+
+        return $variants['variants'];
+    }
+
+    /**
      * Shortcut for retrieving arbitrary API resources. A plain (parsed) response body is returned, so it’s the caller’s responsibility for unpacking it properly.
      *
      * @see Rest::get();

@@ -146,7 +146,7 @@ class Products extends Component
             'tags' => $product->tags,
             'templateSuffix' => $product->template_suffix,
             'updatedAt' => $product->updated_at,
-            'variants' => $product->variants,
+            'variants' => Plugin::getInstance()->getApi()->getVariantsByProductId($product->id),
             'vendor' => $product->vendor,
             // This one is unusual, because we’re merging two different Shopify API resources:
             'metaFields' => $metaFields,
