@@ -130,6 +130,7 @@ class Products extends Component
         // Expand any JSON-like properties:
         $metaFields = MetafieldsHelper::unpack($metafields);
 
+        $variants = Plugin::getInstance()->getApi()->getVariantsByProductId($product->id);
         // Build our attribute set from the Shopify product data:
         $attributes = [
             'shopifyId' => $product->id,
@@ -146,7 +147,7 @@ class Products extends Component
             'tags' => $product->tags,
             'templateSuffix' => $product->template_suffix,
             'updatedAt' => $product->updated_at,
-            'variants' => Plugin::getInstance()->getApi()->getVariantsByProductId($product->id),
+            'variants' => $variants,
             'vendor' => $product->vendor,
             // This one is unusual, because we’re merging two different Shopify API resources:
             'metaFields' => $metaFields,
