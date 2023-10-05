@@ -17,8 +17,6 @@ use yii\base\InvalidConfigException;
  */
 class Store extends Component
 {
-    private $_shop = null;
-
     /**
      * Creates a URL to the external Shopify store
      *
@@ -64,6 +62,4 @@ class Store extends Component
 
         return $shop;
     }
-
-
 }
