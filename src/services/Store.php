@@ -22,8 +22,8 @@ class Store extends Component
      *
      * @param string $path
      * @param array $params
-     * @return string
      * @throws InvalidConfigException when no hostname is set up.
+     * @return string
      */
     public function getUrl(string $path = '', array $params = []): string
     {

@@ -5,14 +5,14 @@ namespace craft\shopify\jobs;
 use craft\queue\BaseJob;
 use craft\shopify\elements\Product;
 use craft\shopify\helpers\Api as ApiHelper;
-use craft\shopify\helpers\Metafields as MetafieldsHelper;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
 
 /**
- * Updates the metadata for a Shopify product.
+ * Updates the variants for a Shopify product.
+ * @since 3.3.0
  */
-class UpdateProductMetadata extends BaseJob
+class UpdateProductVariants extends BaseJob
 {
     public int $shopifyProductId;
 
@@ -23,13 +23,15 @@ class UpdateProductMetadata extends BaseJob
     {
         $api = Plugin::getInstance()->getApi();
 
-        if ($product = Product::find()->shopifyId($this->shopifyProductId)->one()) {
-            $metaFieldsObjects = $api->getMetafieldsByProductId($this->shopifyProductId);
-            $metaFields = MetafieldsHelper::unpack($metaFieldsObjects);
-            $product->setMetafields($metaFields);
+        /** @var Product|null $product */
+        $product = Product::find()->shopifyId($this->shopifyProductId)->one();
+
+        if ($product) {
+            $variants = $api->getVariantsByProductId($this->shopifyProductId);
+            $product->setVariants($variants);
             /** @var ProductDataRecord $productData */
             $productData = ProductDataRecord::find()->where(['shopifyId' => $this->shopifyProductId])->one();
-            $productData->metaFields = $metaFields;
+            $productData->variants = $variants;
             $productData->save();
             ApiHelper::rateLimit(); // Avoid rate limiting
         }

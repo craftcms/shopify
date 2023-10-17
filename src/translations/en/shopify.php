@@ -14,6 +14,16 @@
  * @since     0.0.1
  */
 return [
+    'Product Template' => 'Product Template',
+    'Product URI format' => 'Product URI format',
+    'Rate Limit Requests' => 'Rate Limit Requests',
+    'Rate Limit Seconds' => 'Rate Limit Seconds',
+    'Shopify API Key' => 'Shopify API Key',
+    'Shopify API Secret Key' => 'Shopify API Secret Key',
+    'Shopify Access Token' => 'Shopify Access Token',
+    'Shopify Host Name' => 'Shopify Host Name',
     'Shopify plugin loaded' => 'Shopify plugin loaded',
+    'Updating product metafields for “{title}”' => 'Updating product metafields for “{title}”',
+    'Updating product variants for “{title}”' => 'Updating product variants for “{title}”',
     '{name} option values: {values}' => '{name} option values: {values}',
 ];
