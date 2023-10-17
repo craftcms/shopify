@@ -843,3 +843,11 @@ return [
   ],
 ];
 ```
+
+## Rate Limiting
+
+The Shopify API implements [rate limiting rules](https://shopify.dev/docs/api/usage/rate-limits) the plugin makes its best effort to avoid hitting these limits.
+
+By default, when syncing all products the plugin moves some of the load of retrieving data to queue jobs. Therefore the variant and meta field data is asynchronously updated on to the Shopify products.
+
+It is possible to turn off the plugin's rate limiting measures by setting the `rateLimitRequests` config option to `false`. Or, if you are hitting rate limiting issues you can increase the timeout length updating the `rateLimitSeconds` config setting (number of seconds as an integer).

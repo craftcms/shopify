@@ -28,10 +28,23 @@ class Settings extends Model
     public string $template = '';
     private mixed $_productFieldLayout;
 
+    /**
+     * @var bool Whether to rate limit requests to Shopify
+     * @since 3.3.0
+     */
+    public bool $rateLimitRequests = true;
+
+    /**
+     * @var int The number of seconds to wait between requests
+     * @since 3.3.0
+     */
+    public int $rateLimitSeconds = 1;
+
     public function rules(): array
     {
         return [
             [['apiSecretKey', 'apiKey', 'accessToken', 'hostName'], 'required'],
+            [['rateLimitSeconds', 'rateLimitRequests'], 'safe'],
         ];
     }
 
@@ -47,6 +60,8 @@ class Settings extends Model
             'hostName' => Craft::t('shopify', 'Shopify Host Name'),
             'uriFormat' => Craft::t('shopify', 'Product URI format'),
             'template' => Craft::t('shopify', 'Product Template'),
+            'rateLimitRequests' => Craft::t('shopify', 'Rate Limit Requests'),
+            'rateLimitSeconds' => Craft::t('shopify', 'Rate Limit Seconds'),
         ];
     }
 
