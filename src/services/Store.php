@@ -2,6 +2,7 @@
 
 namespace craft\shopify\services;
 
+use Craft;
 use craft\base\Component;
 use craft\helpers\App;
 use craft\helpers\UrlHelper;
