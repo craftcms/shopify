@@ -24,7 +24,9 @@ class UpdateProductVariants extends BaseJob
         $api = Plugin::getInstance()->getApi();
 
         /** @var Product|null $product */
-        if ($product = Product::find()->shopifyId($this->shopifyProductId)->one()) {
+        $product = Product::find()->shopifyId($this->shopifyProductId)->one();
+
+        if ($product) {
             $variants = $api->getVariantsByProductId($this->shopifyProductId);
             $product->setVariants($variants);
             /** @var ProductDataRecord $productData */
