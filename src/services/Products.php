@@ -17,9 +17,9 @@ use craft\shopify\jobs\UpdateProductMetadata;
 use craft\shopify\jobs\UpdateProductVariants;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
-use Shopify\Rest\Admin2022_10\Metafield as ShopifyMetafield;
-use Shopify\Rest\Admin2022_10\Product as ShopifyProduct;
-use Shopify\Rest\Admin2022_10\Variant as ShopifyVariant;
+use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
+use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
+use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
 
 /**
  * Shopify Products service.

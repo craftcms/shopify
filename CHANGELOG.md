@@ -1,6 +1,10 @@
 # Release Notes for Shopify
 
-### Unreleased
+## 4.0.0 - WIP
+- Shopify now requires `shopify/shopify-api` 5.2.0 or later.
+- Shopify now requires custom apps to be created with event version set to `2023-10`.
+
+## Unreleased
 
 - Added an `async` flag to the `craft/shopify/sync` command.
 - Added an `async` param to the sync utility.

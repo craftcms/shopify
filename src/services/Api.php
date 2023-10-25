@@ -17,8 +17,8 @@ use Shopify\Auth\FileSessionStorage;
 use Shopify\Auth\Session;
 use Shopify\Clients\Rest;
 use Shopify\Context;
-use Shopify\Rest\Admin2022_10\Metafield as ShopifyMetafield;
-use Shopify\Rest\Admin2022_10\Product as ShopifyProduct;
+use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
+use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
 use Shopify\Rest\Base as ShopifyBaseResource;
 
 /**
@@ -35,7 +35,7 @@ class Api extends Component
     /**
      * @var string
      */
-    public const SHOPIFY_API_VERSION = '2022-10';
+    public const SHOPIFY_API_VERSION = '2023-10';
 
     /**
      * @var Session|null
