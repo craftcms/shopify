@@ -42,7 +42,7 @@ Before upgrading ensure that the **Admin API access scopes** match the [requirem
 
 After upgrading, ensure that all required webhooks have been created by clicking the “Create” button on the **Shopify** &rarr; **Webhooks** screen in your project’s control panel page in the CP. If the “Create” button is not visible, all required webhooks have been created.
 
-### From `3.x` to `4.x`
+#### From `3.x` to `4.x`
 
 In version `4.0.0` the plugin changed its Shopify API requirement to version `2023-10`. Any Shopify custom apps created before this version will need to update their webhook event version to `2023-10`.
 
