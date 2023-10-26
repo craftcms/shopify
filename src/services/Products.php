@@ -61,32 +61,15 @@ class Products extends Component
      * @throws \Throwable
      * @throws \yii\base\InvalidConfigException
      */
-    public function syncAllProducts(bool $asynchronous = true): void
+    public function syncAllProducts(): void
     {
         $api = Plugin::getInstance()->getApi();
         $products = $api->getAllProducts();
 
         foreach ($products as $product) {
-            if ($asynchronous) {
-                $this->createOrUpdateProduct($product);
-                Craft::$app->getQueue()->push(new UpdateProductMetadata([
-                    'description' => Craft::t('shopify', 'Updating product metafields for “{title}”', [
-                        'title' => $product->title,
-                    ]),
-                    'shopifyProductId' => $product->id,
-                ]));
-                Craft::$app->getQueue()->push(new UpdateProductVariants([
-                    'description' => Craft::t('shopify', 'Updating product variants for “{title}”', [
-                        'title' => $product->title,
-                    ]),
-                    'shopifyProductId' => $product->id,
-                ]));
-            } else {
-                $metaFields = $api->getMetafieldsByProductId($product->id);
-                ApiHelper::rateLimit();
-                $variants = $api->getVariantsByProductId($product->id);
-                $this->createOrUpdateProduct($product, $metaFields, $variants);
-            }
+            $variants = $api->getVariantsByProductId($product->id);
+            $metafields = $api->getMetafieldsByProductId($product->id);
+            $this->createOrUpdateProduct($product, $metafields, $variants);
         }
 
         // Remove any products that are no longer in Shopify just in case.
@@ -126,7 +109,8 @@ class Products extends Component
         if ($productId = $api->getProductIdByInventoryItemId($id)) {
             $product = $api->getProductByShopifyId($productId);
             $metaFields = $api->getMetafieldsByProductId($product->id);
-            $this->createOrUpdateProduct($product, $metaFields);
+            $variants = $api->getVariantsByProductId($product->id);
+            $this->createOrUpdateProduct($product, $metaFields, $variants);
         }
     }
 
@@ -161,7 +145,6 @@ class Products extends Component
             'updatedAt' => $product->updated_at,
             'variants' => $variants ?? $product->variants,
             'vendor' => $product->vendor,
-            // This one is unusual, because we’re merging two different Shopify API resources:
             'metaFields' => $metaFields,
         ];
 

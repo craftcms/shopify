@@ -11,6 +11,8 @@ use craft\shopify\records\ProductData as ProductDataRecord;
 
 /**
  * Updates the metadata for a Shopify product.
+ *
+ * @deprecated 4.0.0 No longer used internally due to the use of `Retry-After` headers in the Shopify API.
  */
 class UpdateProductMetadata extends BaseJob
 {
@@ -24,6 +26,7 @@ class UpdateProductMetadata extends BaseJob
         $api = Plugin::getInstance()->getApi();
 
         if ($product = Product::find()->shopifyId($this->shopifyProductId)->one()) {
+
             $metaFieldsObjects = $api->getMetafieldsByProductId($this->shopifyProductId);
             $metaFields = MetafieldsHelper::unpack($metaFieldsObjects);
             $product->setMetafields($metaFields);
@@ -31,7 +34,6 @@ class UpdateProductMetadata extends BaseJob
             $productData = ProductDataRecord::find()->where(['shopifyId' => $this->shopifyProductId])->one();
             $productData->metaFields = $metaFields;
             $productData->save();
-            ApiHelper::rateLimit(); // Avoid rate limiting
         }
     }
 

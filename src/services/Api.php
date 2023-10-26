@@ -92,6 +92,7 @@ class Api extends Component
      * Retrieves "metafields" for the provided Shopify product ID.
      *
      * @param int $id Shopify Product ID
+     * @return ShopifyMetafield[]
      */
     public function getMetafieldsByProductId(int $id): array
     {
@@ -142,12 +143,13 @@ class Api extends Component
         $params['limit'] = 250;
 
         do {
+            /** @var Metafield $type */
             $resources = array_merge($resources, $type::all(
                 $this->getSession(),
                 [],
                 $type::$NEXT_PAGE_QUERY ?: $params,
             ));
-            ApiHelper::rateLimit(); // Avoid rate limiting
+
         } while ($type::$NEXT_PAGE_QUERY);
 
         return $resources;
@@ -196,7 +198,7 @@ class Api extends Component
                 sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
                 apiVersion: self::SHOPIFY_API_VERSION,
                 isEmbeddedApp: false,
-                logger: $webLogTarget->getLogger()
+                logger: $webLogTarget->getLogger(),
             );
 
             $hostName = App::parseEnv($pluginSettings->hostName);
