@@ -11,7 +11,6 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\App;
 use craft\log\MonologTarget;
-use craft\shopify\helpers\Api as ApiHelper;
 use craft\shopify\Plugin;
 use Shopify\Auth\FileSessionStorage;
 use Shopify\Auth\Session;
@@ -149,7 +148,6 @@ class Api extends Component
                 [],
                 $type::$NEXT_PAGE_QUERY ?: $params,
             ));
-
         } while ($type::$NEXT_PAGE_QUERY);
 
         return $resources;

@@ -4,7 +4,6 @@ namespace craft\shopify\jobs;
 
 use craft\queue\BaseJob;
 use craft\shopify\elements\Product;
-use craft\shopify\helpers\Api as ApiHelper;
 use craft\shopify\helpers\Metafields as MetafieldsHelper;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
@@ -26,7 +25,6 @@ class UpdateProductMetadata extends BaseJob
         $api = Plugin::getInstance()->getApi();
 
         if ($product = Product::find()->shopifyId($this->shopifyProductId)->one()) {
-
             $metaFieldsObjects = $api->getMetafieldsByProductId($this->shopifyProductId);
             $metaFields = MetafieldsHelper::unpack($metaFieldsObjects);
             $product->setMetafields($metaFields);

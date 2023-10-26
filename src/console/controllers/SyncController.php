@@ -9,8 +9,8 @@ namespace craft\shopify\console\controllers;
 
 use craft\console\Controller;
 use craft\helpers\Console;
-use craft\shopify\Plugin;
 use craft\shopify\elements\Product;
+use craft\shopify\Plugin;
 use yii\console\ExitCode;
 
 /**
