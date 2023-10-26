@@ -11,6 +11,7 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\App;
 use craft\log\MonologTarget;
+use craft\shopify\helpers\Api as ApiHelper;
 use craft\shopify\Plugin;
 use Shopify\Auth\FileSessionStorage;
 use Shopify\Auth\Session;
@@ -95,12 +96,15 @@ class Api extends Component
      */
     public function getMetafieldsByProductId(int $id): array
     {
-        return $this->getAll(ShopifyMetafield::class, [
+        /** @var ShopifyMetafield[] $metafields */
+        $metafields = $this->getAll(ShopifyMetafield::class, [
             'metafield' => [
                 'owner_id' => $id,
                 'owner_resource' => 'product',
             ],
         ]);
+
+        return $metafields;
     }
 
     /**
@@ -142,12 +146,12 @@ class Api extends Component
         $params['limit'] = 250;
 
         do {
-            /** @var Metafield $type */
             $resources = array_merge($resources, $type::all(
                 $this->getSession(),
                 [],
                 $type::$NEXT_PAGE_QUERY ?: $params,
             ));
+
         } while ($type::$NEXT_PAGE_QUERY);
 
         return $resources;
