@@ -1,9 +1,11 @@
 # Release Notes for Shopify
 
 ## 4.0.0 - WIP
-- Shopify now requires `shopify/shopify-api` 5.2.0 or later.
+- Shopify now requires `shopify/shopify-api` 5.2.0 or later. ([#81](https://github.com/craftcms/shopify/issues/81), [#84](https://github.com/craftcms/shopify/issues/84))
 - Shopify now the related custom app to be created with event version set to `2023-10`.
 - Syncing meta fields is no longer performed in a job.
+- Product ref handle has changed to `shopifyproduct`. ([#77](https://github.com/craftcms/shopify/issues/77))
+- Fixed a bug where ref handles were not being parsed. ([#77](https://github.com/craftcms/shopify/issues/77))
 - Deprecated the `craft\shopify\jobs\UpdateProductMetadata` job.
 - Fixed a bug where the template routing setting would not save.
 - Removed `craft\shopify\events\ShopifyProductSyncEvent::$metafields`. Use `craft\shopify\events\ShopifyProductSyncEvent::$element->getMetaFields()` instead.
@@ -12,9 +14,9 @@
 
 - Added support for syncing variant inventory levels. ([#61](https://github.com/craftcms/shopify/issues/61))
 - Added `craft\shopify\elements\db\ProductQuery::publishedScope()`. ([#65](https://github.com/craftcms/shopify/issues/65))
-- Fixed a PHP error that occurred when saving the plugin settings in headless mode. ([#68])https://github.com/craftcms/shopify/issues/68))
-- Fixed a bug where changes to the product field layout in the project config weren’t applying correctly. ([#52](https://github.com/craftcms/shopify/issues/52)
-- Fixed an error that occurred when installing the plugin on PostgreSQL. ([#58](https://github.com/craftcms/shopify/issues/58)
+- Fixed a PHP error that occurred when saving the plugin settings in headless mode. ([#68](https://github.com/craftcms/shopify/issues/68))
+- Fixed a bug where changes to the product field layout in the project config weren’t applying correctly. ([#52](https://github.com/craftcms/shopify/issues/52))
+- Fixed an error that occurred when installing the plugin on PostgreSQL. ([#58](https://github.com/craftcms/shopify/issues/58))
 
 ## 3.1.1 - 2023-01-20
 
