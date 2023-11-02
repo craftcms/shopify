@@ -7,7 +7,7 @@
 - Product ref handle has changed to `shopifyproduct`. ([#77](https://github.com/craftcms/shopify/issues/77))
 - Fixed a bug where ref handles were not being parsed. ([#77](https://github.com/craftcms/shopify/issues/77))
 - Deprecated the `craft\shopify\jobs\UpdateProductMetadata` job.
-- Fixed a bug where the template routing setting would not save.
+- Fixed a bug where the template setting within routing settings would not save.
 - Removed `craft\shopify\events\ShopifyProductSyncEvent::$metafields`. Use `craft\shopify\events\ShopifyProductSyncEvent::$element->getMetaFields()` instead.
 
 ## 3.2.0 - 2023-06-12
