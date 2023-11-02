@@ -1,10 +1,11 @@
 # Release Notes for Shopify
 
-### Unreleased
- 
+## 4.0.0 - WIP
+- Shopify now requires `shopify/shopify-api` 5.2.0 or later.
+- Shopify now the related custom app to be created with event version set to `2023-10`.
 - Syncing meta fields is no longer performed in a job.
-- Fixed a bug where the template routing setting would not save.
 - Deprecated the `craft\shopify\jobs\UpdateProductMetadata` job.
+- Fixed a bug where the template routing setting would not save.
 
 ## 3.2.0 - 2023-06-12
 

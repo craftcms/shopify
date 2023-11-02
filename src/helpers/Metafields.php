@@ -8,7 +8,7 @@
 namespace craft\shopify\helpers;
 
 use craft\helpers\Json;
-use Shopify\Rest\Admin2022_10\Metafield as ShopifyMetafield;
+use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
 
 class Metafields
 {

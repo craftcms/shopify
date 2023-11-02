@@ -42,6 +42,12 @@ Before upgrading ensure that the **Admin API access scopes** match the [requirem
 
 After upgrading, ensure that all required webhooks have been created by clicking the “Create” button on the **Shopify** &rarr; **Webhooks** screen in your project’s control panel page in the CP. If the “Create” button is not visible, all required webhooks have been created.
 
+#### From `3.x` to `4.x`
+
+In version `4.0.0` the plugin changed its Shopify API requirement to version `2023-10`. Any Shopify custom apps created before this version will need to update their webhook event version to `2023-10`.
+
+This can be done by visiting your Shopify store and going to **Settings** &rarr; **Apps and sales channels** &rarr; **Develop apps** clicking you app and then **Configuration** &rarr; **Webhook version**. 
+
 ### Create a Shopify App
 
 The plugin works with Shopify’s [Custom Apps](https://help.shopify.com/en/manual/apps/custom-apps) system.
@@ -58,7 +64,7 @@ Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-a
    - `read_product_listings`
    - `read_inventory`
 
-   Additionally (at the bottom of this screen), the **Webhook subscriptions** &rarr; **Event version** should be `2022-10`.
+   Additionally (at the bottom of this screen), the **Webhook subscriptions** &rarr; **Event version** should be `2023-10`.
 
 3. **Admin API access token**: Reveal and copy this value into your `.env` file, as `SHOPIFY_ADMIN_ACCESS_TOKEN`.
 4. **API key and secret key**: Reveal and/or copy the **API key** and **API secret key** into your `.env` under `SHOPIFY_API_KEY` and `SHOPIFY_API_SECRET_KEY`, respectively.
@@ -124,7 +130,7 @@ Once the plugin has been configured, perform an initial synchronization via the 
 
 ### Native Attributes
 
-In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Product resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object):
+In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Product resource](https://shopify.dev/api/admin-rest/2023-10/resources/product#resource-object):
 
 | Attribute        | Description                                                                                                                                                                                | Type       |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -137,8 +143,8 @@ In addition to the standard element attributes like `id`, `title`, and `status`,
 | `tags`           | Tags associated with the product in Shopify.                                                                                                                                               | `Array`    |
 | `templateSuffix` | [Liquid template suffix](https://shopify.dev/themes/architecture/templates#name-structure) used for the product page in Shopify.                                                           | `String`   |
 | `vendor`         | Vendor of the product.                                                                                                                                                                     | `String`   |
-| `metaFields`     | [Metafields](https://shopify.dev/api/admin-rest/2022-10/resources/metafield#resource-object) associated with the product.                                                                  | `Array`    |
-| `images`         | Images attached to the product in Shopify. The complete [Product Image resources](https://shopify.dev/api/admin-rest/2022-10/resources/product-image#resource-object) are stored in Craft. | `Array`    |
+| `metaFields`     | [Metafields](https://shopify.dev/api/admin-rest/2023-10/resources/metafield#resource-object) associated with the product.                                                                  | `Array`    |
+| `images`         | Images attached to the product in Shopify. The complete [Product Image resources](https://shopify.dev/api/admin-rest/2023-10/resources/product-image#resource-object) are stored in Craft. | `Array`    |
 | `options`        | Product options, as configured in Shopify. Each option has a `name`, `position`, and an array of `values`.                                                                                 | `Array`    |
 | `createdAt`      | When the product was created in your Shopify store.                                                                                                                                        | `DateTime` |
 | `publishedAt`    | When the product was published in your Shopify store.                                                                                                                                      | `DateTime` |
@@ -147,7 +153,7 @@ In addition to the standard element attributes like `id`, `title`, and `status`,
 All of these properties are available when working with a product element [in your templates](#templating).
 
 > **Note**  
-> See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
+> See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2023-10/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
 
 ### Methods
 
@@ -347,7 +353,7 @@ Filter by the vendor information from Shopify.
 
 #### `images`
 
-Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2022-10/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2023-10/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
 
 ```twig
 {# Find products that have an image resource mentioning "stripes": #}
@@ -414,13 +420,13 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
 ### Variants and Pricing
 
 Products don’t have a price, despite what the Shopify UI might imply—instead, every product has at least one
-[Variant](https://shopify.dev/api/admin-rest/2022-10/resources/product-variant#resource-object).
+[Variant](https://shopify.dev/api/admin-rest/2023-10/resources/product-variant#resource-object).
 
 You can get an array of variant objects for a product by calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants, but you can filter them however you like with Craft’s [`collect()`](https://craftcms.com/docs/4.x/dev/functions.html#collect) Twig function.
 
 Unlike products, variants in Craft…
 
-- …are represented exactly as [the API](https://shopify.dev/api/admin-rest/2022-10/resources/product-variant#resource-object) returns them;
+- …are represented exactly as [the API](https://shopify.dev/api/admin-rest/2023-10/resources/product-variant#resource-object) returns them;
 - …use Shopify’s convention of underscores in property names instead of exposing [camel-cased equivalents](#native-attributes);
 - …are plain associative arrays;
 - …have no methods of their own;
