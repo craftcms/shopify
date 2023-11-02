@@ -171,7 +171,6 @@ class Products extends Component
         $event = new ShopifyProductSyncEvent([
             'element' => $productElement,
             'source' => $product,
-            'metafields' => $metafields,
         ]);
         $this->trigger(self::EVENT_BEFORE_SYNCHRONIZE_PRODUCT, $event);
 
