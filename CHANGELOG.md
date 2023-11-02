@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## 4.0.0 - WIP
+## 4.0.0 - 2023-11-02
 
 > [!IMPORTANT]
 > After updating, visit your Shopify store and go to **Settings** → **Apps and sales channels** → **Develop apps** → [your app] → **Configuration**, and update the **Webhook version** setting to `2023-10`.
