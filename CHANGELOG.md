@@ -1,14 +1,16 @@
 # Release Notes for Shopify
 
 ## 4.0.0 - WIP
-- Shopify now requires `shopify/shopify-api` 5.2.0 or later. ([#81](https://github.com/craftcms/shopify/issues/81), [#84](https://github.com/craftcms/shopify/issues/84))
-- Shopify now the related custom app to be created with event version set to `2023-10`.
-- Syncing meta fields is no longer performed in a job.
-- Product ref handle has changed to `shopifyproduct`. ([#77](https://github.com/craftcms/shopify/issues/77))
-- Fixed a bug where ref handles were not being parsed. ([#77](https://github.com/craftcms/shopify/issues/77))
-- Deprecated the `craft\shopify\jobs\UpdateProductMetadata` job.
-- Fixed a bug where the template setting within routing settings would not save.
-- Removed `craft\shopify\events\ShopifyProductSyncEvent::$metafields`. Use `craft\shopify\events\ShopifyProductSyncEvent::$element->getMetaFields()` instead.
+
+> [!IMPORTANT]
+> After updating, visit your Shopify store and go to **Settings** → **Apps and sales channels** → **Develop apps** → [your app] → **Configuration**, and update the **Webhook version** setting to `2023-10`.
+
+- Syncing meta fields is no longer performed via a queue job.
+- Shopify products’ reference handle is now `shopifyproduct`. ([#77](https://github.com/craftcms/shopify/issues/77))
+- Deprecated `craft\shopify\jobs\UpdateProductMetadata`.
+- Removed `craft\shopify\events\ShopifyProductSyncEvent::$metafields`. `ShopifyProductSyncEvent::$element->getMetaFields()` can be used instead.
+- shopify/shopify-api 5.2.0 or later is now required. ([#81](https://github.com/craftcms/shopify/issues/81), [#84](https://github.com/craftcms/shopify/issues/84))
+- Fixed a bug where routes weren’t saving the chosen template.
 
 ## 3.2.0 - 2023-06-12
 
