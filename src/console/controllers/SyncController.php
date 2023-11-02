@@ -9,6 +9,7 @@ namespace craft\shopify\console\controllers;
 
 use craft\console\Controller;
 use craft\helpers\Console;
+use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
 use yii\console\ExitCode;
 
@@ -20,11 +21,16 @@ use yii\console\ExitCode;
  */
 class SyncController extends Controller
 {
+    /** @var string $defaultAction */
     public $defaultAction = 'products';
 
+    /**
+     * Sync all Shopify data.
+     */
     public function actionAll()
     {
         $this->_syncProducts();
+        return ExitCode::OK;
     }
 
     /**
@@ -39,7 +45,11 @@ class SyncController extends Controller
     private function _syncProducts(): void
     {
         $this->stdout('Syncing Shopify products…' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
+        // start timer
+        $start = microtime(true);
         Plugin::getInstance()->getProducts()->syncAllProducts();
-        $this->stdout('Finished' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
+        // end timer
+        $time = microtime(true) - $start;
+        $this->stdout('Finished syncing ' . Product::find()->count() . ' product(s) in ' . round($time, 2) . 's' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
     }
 }

@@ -12,11 +12,11 @@ use craft\shopify\elements\Product;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\helpers\Metafields as MetafieldsHelper;
-use craft\shopify\jobs\UpdateProductMetadata;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
-use Shopify\Rest\Admin2022_10\Metafield as ShopifyMetafield;
-use Shopify\Rest\Admin2022_10\Product as ShopifyProduct;
+use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
+use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
+use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
 
 /**
  * Shopify Products service.
@@ -64,13 +64,9 @@ class Products extends Component
         $products = $api->getAllProducts();
 
         foreach ($products as $product) {
-            $this->createOrUpdateProduct($product);
-            Craft::$app->getQueue()->push(new UpdateProductMetadata([
-                'description' => Craft::t('shopify', 'Updating product metadata for “{title}”', [
-                    'title' => $product->title,
-                ]),
-                'shopifyProductId' => $product->id,
-            ]));
+            $variants = $api->getVariantsByProductId($product->id);
+            $metafields = $api->getMetafieldsByProductId($product->id);
+            $this->createOrUpdateProduct($product, $metafields, $variants);
         }
 
         // Remove any products that are no longer in Shopify just in case.
@@ -92,9 +88,10 @@ class Products extends Component
         $api = Plugin::getInstance()->getApi();
 
         $product = $api->getProductByShopifyId($id);
-        $metafields = $api->getMetafieldsByProductId($id);
+        $metaFields = $api->getMetafieldsByProductId($id);
+        $variants = $api->getVariantsByProductId($id);
 
-        $this->createOrUpdateProduct($product, $metafields);
+        $this->createOrUpdateProduct($product, $metaFields, $variants);
     }
 
     /**
@@ -109,7 +106,8 @@ class Products extends Component
         if ($productId = $api->getProductIdByInventoryItemId($id)) {
             $product = $api->getProductByShopifyId($productId);
             $metaFields = $api->getMetafieldsByProductId($product->id);
-            $this->createOrUpdateProduct($product, $metaFields);
+            $variants = $api->getVariantsByProductId($product->id);
+            $this->createOrUpdateProduct($product, $metaFields, $variants);
         }
     }
 
@@ -118,9 +116,10 @@ class Products extends Component
      *
      * @param ShopifyProduct $product
      * @param ShopifyMetafield[] $metafields
+     * @param ShopifyVariant[] $variants
      * @return bool Whether the synchronization succeeded.
      */
-    public function createOrUpdateProduct(ShopifyProduct $product, array $metafields = []): bool
+    public function createOrUpdateProduct(ShopifyProduct $product, array $metafields = [], ?array $variants = null): bool
     {
         // Expand any JSON-like properties:
         $metaFields = MetafieldsHelper::unpack($metafields);
@@ -141,9 +140,8 @@ class Products extends Component
             'tags' => $product->tags,
             'templateSuffix' => $product->template_suffix,
             'updatedAt' => $product->updated_at,
-            'variants' => $product->variants,
+            'variants' => $variants ?? $product->variants,
             'vendor' => $product->vendor,
-            // This one is unusual, because we’re merging two different Shopify API resources:
             'metaFields' => $metaFields,
         ];
 
@@ -173,7 +171,6 @@ class Products extends Component
         $event = new ShopifyProductSyncEvent([
             'element' => $productElement,
             'source' => $product,
-            'metafields' => $metafields,
         ]);
         $this->trigger(self::EVENT_BEFORE_SYNCHRONIZE_PRODUCT, $event);
 

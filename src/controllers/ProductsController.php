@@ -46,7 +46,7 @@ class ProductsController extends \craft\web\Controller
     public function actionSync(): Response
     {
         Plugin::getInstance()->getProducts()->syncAllProducts();
-        return $this->asSuccess(Craft::t('shopify','Products successfully synced'));
+        return $this->asSuccess(Craft::t('shopify', 'Products successfully synced'));
     }
 
     /**

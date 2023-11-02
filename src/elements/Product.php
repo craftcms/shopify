@@ -347,7 +347,7 @@ class Product extends Element
      */
     public static function refHandle(): ?string
     {
-        return 'shopify-products';
+        return 'shopifyproduct';
     }
 
     /**

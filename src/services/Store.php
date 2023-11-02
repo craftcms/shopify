@@ -2,6 +2,7 @@
 
 namespace craft\shopify\services;
 
+use Craft;
 use craft\base\Component;
 use craft\helpers\App;
 use craft\helpers\UrlHelper;
@@ -34,5 +35,31 @@ class Store extends Component
         }
 
         return UrlHelper::url("https://{$host}/{$path}", $params);
+    }
+
+    /**
+     * @return string
+     * @throws InvalidConfigException
+     */
+    public function getCurrency(): string
+    {
+        return $this->getShopSettings()['currency'];
+    }
+
+    /**
+     * @return array|string|null
+     * @throws InvalidConfigException
+     */
+    public function getShopSettings()
+    {
+        $cacheKey = 'shopify-shop';
+        $shop = Craft::$app->getCache()->get($cacheKey);
+        if (!$shop) {
+            $resource = Plugin::getInstance()->getApi()->get('shop');
+            Craft::$app->getCache()->set($cacheKey, $resource['shop']);
+            $shop = $resource['shop'];
+        }
+
+        return $shop;
     }
 }

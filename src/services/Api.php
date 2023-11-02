@@ -16,8 +16,8 @@ use Shopify\Auth\FileSessionStorage;
 use Shopify\Auth\Session;
 use Shopify\Clients\Rest;
 use Shopify\Context;
-use Shopify\Rest\Admin2022_10\Metafield as ShopifyMetafield;
-use Shopify\Rest\Admin2022_10\Product as ShopifyProduct;
+use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
+use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
 use Shopify\Rest\Base as ShopifyBaseResource;
 
 /**
@@ -34,7 +34,7 @@ class Api extends Component
     /**
      * @var string
      */
-    public const SHOPIFY_API_VERSION = '2022-10';
+    public const SHOPIFY_API_VERSION = '2023-10';
 
     /**
      * @var Session|null
@@ -91,15 +91,31 @@ class Api extends Component
      * Retrieves "metafields" for the provided Shopify product ID.
      *
      * @param int $id Shopify Product ID
+     * @return ShopifyMetafield[]
      */
     public function getMetafieldsByProductId(int $id): array
     {
-        return $this->getAll(ShopifyMetafield::class, [
+        /** @var ShopifyMetafield[] $metafields */
+        $metafields = $this->getAll(ShopifyMetafield::class, [
             'metafield' => [
                 'owner_id' => $id,
                 'owner_resource' => 'product',
             ],
         ]);
+
+        return $metafields;
+    }
+
+    /**
+     * Retrieves "metafields" for the provided Shopify product ID.
+     *
+     * @param int $id Shopify Product ID
+     */
+    public function getVariantsByProductId(int $id): array
+    {
+        $variants = $this->get("products/{$id}/variants");
+
+        return $variants['variants'];
     }
 
     /**
@@ -175,14 +191,14 @@ class Api extends Component
             Context::initialize(
                 apiKey: $apiKey,
                 apiSecretKey: $apiSecretKey,
-                scopes: ['write_products', 'read_products'],
+                scopes: ['write_products', 'read_products', 'read_inventory'],
                 // This `hostName` is different from the `shop` value used when creating a Session!
                 // Shopify wants a name for the host/environment that is initiating the connection.
                 hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
                 sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
                 apiVersion: self::SHOPIFY_API_VERSION,
                 isEmbeddedApp: false,
-                logger: $webLogTarget->getLogger()
+                logger: $webLogTarget->getLogger(),
             );
 
             $hostName = App::parseEnv($pluginSettings->hostName);

@@ -219,17 +219,17 @@ class ProductQuery extends ElementQuery
         ]);
 
         if (isset($this->shopifyId)) {
-            $this->subQuery->andWhere(['shopify_productdata.shopifyId' => $this->shopifyId]);
+            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.shopifyId', $this->shopifyId));
         }
 
         if (isset($this->productType)) {
-            $this->subQuery->andWhere(['shopify_productdata.productType' => $this->productType]);
+            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.productType', $this->productType));
         }
 
         if (isset($this->publishedScope)) {
-            $this->subQuery->andWhere(['shopify_productdata.publishedScope' => $this->publishedScope]);
+            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.publishedScope', $this->publishedScope));
         }
-        
+
         if (isset($this->shopifyStatus)) {
             $this->subQuery->andWhere(Db::parseParam('shopify_productdata.shopifyStatus', $this->shopifyStatus));
         }
