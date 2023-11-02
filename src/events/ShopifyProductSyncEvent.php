@@ -27,9 +27,4 @@ class ShopifyProductSyncEvent extends CancelableEvent
      * @var ShopifyProduct Source Shopify API resource.
      */
     public ShopifyProduct $source;
-
-    /**
-     * @var array List of Shopify metafields for the product.
-     */
-    public array $metafields;
 }
