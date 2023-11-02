@@ -46,7 +46,7 @@ After upgrading, ensure that all required webhooks have been created by clicking
 
 In version `4.0.0` the plugin changed its Shopify API requirement to version `2023-10`. Any Shopify custom apps created before this version will need to update their webhook event version to `2023-10`.
 
-This can be done by visiting your Shopify store and going to **Settings** &rarr; **Apps and sales channels** &rarr; **Develop apps** clicking you app and then **Configuration** &rarr; **Webhook version**. 
+This can be done by visiting your Shopify store and going to **Settings** &rarr; **Apps and sales channels** &rarr; **Develop apps** clicking your app and then **Configuration** &rarr; **Webhook version**. 
 
 ### Create a Shopify App
 
