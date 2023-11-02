@@ -2,15 +2,10 @@
 
 ## 4.0.0 - WIP
 - Shopify now requires `shopify/shopify-api` 5.2.0 or later.
-- Shopify now requires custom apps to be created with event version set to `2023-10`.
-
-## Unreleased
-
-- Added an `async` flag to the `craft/shopify/sync` command.
-- Added an `async` param to the sync utility.
+- Shopify now the related custom app to be created with event version set to `2023-10`.
+- Syncing meta fields is no longer performed in a job.
+- Deprecated the `craft\shopify\jobs\UpdateProductMetadata` job.
 - Fixed a bug where the template routing setting would not save.
-- Added `craft\shopify\helpers\Api`.
-- Added `craft\shopify\jobs\UpdateProductVariants`.
 
 ## 3.2.0 - 2023-06-12
 

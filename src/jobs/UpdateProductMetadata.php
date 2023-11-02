@@ -4,13 +4,14 @@ namespace craft\shopify\jobs;
 
 use craft\queue\BaseJob;
 use craft\shopify\elements\Product;
-use craft\shopify\helpers\Api as ApiHelper;
 use craft\shopify\helpers\Metafields as MetafieldsHelper;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
 
 /**
  * Updates the metadata for a Shopify product.
+ *
+ * @deprecated 4.0.0 No longer used internally due to the use of `Retry-After` headers in the Shopify API.
  */
 class UpdateProductMetadata extends BaseJob
 {
@@ -31,7 +32,6 @@ class UpdateProductMetadata extends BaseJob
             $productData = ProductDataRecord::find()->where(['shopifyId' => $this->shopifyProductId])->one();
             $productData->metaFields = $metaFields;
             $productData->save();
-            ApiHelper::rateLimit(); // Avoid rate limiting
         }
     }
 

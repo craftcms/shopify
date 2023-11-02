@@ -11,7 +11,6 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\App;
 use craft\log\MonologTarget;
-use craft\shopify\helpers\Api as ApiHelper;
 use craft\shopify\Plugin;
 use Shopify\Auth\FileSessionStorage;
 use Shopify\Auth\Session;
@@ -92,15 +91,19 @@ class Api extends Component
      * Retrieves "metafields" for the provided Shopify product ID.
      *
      * @param int $id Shopify Product ID
+     * @return ShopifyMetafield[]
      */
     public function getMetafieldsByProductId(int $id): array
     {
-        return $this->getAll(ShopifyMetafield::class, [
+        /** @var ShopifyMetafield[] $metafields */
+        $metafields = $this->getAll(ShopifyMetafield::class, [
             'metafield' => [
                 'owner_id' => $id,
                 'owner_resource' => 'product',
             ],
         ]);
+
+        return $metafields;
     }
 
     /**
@@ -147,7 +150,6 @@ class Api extends Component
                 [],
                 $type::$NEXT_PAGE_QUERY ?: $params,
             ));
-            ApiHelper::rateLimit(); // Avoid rate limiting
         } while ($type::$NEXT_PAGE_QUERY);
 
         return $resources;
@@ -196,7 +198,7 @@ class Api extends Component
                 sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
                 apiVersion: self::SHOPIFY_API_VERSION,
                 isEmbeddedApp: false,
-                logger: $webLogTarget->getLogger()
+                logger: $webLogTarget->getLogger(),
             );
 
             $hostName = App::parseEnv($pluginSettings->hostName);
