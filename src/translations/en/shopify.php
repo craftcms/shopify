@@ -16,8 +16,6 @@
 return [
     'Product Template' => 'Product Template',
     'Product URI format' => 'Product URI format',
-    'Rate Limit Requests' => 'Rate Limit Requests',
-    'Rate Limit Seconds' => 'Rate Limit Seconds',
     'Shopify API Key' => 'Shopify API Key',
     'Shopify API Secret Key' => 'Shopify API Secret Key',
     'Shopify Access Token' => 'Shopify Access Token',

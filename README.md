@@ -36,12 +36,6 @@ To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/sho
    php craft plugin/install shopify
    ```
 
-### Upgrading
-
-Before upgrading ensure that the **Admin API access scopes** match the [requirements below](#create-a-shopify-app). This ensures that all the new features of the plugin will work correctly.
-
-After upgrading, ensure that all required webhooks have been created by clicking the “Create” button on the **Shopify** &rarr; **Webhooks** screen in your project’s control panel page in the CP. If the “Create” button is not visible, all required webhooks have been created.
-
 ### Create a Shopify App
 
 The plugin works with Shopify’s [Custom Apps](https://help.shopify.com/en/manual/apps/custom-apps) system.
@@ -58,7 +52,7 @@ Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-a
    - `read_product_listings`
    - `read_inventory`
 
-   Additionally (at the bottom of this screen), the **Webhook subscriptions** &rarr; **Event version** should be `2022-10`.
+   Additionally (at the bottom of this screen), the **Webhook subscriptions** → **Event version** should be `2023-10`.
 
 3. **Admin API access token**: Reveal and copy this value into your `.env` file, as `SHOPIFY_ADMIN_ACCESS_TOKEN`.
 4. **API key and secret key**: Reveal and/or copy the **API key** and **API secret key** into your `.env` under `SHOPIFY_API_KEY` and `SHOPIFY_API_SECRET_KEY`, respectively.
@@ -84,7 +78,7 @@ SHOPIFY_HOSTNAME="my-storefront.myshopify.com"
 
 Now that you have credentials for your custom app, it’s time to add them to Craft.
 
-1. Visit the **Shopify** &rarr; **Settings** screen in your project’s control panel.
+1. Visit the **Shopify** → **Settings** screen in your project’s control panel.
 2. Assign the four environment variables to the corresponding settings, using the special [config syntax](https://craftcms.com/docs/4.x/config/#control-panel-settings):
    - **API Key**: `$SHOPIFY_API_KEY`
    - **API Secret Key**: `$SHOPIFY_API_SECRET_KEY`
@@ -107,24 +101,36 @@ Click **Create** on the Webhooks screen to add the required webhooks to Shopify.
 > **Note**  
 > If you need to test live synchronization in development, we recommend using [ngrok](https://ngrok.com/) to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel, then recreate your webhooks.
 
+## Upgrading
+
+Before upgrading ensure that the **Admin API access scopes** match the [requirements below](#create-a-shopify-app). This ensures that all the new features of the plugin will work correctly.
+
+After upgrading, ensure that all required webhooks have been created by clicking the “Create” button on the **Shopify** → **Webhooks** screen in your project’s control panel page in the CP. If the “Create” button is not visible, all required webhooks have been created.
+
+### To v4.x
+
+After updating to Shopify v4.x, visit your Shopify store and go to **Settings** → **Apps and sales channels** → **Develop apps** → [your app] → **Configuration**, and update the **Webhook version** setting to `2023-10`.
+
 ## Product Element
 
-Products from your Shopify store are represented in Craft as product [elements](https://craftcms.com/docs/4.x/elements.html), and can be found by going to **Shopify** &rarr; **Products** in the control panel.
+Products from your Shopify store are represented in Craft as product [elements](https://craftcms.com/docs/4.x/elements.html), and can be found by going to **Shopify** → **Products** in the control panel.
 
 ### Synchronization
 
-Products will be automatically created, updated, and deleted via [webhooks](#set-up-webhooks)—but Craft doesn’t know about a product until a change happens.
+Once the plugin has been configured, you can perform an initial synchronization of all products via the **Shopify Sync** utility.
 
-Once the plugin has been configured, perform an initial synchronization via the command line:
+> [!NOTE]
+> Larger stores with 100+ products should perform the initial synchronization via the command line instead:
+>
+> ```sh
+> php craft shopify/sync/products
+> ```
 
-    php craft shopify/sync/products
-
-> **Note**  
-> Products can also be synchronized from the control panel using the **Shopify Sync** utility. Keep in mind that large stores (over a hundred products) may take some time to synchronize, and can quickly run through [PHP’s `max_execution_time`](https://www.php.net/manual/en/info.configuration.php#ini.max-execution-time).
+Going forward, your products will be automatically kept in sync via [webhooks](#set-up-webhooks).
 
 ### Native Attributes
 
-In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Product resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object):
+In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Product resource](https://shopify.dev/api/admin-rest/2023-10/resources/product#resource-object):
 
 | Attribute        | Description                                                                                                                                                                                | Type       |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -137,8 +143,8 @@ In addition to the standard element attributes like `id`, `title`, and `status`,
 | `tags`           | Tags associated with the product in Shopify.                                                                                                                                               | `Array`    |
 | `templateSuffix` | [Liquid template suffix](https://shopify.dev/themes/architecture/templates#name-structure) used for the product page in Shopify.                                                           | `String`   |
 | `vendor`         | Vendor of the product.                                                                                                                                                                     | `String`   |
-| `metaFields`     | [Metafields](https://shopify.dev/api/admin-rest/2022-10/resources/metafield#resource-object) associated with the product.                                                                  | `Array`    |
-| `images`         | Images attached to the product in Shopify. The complete [Product Image resources](https://shopify.dev/api/admin-rest/2022-10/resources/product-image#resource-object) are stored in Craft. | `Array`    |
+| `metaFields`     | [Metafields](https://shopify.dev/api/admin-rest/2023-10/resources/metafield#resource-object) associated with the product.                                                                  | `Array`    |
+| `images`         | Images attached to the product in Shopify. The complete [Product Image resources](https://shopify.dev/api/admin-rest/2023-10/resources/product-image#resource-object) are stored in Craft. | `Array`    |
 | `options`        | Product options, as configured in Shopify. Each option has a `name`, `position`, and an array of `values`.                                                                                 | `Array`    |
 | `createdAt`      | When the product was created in your Shopify store.                                                                                                                                        | `DateTime` |
 | `publishedAt`    | When the product was published in your Shopify store.                                                                                                                                      | `DateTime` |
@@ -147,7 +153,7 @@ In addition to the standard element attributes like `id`, `title`, and `status`,
 All of these properties are available when working with a product element [in your templates](#templating).
 
 > **Note**  
-> See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2022-10/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
+> See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2023-10/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
 
 ### Methods
 
@@ -221,11 +227,11 @@ For your administrators, you can even link directly to the Shopify admin:
 
 Products synchronized from Shopify have a dedicated field layout, which means they support Craft’s full array of [content tools](https://craftcms.com/docs/4.x/fields.html).
 
-The product field layout can be edited by going to **Shopify** &rarr; **Settings** &rarr; **Products**, and scrolling down to **Field Layout**.
+The product field layout can be edited by going to **Shopify** → **Settings** → **Products**, and scrolling down to **Field Layout**.
 
 ### Routing
 
-You can give synchronized products their own on-site URLs. To set up the URI format (and the template that will be loaded when a product URL is requested), go to **Shopify** &rarr; **Settings** &rarr; **Products**.
+You can give synchronized products their own on-site URLs. To set up the URI format (and the template that will be loaded when a product URL is requested), go to **Shopify** → **Settings** → **Products**.
 
 If you would prefer your customers to view individual products on Shopify, clear out the **Product URI Format** field on the settings page, and use `product.shopifyUrl` instead of `product.url` in your templates.
 
@@ -347,7 +353,7 @@ Filter by the vendor information from Shopify.
 
 #### `images`
 
-Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2022-10/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2023-10/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
 
 ```twig
 {# Find products that have an image resource mentioning "stripes": #}
@@ -414,13 +420,13 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
 ### Variants and Pricing
 
 Products don’t have a price, despite what the Shopify UI might imply—instead, every product has at least one
-[Variant](https://shopify.dev/api/admin-rest/2022-10/resources/product-variant#resource-object).
+[Variant](https://shopify.dev/api/admin-rest/2023-10/resources/product-variant#resource-object).
 
 You can get an array of variant objects for a product by calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants, but you can filter them however you like with Craft’s [`collect()`](https://craftcms.com/docs/4.x/dev/functions.html#collect) Twig function.
 
 Unlike products, variants in Craft…
 
-- …are represented exactly as [the API](https://shopify.dev/api/admin-rest/2022-10/resources/product-variant#resource-object) returns them;
+- …are represented exactly as [the API](https://shopify.dev/api/admin-rest/2023-10/resources/product-variant#resource-object) returns them;
 - …use Shopify’s convention of underscores in property names instead of exposing [camel-cased equivalents](#native-attributes);
 - …are plain associative arrays;
 - …have no methods of their own;
@@ -724,10 +730,10 @@ For each legacy Shopify Product field in your project, do the following:
 
 Run the following command (substituting appropriate values) for each place you added the field in step #2, above:
 
-- `resave/entries` &rarr; The [re-save command](https://craftcms.com/docs/4.x/console-commands.html#resave) for the element type the field layout is attached to;
-- `mySectionHandle` &rarr; A stand-in for any criteria that need to be applied to the element type you’re re-saving;
-- `oldShopifyField` &rarr; Field handle from the old version of the plugin (used inside the `--to` argument closure);
-- `newShopifyField` &rarr; New field handle created in step #1, above;
+- `resave/entries` → The [re-save command](https://craftcms.com/docs/4.x/console-commands.html#resave) for the element type the field layout is attached to;
+- `mySectionHandle` → A stand-in for any criteria that need to be applied to the element type you’re re-saving;
+- `oldShopifyField` → Field handle from the old version of the plugin (used inside the `--to` argument closure);
+- `newShopifyField` → New field handle created in step #1, above;
 
   ```bash
   php craft resave/entries \
@@ -847,7 +853,3 @@ return [
 ## Rate Limiting
 
 The Shopify API implements [rate limiting rules](https://shopify.dev/docs/api/usage/rate-limits) the plugin makes its best effort to avoid hitting these limits.
-
-By default, when syncing all products the plugin moves some of the load of retrieving data to queue jobs. Therefore the variant and meta field data is asynchronously updated on to the Shopify products.
-
-It is possible to turn off the plugin's rate limiting measures by setting the `rateLimitRequests` config option to `false`. Or, if you are hitting rate limiting issues you can increase the timeout length updating the `rateLimitSeconds` config setting (number of seconds as an integer).
