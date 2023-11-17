@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Example Shopify Store</title>
+    <script src="https://sdks.shopifycdn.com/buy-button/1.0.0/buybutton.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        var client = ShopifyBuy.buildClient({
+            domain: '{{ parseEnv(craft.shopify.settings.hostName) }}',
+            storefrontAccessToken: '...'
+        });
+        var ui = ShopifyBuy.UI.init(client);
+    </script>
+    <style>
+    </style>
+</head>
+<body class="p-10">
+<h1 class="text-2xl font-bold tracking-tight text-gray-900 my-4">Shopify BuyButton.js Example</h1>
+
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
+    {% for product in craft.shopifyProducts.status('live').all() %}
+        {% set productId = "product-#{product.shopifyId}" %}
+        <div id="{{ productId }}" class="border p-4 rounded-lg drop-shadow-md"></div>
+        <script>
+            ui.createComponent('product', {
+                id: '{{ product.shopifyId }}',
+                node: document.getElementById('{{ productId }}'),
+                options: { // See options at https://shopify.github.io/buy-button-js/customization/
+                    cart: {
+                        popup: false, // Redirects to shopify checkout instead of using a popup window checkout
+                    }
+                }
+            });
+        </script>
+    {% endfor %}
+</div>
+</body>
+</html>
