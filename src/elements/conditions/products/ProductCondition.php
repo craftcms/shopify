@@ -15,7 +15,7 @@ class ProductCondition extends ElementCondition
     /**
      * @inheritdoc
      */
-    protected function conditionRuleTypes(): array
+    protected function selectableConditionRules(): array
     {
         return array_merge(parent::conditionRuleTypes(), [
             ProductTypeConditionRule::class,
