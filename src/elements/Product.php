@@ -673,7 +673,7 @@ class Product extends Element
      * @return string
      * @throws InvalidConfigException
      */
-    protected function tableAttributeHtml(string $attribute): string
+    protected function attributeHtml(string $attribute): string
     {
         switch ($attribute) {
             case 'shopifyEdit':
@@ -699,7 +699,7 @@ class Product extends Element
                 return collect($this->getVariants())->pluck('title')->map(fn($title) => StringHelper::toTitleCase($title))->join(',&nbsp;');
             default:
             {
-                return parent::tableAttributeHtml($attribute);
+                return parent::attributeHtml($attribute);
             }
         }
     }
