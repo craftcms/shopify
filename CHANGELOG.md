@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## 5.0.0 - Unreleased
+
+- Added Craft CMS 5 compatibility.
+
 ## 4.0.0 - 2023-11-02
 
 > [!IMPORTANT]
