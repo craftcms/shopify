@@ -71,6 +71,11 @@ class Plugin extends BasePlugin
     /**
      * @inheritdoc
      */
+    public string $minVersionRequired = '4.0.0';
+
+    /**
+     * @inheritdoc
+     */
     public static function config(): array
     {
         return [

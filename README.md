@@ -14,7 +14,7 @@ Build a content-driven storefront by synchronizing [Shopify](https://shopify.com
 
 ## Installation
 
-The Shopify plugin requires Craft CMS 4.0.0 or later.
+The Shopify plugin requires Craft CMS 5.0.0 or later.
 
 To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/shopify) from your Craft project, or follow these instructions.
 
@@ -79,7 +79,7 @@ SHOPIFY_HOSTNAME="my-storefront.myshopify.com"
 Now that you have credentials for your custom app, it’s time to add them to Craft.
 
 1. Visit the **Shopify** → **Settings** screen in your project’s control panel.
-2. Assign the four environment variables to the corresponding settings, using the special [config syntax](https://craftcms.com/docs/4.x/config/#control-panel-settings):
+2. Assign the four environment variables to the corresponding settings, using the special [config syntax](https://craftcms.com/docs/5.x/config/#control-panel-settings):
    - **API Key**: `$SHOPIFY_API_KEY`
    - **API Secret Key**: `$SHOPIFY_API_SECRET_KEY`
    - **Access Token**: `$SHOPIFY_ACCESS_TOKEN`
@@ -87,7 +87,7 @@ Now that you have credentials for your custom app, it’s time to add them to Cr
 3. Click **Save**.
 
 > **Note**  
-> These settings are stored in [Project Config](https://craftcms.com/docs/4.x/project-config.html), and will be automatically applied in other environments. [Webhooks](#set-up-webhooks) will still need to be configured for each environment!
+> These settings are stored in [Project Config](https://craftcms.com/docs/5.x/project-config.html), and will be automatically applied in other environments. [Webhooks](#set-up-webhooks) will still need to be configured for each environment!
 
 ### Set up Webhooks
 
@@ -107,13 +107,9 @@ Before upgrading ensure that the **Admin API access scopes** match the [requirem
 
 After upgrading, ensure that all required webhooks have been created by clicking the “Create” button on the **Shopify** → **Webhooks** screen in your project’s control panel page in the CP. If the “Create” button is not visible, all required webhooks have been created.
 
-### To v4.x
-
-After updating to Shopify v4.x, visit your Shopify store and go to **Settings** → **Apps and sales channels** → **Develop apps** → [your app] → **Configuration**, and update the **Webhook version** setting to `2023-10`.
-
 ## Product Element
 
-Products from your Shopify store are represented in Craft as product [elements](https://craftcms.com/docs/4.x/elements.html), and can be found by going to **Shopify** → **Products** in the control panel.
+Products from your Shopify store are represented in Craft as product [elements](https://craftcms.com/docs/5.x/elements.html), and can be found by going to **Shopify** → **Products** in the control panel.
 
 ### Synchronization
 
@@ -225,7 +221,7 @@ For your administrators, you can even link directly to the Shopify admin:
 
 ### Custom Fields
 
-Products synchronized from Shopify have a dedicated field layout, which means they support Craft’s full array of [content tools](https://craftcms.com/docs/4.x/fields.html).
+Products synchronized from Shopify have a dedicated field layout, which means they support Craft’s full array of [content tools](https://craftcms.com/docs/5.x/fields.html).
 
 The product field layout can be edited by going to **Shopify** → **Settings** → **Products**, and scrolling down to **Field Layout**.
 
@@ -263,7 +259,7 @@ A new query begins with the `craft.shopifyProducts` factory function:
 
 ### Query Parameters
 
-The following element query parameters are supported, in addition to [Craft’s standard set](https://craftcms.com/docs/4.x/element-queries.html).
+The following element query parameters are supported, in addition to [Craft’s standard set](https://craftcms.com/docs/5.x/element-queries.html).
 
 > **Note**
 > Fields stored as JSON (like `options` and `metadata`) are only queryable as plain text. If you need to do advanced organization or filtering, we recommend using custom Category or Tag fields in your Product [field layout](#custom-fields).
@@ -331,7 +327,7 @@ Show only products that are published to a matching sales channel.
 
 #### `tags`
 
-Tags are stored as a comma-separated list. You may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+Tags are stored as a comma-separated list. You may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/searching.html#development).
 
 ```twig
 {# Find products whose tags include the term in any position, with variations on casing: #}
@@ -353,7 +349,7 @@ Filter by the vendor information from Shopify.
 
 #### `images`
 
-Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2023-10/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2023-10/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/searching.html#development).
 
 ```twig
 {# Find products that have an image resource mentioning "stripes": #}
@@ -364,7 +360,7 @@ Images are stored as a blob of JSON, and only intended for use in a template in 
 
 #### `options`
 
-[Options](#using-options) are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. You may see better results using [the `.search()` param](https://craftcms.com/docs/4.x/searching.html#development).
+[Options](#using-options) are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. You may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/searching.html#development).
 
 ```twig
 {# Find products that use a "color" option: #}
@@ -422,7 +418,7 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
 Products don’t have a price, despite what the Shopify UI might imply—instead, every product has at least one
 [Variant](https://shopify.dev/api/admin-rest/2023-10/resources/product-variant#resource-object).
 
-You can get an array of variant objects for a product by calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants, but you can filter them however you like with Craft’s [`collect()`](https://craftcms.com/docs/4.x/dev/functions.html#collect) Twig function.
+You can get an array of variant objects for a product by calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants, but you can filter them however you like with Craft’s [`collect()`](https://craftcms.com/docs/5.x/dev/functions.html#collect) Twig function.
 
 Unlike products, variants in Craft…
 
@@ -440,7 +436,7 @@ Once you have a reference to a variant, you can output its properties:
 ```
 
 > **Note**  
-> The built-in [`currency`](https://craftcms.com/docs/4.x/dev/filters.html#currency) Twig filter is a great way to format money values.
+> The built-in [`currency`](https://craftcms.com/docs/5.x/dev/filters.html#currency) Twig filter is a great way to format money values.
 
 ### Using Options
 
@@ -484,7 +480,7 @@ If you want to let customers pick from options instead of directly select varian
 
 <summary>Script</summary>
 
-The code below can be added to a [`{% js %}` tag](https://craftcms.com/docs/4.x/dev/tags.html#js), alongside the form code.
+The code below can be added to a [`{% js %}` tag](https://craftcms.com/docs/5.x/dev/tags.html#js), alongside the form code.
 
 ```js
 // Store references to <form> elements:
@@ -658,7 +654,7 @@ In addition to [product element methods](#methods), the plugin exposes its API t
 #### API Service
 
 > **Warning**  
-> Use of API calls in Twig blocks rendering and—depending on traffic—may cause timeouts and/or failures due to rate limits. Consider using the [`{% cache %}` tag](https://craftcms.com/docs/4.x/dev/tags.html#cache) with a key and specific expiry time to avoid making a request every time a template is rendered:
+> Use of API calls in Twig blocks rendering and—depending on traffic—may cause timeouts and/or failures due to rate limits. Consider using the [`{% cache %}` tag](https://craftcms.com/docs/5.x/dev/tags.html#cache) with a key and specific expiry time to avoid making a request every time a template is rendered:
 >
 > ```twig
 > {% cache using key "shopify:collections" for 10 minutes %}
@@ -700,7 +696,7 @@ The same params argument can be passed to a product element’s `getShopifyUrl()
 
 ## Product Field
 
-The plugin provides a _Shopify Products_ field, which uses the familiar [relational field](https://craftcms.com/docs/4.x/relations.html) UI to allow authors to select Product elements.
+The plugin provides a _Shopify Products_ field, which uses the familiar [relational field](https://craftcms.com/docs/5.x/relations.html) UI to allow authors to select Product elements.
 
 Relationships defined with the _Shopify Products_ field use stable element IDs under the hood. When Shopify products are archived or deleted, the corresponding elements will also be updated in Craft, and naturally filtered out of your query results—including those explicitly attached via a _Shopify Products_ field.
 
@@ -708,77 +704,6 @@ Relationships defined with the _Shopify Products_ field use stable element IDs u
 > Upgrading? Check out the [migration](#migrating-from-v2x) notes for more info.
 
 ---
-
-## Migrating from v2.x
-
-If you are upgrading a Craft 3 project to Craft 4 and have existing “Shopify Product” fields, you’ll need show the plugin how to translate plain Shopify IDs (stored as a JSON array) into element IDs, within Craft’s relations system.
-
-> **Warning**  
-> Before getting started with the field data migration, make sure you have [synchronized](#synchronization) your product catalog.
-
-It’s safe to remove the old plugin package (`nmaier95/shopify-product-fetcher`) from your `composer.json`—but **do not use the control panel to uninstall it**. We want the field’s _data_ to stick around, but don’t need the old field _class_ to work with it.
-
-> **Note**  
-> You may see a “missing field” in your field layouts during this process—that’s OK! Your data is still there.
-
-For each legacy Shopify Product field in your project, do the following:
-
-1. Create a _new_ [Shopify Products](#product-field) field, giving it a a new handle and name;
-2. Add the field to any layouts where the legacy field appeared;
-
-### Re-saving Data
-
-Run the following command (substituting appropriate values) for each place you added the field in step #2, above:
-
-- `resave/entries` → The [re-save command](https://craftcms.com/docs/4.x/console-commands.html#resave) for the element type the field layout is attached to;
-- `mySectionHandle` → A stand-in for any criteria that need to be applied to the element type you’re re-saving;
-- `oldShopifyField` → Field handle from the old version of the plugin (used inside the `--to` argument closure);
-- `newShopifyField` → New field handle created in step #1, above;
-
-  ```bash
-  php craft resave/entries \
-    --section=mySectionHandle \
-    --set=newShopifyField \
-    --to="fn(\$entry) => collect(json_decode(\$entry->oldShopifyField))->map(fn (\$id) => \craft\shopify\Plugin::getInstance()->getProducts()->getProductIdByShopifyId(\$id))->unique()->all()"
-  ```
-
-### Updating Templates
-
-After your content is re-saved, update your templates:
-
-#### Before
-
-In v2.x, you were responsible for looking up product details in the template:
-
-```twig
-{# Product references were stored as a list of IDs: #}
-{% set productIds = entry.oldShopifyField %}
-
-<ul>
-  {% for productId in productIds %}
-    {# Query Shopify API for Product using ID: #}
-    {% set shopifyProduct = craft.shopify.getProductById({ id: productId }) %}
-
-    <li>{{ product.productType }}: {{ product.title }}</li>
-  {% endfor %}
-</ul>
-```
-
-#### After
-
-There is no need to query the Shopify API to render product details in your templates—all of the data is available on the returned elements!
-
-```twig
-{# Execute element query from your new relational field: #}
-{% set relatedProducts = entry.newShopifyField.all() %}
-
-<ul>
-  {% for product in products %}
-    {# Output product data directly: #}
-    <li>{{ product.productType }}: {{ product.title }}</li>
-  {% endfor %}
-</ul>
-```
 
 ## Going Further
 
