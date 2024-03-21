@@ -37,7 +37,7 @@ class Sync extends Utility
     /**
      * @inheritdoc
      */
-    public static function iconPath(): ?string
+    public static function icon(): ?string
     {
         return Craft::getAlias('@vendor') . '/craftcms/shopify/src/icon-mask.svg';
     }
