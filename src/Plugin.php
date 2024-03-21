@@ -71,6 +71,11 @@ class Plugin extends BasePlugin
     /**
      * @inheritdoc
      */
+    public string $minVersionRequired = '4.0.0';
+
+    /**
+     * @inheritdoc
+     */
     public static function config(): array
     {
         return [
@@ -176,14 +181,9 @@ class Plugin extends BasePlugin
      */
     private function _registerUtilityTypes(): void
     {
-        $eventName = defined(sprintf('%s::EVENT_REGISTER_UTILITY_TYPES', Utilities::class))
-            ? Utilities::EVENT_REGISTER_UTILITY_TYPES // Craft 4
-            /** @phpstan-ignore-next-line */
-            : Utilities::EVENT_REGISTER_UTILITIES; // Craft 5+
-
         Event::on(
             Utilities::class,
-            $eventName,
+            Utilities::EVENT_REGISTER_UTILITIES,
             function(RegisterComponentTypesEvent $event) {
                 $event->types[] = Sync::class;
             }
