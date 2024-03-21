@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## 4.1.0 - 2024-03-20
+
+- Shopify now supports Craft CMS 5.0.0-beta.7 or later.
+
 ## 4.0.0 - 2023-11-02
 
 > [!IMPORTANT]
