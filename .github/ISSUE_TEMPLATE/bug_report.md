@@ -3,6 +3,7 @@ name: Bug Report
 about: Report an issue or unexpected behavior
 labels:
   - bug # Linear
+  - Plugins # Linear
   - Plugins → Shopify # Linear
 ---
 
