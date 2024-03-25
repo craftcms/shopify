@@ -2,7 +2,7 @@
 
 ## 5.0.0 - 2024-03-20
 
-- Added Craft CMS 5 compatibility.
+- Shopify now requires Craft CMS 5.0.0-beta.10 or later.
 
 ## 4.0.0 - 2023-11-02
 
