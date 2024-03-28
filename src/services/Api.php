@@ -107,7 +107,26 @@ class Api extends Component
     }
 
     /**
-     * Retrieves "metafields" for the provided Shopify product ID.
+     * Retrieves "metafields" for the provided Shopify variant ID.
+     *
+     * @param int $id Shopify Variant ID
+     * @return ShopifyMetafield[]
+     */
+    public function getMetafieldsByVariantId(int $id): array
+    {
+        /** @var ShopifyMetafield[] $metafields */
+        $metafields = $this->getAll(ShopifyMetafield::class, [
+            'metafield' => [
+                'owner_id' => $id,
+                'owner_resource' => 'variant',
+            ],
+        ]);
+
+        return $metafields;
+    }
+
+    /**
+     * Retrieves "variants" for the provided Shopify product ID.
      *
      * @param int $id Shopify Product ID
      */
@@ -180,8 +199,7 @@ class Api extends Component
     {
         $pluginSettings = Plugin::getInstance()->getSettings();
 
-        if (
-            $this->_session === null &&
+        if ($this->_session === null &&
             ($apiKey = App::parseEnv($pluginSettings->apiKey)) &&
             ($apiSecretKey = App::parseEnv($pluginSettings->apiSecretKey))
         ) {

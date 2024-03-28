@@ -53,6 +53,26 @@ class Products extends Component
      */
     public const EVENT_BEFORE_SYNCHRONIZE_PRODUCT = 'beforeSynchronizeProduct';
 
+
+    /**
+     * @param int $productId
+     * @return ShopifyVariant[] $variants
+     */
+    public function getVariantsData($productId): array
+    {
+        $api = Plugin::getInstance()->getApi();
+        $variants = $api->getVariantsByProductId($productId);
+
+        foreach ($variants as &$variant) {
+            $variantMetafields = $api->getMetafieldsByVariantId($variant['id']);
+
+            // Expand any JSON-like properties:
+            $variant['metaFields'] = MetafieldsHelper::unpack($variantMetafields);
+        }
+
+        return $variants;
+    }
+
     /**
      * @return void
      * @throws \Throwable
@@ -64,9 +84,10 @@ class Products extends Component
         $products = $api->getAllProducts();
 
         foreach ($products as $product) {
-            $variants = $api->getVariantsByProductId($product->id);
-            $metafields = $api->getMetafieldsByProductId($product->id);
-            $this->createOrUpdateProduct($product, $metafields, $variants);
+            $productMetafields = $api->getMetafieldsByProductId($product->id);
+            $variants = $this->getVariantsData($product->id);
+
+            $this->createOrUpdateProduct($product, $productMetafields, $variants);
         }
 
         // Remove any products that are no longer in Shopify just in case.
@@ -89,7 +110,7 @@ class Products extends Component
 
         $product = $api->getProductByShopifyId($id);
         $metaFields = $api->getMetafieldsByProductId($id);
-        $variants = $api->getVariantsByProductId($id);
+        $variants = $this->getVariantsData($id);
 
         $this->createOrUpdateProduct($product, $metaFields, $variants);
     }
@@ -106,7 +127,8 @@ class Products extends Component
         if ($productId = $api->getProductIdByInventoryItemId($id)) {
             $product = $api->getProductByShopifyId($productId);
             $metaFields = $api->getMetafieldsByProductId($product->id);
-            $variants = $api->getVariantsByProductId($product->id);
+            $variants = $this->getVariantsData($product->id);
+
             $this->createOrUpdateProduct($product, $metaFields, $variants);
         }
     }
