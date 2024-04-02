@@ -117,16 +117,23 @@ Products from your Shopify store are represented in Craft as product [elements](
 
 ### Synchronization
 
-Once the plugin has been configured, you can perform an initial synchronization of all products via the **Shopify Sync** utility.
+Once the plugin has been configured, you can perform an initial synchronization of all products via the command line.
 
-> [!NOTE]
-> Larger stores with 100+ products should perform the initial synchronization via the command line instead:
->
-> ```sh
-> php craft shopify/sync/products
-> ```
+```sh
+php craft shopify/sync/products
+```
 
 Going forward, your products will be automatically kept in sync via [webhooks](#set-up-webhooks).
+
+The following settings available for controlling the product synchronization process:
+
+| Setting                 | Type   | Default | Description |
+|-------------------------|--------|---------|-------------|
+| `syncProductMetafields` | `bool` | `true`  | Whether product metafields should be included when syncing products. This adds an extra API request per product.            |
+| `syncVariantMetafields` | `bool` | `false` | Whether variant metafields should be included when syncing products. This adds an extra API request per variant. |
+
+> [!NOTE]
+> Smaller stores with only a few products can perform synchronization via the **Shopify Sync** utility.
 
 ### Native Attributes
 
@@ -426,7 +433,8 @@ You can get an array of variant objects for a product by calling [`product.getVa
 
 Unlike products, variants in Craft…
 
-- …are represented exactly as [the API](https://shopify.dev/api/admin-rest/2023-10/resources/product-variant#resource-object) returns them;
+- …are represented as [the API](https://shopify.dev/api/admin-rest/2023-10/resources/product-variant#resource-object) returns them;
+- …the `metafields` property is accessible in addition to the API’s returned properties;
 - …use Shopify’s convention of underscores in property names instead of exposing [camel-cased equivalents](#native-attributes);
 - …are plain associative arrays;
 - …have no methods of their own;
@@ -441,6 +449,8 @@ Once you have a reference to a variant, you can output its properties:
 
 > **Note**  
 > The built-in [`currency`](https://craftcms.com/docs/4.x/dev/filters.html#currency) Twig filter is a great way to format money values.
+> 
+> The `metafields` property will only be populated if the `syncVariantMetafields` setting is enabled.
 
 ### Using Options
 

@@ -28,6 +28,22 @@ class Settings extends Model
     public string $template = '';
     private mixed $_productFieldLayout;
 
+    /**
+     * Whether product metafields should be included when syncing products. This adds an extra API request per product.
+     *
+     * @var bool
+     * @since 4.1.0
+     */
+    public bool $syncProductMetafields = true;
+
+    /**
+     * Whether variant metafields should be included when syncing products. This adds an extra API request per variant.
+     *
+     * @var bool
+     * @since 4.1.0
+     */
+    public bool $syncVariantMetafields = false;
+
     public function rules(): array
     {
         return [
