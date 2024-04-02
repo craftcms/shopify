@@ -127,10 +127,10 @@ Going forward, your products will be automatically kept in sync via [webhooks](#
 
 The following settings available for controlling the product synchronization process:
 
-| Setting                 | Type   | Default | Description |
-|-------------------------|--------|---------|-------------|
-| `syncProductMetafields` | `bool` | `true`  | Whether product metafields should be included when syncing products. This adds an extra API request per product.            |
-| `syncVariantMetafields` | `bool` | `false` | Whether variant metafields should be included when syncing products. This adds an extra API request per variant. |
+| Setting                 | Type   | Default | Description                                                                                                       |
+|-------------------------|--------|---------|-------------------------------------------------------------------------------------------------------------------|
+| `syncProductMetafields` | `bool` | `true`  | Whether product metafields should be included when syncing products. This adds an extra API request per product.  |
+| `syncVariantMetafields` | `bool` | `false` | Whether variant metafields should be included when syncing products. This adds an extra API request per variant.  |
 
 > [!NOTE]
 > Smaller stores with only a few products can perform synchronization via the **Shopify Sync** utility.
