@@ -129,7 +129,7 @@ class Api extends Component
             'metafield' => [
                 'owner_id' => $id,
                 'owner_resource' => $ownerResource,
-            ]
+            ],
         ]);
 
         return $metafields;

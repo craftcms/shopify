@@ -2,10 +2,8 @@
 
 namespace craft\shopify\migrations;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\shopify\records\ProductData;
 
 /**
  * m240402_105857_add_metafields_property_to_variants migration.
