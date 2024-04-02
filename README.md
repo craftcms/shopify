@@ -125,12 +125,7 @@ php craft shopify/sync/products
 
 Going forward, your products will be automatically kept in sync via [webhooks](#set-up-webhooks).
 
-The following settings available for controlling the product synchronization process:
-
-| Setting                 | Type   | Default | Description |
-|-------------------------|--------|---------|-------------|
-| `syncProductMetafields` | `bool` | `true`  | Whether product metafields should be included when syncing products. This adds an extra API request per product.            |
-| `syncVariantMetafields` | `bool` | `false` | Whether variant metafields should be included when syncing products. This adds an extra API request per variant. |
+The [`syncProductMetafields` and `syncVariantMetafields` settings](#settings) govern what data is synchronized via this process.
 
 > [!NOTE]
 > Smaller stores with only a few products can perform synchronization via the **Shopify Sync** utility.
@@ -791,6 +786,16 @@ There is no need to query the Shopify API to render product details in your temp
 ```
 
 ## Going Further
+
+### Settings
+
+The following settings can be controlled by creating a `shopify.php` file in your `config/` directory.
+
+| Setting                 | Type   | Default | Description |
+|-------------------------|--------|---------|-------------|
+| `syncProductMetafields` | `bool` | `true`  | Whether product metafields should be included when syncing products. This adds an extra API request per product. |
+| `syncVariantMetafields` | `bool` | `false` | Whether variant metafields should be included when syncing products. This adds an extra API request per variant. |
+
 
 ### Events
 
