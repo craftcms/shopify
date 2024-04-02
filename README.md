@@ -733,7 +733,7 @@ It’s safe to remove the old plugin package (`nmaier95/shopify-product-fetcher`
 
 For each legacy Shopify Product field in your project, do the following:
 
-1. Create a _new_ [Shopify Products](#product-field) field, giving it a a new handle and name;
+1. Create a _new_ [Shopify Products](#product-field) field, giving it a new handle and name;
 2. Add the field to any layouts where the legacy field appeared;
 
 ### Re-saving Data
