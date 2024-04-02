@@ -791,9 +791,17 @@ The following settings can be controlled by creating a `shopify.php` file in you
 
 | Setting                 | Type   | Default | Description |
 |-------------------------|--------|---------|-------------|
-| `syncProductMetafields` | `bool` | `true`  | Whether product metafields should be included when syncing products. This adds an extra API request per product. |
+| `apiKey` | `string` | — | Shopify API key. |
+| `apiSecretKey` | `string` | — | Shopify API secret key. |
+| `accessToken` | `string` | — | Shopify API access token. |
+| `hostName` | `string` | — | Shopify [host name](#store-hostname) |
+| `uriFormat` | `string` | — | Product element URI format. |
+| `template` | `string` | — | Product element template path. |
+| `syncProductMetafields` | `bool` | `true` | Whether product metafields should be included when syncing products. This adds an extra API request per product. |
 | `syncVariantMetafields` | `bool` | `false` | Whether variant metafields should be included when syncing products. This adds an extra API request per variant. |
 
+> [!NOTE]
+> Setting `apiKey`, `apiSecretKey`, `accessToken`, and `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#create-a-shopify-app).
 
 ### Events
 
