@@ -794,14 +794,14 @@ The following settings can be controlled by creating a `shopify.php` file in you
 | `apiKey` | `string` | — | Shopify API key. |
 | `apiSecretKey` | `string` | — | Shopify API secret key. |
 | `accessToken` | `string` | — | Shopify API access token. |
-| `hostName` | `string` | — | Shopify [host name](#store-hostname) |
+| `hostName` | `string` | — | Shopify [host name](#store-hostname). |
 | `uriFormat` | `string` | — | Product element URI format. |
 | `template` | `string` | — | Product element template path. |
 | `syncProductMetafields` | `bool` | `true` | Whether product metafields should be included when syncing products. This adds an extra API request per product. |
 | `syncVariantMetafields` | `bool` | `false` | Whether variant metafields should be included when syncing products. This adds an extra API request per variant. |
 
 > [!NOTE]
-> Setting `apiKey`, `apiSecretKey`, `accessToken`, and `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#create-a-shopify-app).
+> Setting `apiKey`, `apiSecretKey`, `accessToken`, and `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#create-a-shopify-app). You can still reference environment values from the config file with `craft\helpers\App::env()`.
 
 ### Events
 
