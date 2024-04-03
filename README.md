@@ -117,16 +117,16 @@ Products from your Shopify store are represented in Craft as product [elements](
 
 ### Synchronization
 
-Once the plugin has been configured, you can perform an initial synchronization of all products via the **Shopify Sync** utility.
+Once the plugin has been configured, you can perform an initial synchronization of all products via the command line.
+
+```sh
+php craft shopify/sync/products
+```
+
+The [`syncProductMetafields` and `syncVariantMetafields` settings](#settings) govern what data is synchronized via this process. Going forward, your products will be automatically kept in sync via [webhooks](#set-up-webhooks).
 
 > [!NOTE]
-> Larger stores with 100+ products should perform the initial synchronization via the command line instead:
->
-> ```sh
-> php craft shopify/sync/products
-> ```
-
-Going forward, your products will be automatically kept in sync via [webhooks](#set-up-webhooks).
+> Smaller stores with only a few products can perform synchronization via the **Shopify Sync** utility.
 
 ### Native Attributes
 
@@ -426,7 +426,8 @@ You can get an array of variant objects for a product by calling [`product.getVa
 
 Unlike products, variants in Craft…
 
-- …are represented exactly as [the API](https://shopify.dev/api/admin-rest/2023-10/resources/product-variant#resource-object) returns them;
+- …are represented as [the API](https://shopify.dev/api/admin-rest/2023-10/resources/product-variant#resource-object) returns them;
+- …the `metafields` property is accessible in addition to the API’s returned properties;
 - …use Shopify’s convention of underscores in property names instead of exposing [camel-cased equivalents](#native-attributes);
 - …are plain associative arrays;
 - …have no methods of their own;
@@ -441,6 +442,8 @@ Once you have a reference to a variant, you can output its properties:
 
 > **Note**  
 > The built-in [`currency`](https://craftcms.com/docs/4.x/dev/filters.html#currency) Twig filter is a great way to format money values.
+> 
+> The `metafields` property will only be populated if the `syncVariantMetafields` setting is enabled.
 
 ### Using Options
 
@@ -723,7 +726,7 @@ It’s safe to remove the old plugin package (`nmaier95/shopify-product-fetcher`
 
 For each legacy Shopify Product field in your project, do the following:
 
-1. Create a _new_ [Shopify Products](#product-field) field, giving it a a new handle and name;
+1. Create a _new_ [Shopify Products](#product-field) field, giving it a new handle and name;
 2. Add the field to any layouts where the legacy field appeared;
 
 ### Re-saving Data
@@ -781,6 +784,24 @@ There is no need to query the Shopify API to render product details in your temp
 ```
 
 ## Going Further
+
+### Settings
+
+The following settings can be controlled by creating a `shopify.php` file in your `config/` directory.
+
+| Setting                 | Type   | Default | Description |
+|-------------------------|--------|---------|-------------|
+| `apiKey` | `string` | — | Shopify API key. |
+| `apiSecretKey` | `string` | — | Shopify API secret key. |
+| `accessToken` | `string` | — | Shopify API access token. |
+| `hostName` | `string` | — | Shopify [host name](#store-hostname). |
+| `uriFormat` | `string` | — | Product element URI format. |
+| `template` | `string` | — | Product element template path. |
+| `syncProductMetafields` | `bool` | `true` | Whether product metafields should be included when syncing products. This adds an extra API request per product. |
+| `syncVariantMetafields` | `bool` | `false` | Whether variant metafields should be included when syncing products. This adds an extra API request per variant. |
+
+> [!NOTE]
+> Setting `apiKey`, `apiSecretKey`, `accessToken`, and `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#create-a-shopify-app). You can still reference environment values from the config file with `craft\helpers\App::env()`.
 
 ### Events
 

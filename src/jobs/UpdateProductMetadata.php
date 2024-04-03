@@ -11,6 +11,7 @@ use craft\shopify\records\ProductData as ProductDataRecord;
 /**
  * Updates the metadata for a Shopify product.
  *
+ * @TODO remove in next major version
  * @deprecated 4.0.0 No longer used internally due to the use of `Retry-After` headers in the Shopify API.
  */
 class UpdateProductMetadata extends BaseJob
