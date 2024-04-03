@@ -95,11 +95,40 @@ class Api extends Component
      */
     public function getMetafieldsByProductId(int $id): array
     {
+        if (!Plugin::getInstance()->getSettings()->syncProductMetafields) {
+            return [];
+        }
+
+        return $this->getMetafieldsByIdAndOwnerResource($id, 'product');
+    }
+
+    /**
+     * @param int $id
+     * @return ShopifyMetafield[]
+     * @since 4.1.0
+     */
+    public function getMetafieldsByVariantId(int $id): array
+    {
+        if (!Plugin::getInstance()->getSettings()->syncVariantMetafields) {
+            return [];
+        }
+
+        return $this->getMetafieldsByIdAndOwnerResource($id, 'variants');
+    }
+
+    /**
+     * @param int $id
+     * @param string $ownerResource
+     * @return ShopifyMetafield[]
+     * @since 4.1.0
+     */
+    public function getMetafieldsByIdAndOwnerResource(int $id, string $ownerResource): array
+    {
         /** @var ShopifyMetafield[] $metafields */
         $metafields = $this->getAll(ShopifyMetafield::class, [
             'metafield' => [
                 'owner_id' => $id,
-                'owner_resource' => 'product',
+                'owner_resource' => $ownerResource,
             ],
         ]);
 
