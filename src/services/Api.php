@@ -124,7 +124,7 @@ class Api extends Component
      */
     public function getMetafieldsByIdAndOwnerResource(int $id, string $ownerResource): array
     {
-        /** @var ShopifyMetafield[] $metafields */
+        /** @var array $metafields */
         $metafields = $this->get("{$ownerResource}/{$id}/metafields", [
             'metafield' => [
                 'owner_id' => $id,
