@@ -3,6 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - v4
       - develop
       - main
   pull_request:
