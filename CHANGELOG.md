@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 4.1.1 - 2024-04-09
 
 - Fixed a bug where syncing meta fields would cause Shopify API rate limiting. 
 - Fixed a bug where variant meta fields weren’t being unpacked.
