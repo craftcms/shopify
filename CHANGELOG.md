@@ -1,8 +1,19 @@
 # Release Notes for Shopify
 
+## 5.1.0 - 2024-04-03
+
+- Added support for syncing variant meta fields. ([#99](https://github.com/craftcms/shopify/issues/99))
+- Added the `syncProductMetafields` and `syncVariantMetafields` config settings, which can be enabled to sync meta fields.
+- Added `craft\shopify\models\Settings::$syncProductMetafields`.
+- Added `craft\shopify\models\Settings::$syncVariantMetafields`.
+
+## 5.0.0 - 2024-03-20
+
+- Shopify now requires Craft CMS 5.0.0-beta.10 or later.
+
 ## 4.1.1 - 2024-04-09
 
-- Fixed a bug where syncing meta fields would cause Shopify API rate limiting. 
+- Fixed a bug where syncing meta fields would cause Shopify API rate limiting.
 - Fixed a bug where variant meta fields weren’t being unpacked.
 
 ## 4.1.0 - 2024-04-03
