@@ -1,5 +1,10 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a bug where syncing meta fields would cause Shopify API rate limiting.
+- Fixed a bug where variant meta fields weren’t being unpacked.
+
 ## 5.1.0 - 2024-04-03
 
 - Added support for syncing variant meta fields. ([#99](https://github.com/craftcms/shopify/issues/99))
