@@ -68,7 +68,7 @@ class Products extends Component
 
         foreach ($variants as &$variant) {
             $variantMetafields = $api->getMetafieldsByVariantId($variant['id']);
-            $variant['metafields'] = $variantMetafields;
+            $variant['metafields'] = MetafieldsHelper::unpack($variantMetafields);
         }
 
         $this->createOrUpdateProduct($product, $productMetafields, $variants);
