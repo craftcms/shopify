@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed a bug where syncing meta fields would cause Shopify API rate limiting. 
 - Fixed a bug where variant meta fields weren’t being unpacked.
 
 ## 4.1.0 - 2024-04-03
