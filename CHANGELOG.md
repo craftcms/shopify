@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased 
+
+- Fixed a PHP error that could occur when syncing products. ([#105](https://github.com/craftcms/shopify/issues/105))
+
 ## 4.1.1 - 2024-04-09
 
 - Fixed a bug where syncing meta fields would cause Shopify API rate limiting. 

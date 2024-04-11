@@ -6,6 +6,7 @@ use Craft;
 use craft\base\Component;
 use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Db;
 use craft\helpers\ProjectConfig;
 use craft\models\FieldLayout;
 use craft\shopify\elements\Product;
@@ -145,17 +146,17 @@ class Products extends Component
             'shopifyId' => $product->id,
             'title' => $product->title,
             'bodyHtml' => $product->body_html,
-            'createdAt' => $product->created_at,
+            'createdAt' => Db::prepareDateForDb($product->created_at),
             'handle' => $product->handle,
             'images' => $product->images,
             'options' => $product->options,
             'productType' => $product->product_type,
-            'publishedAt' => $product->published_at,
+            'publishedAt' => Db::prepareDateForDb($product->published_at),
             'publishedScope' => $product->published_scope,
             'shopifyStatus' => $product->status,
             'tags' => $product->tags,
             'templateSuffix' => $product->template_suffix,
-            'updatedAt' => $product->updated_at,
+            'updatedAt' => Db::prepareDateForDb($product->updated_at),
             'variants' => $variants ?? $product->variants,
             'vendor' => $product->vendor,
             'metaFields' => $metaFields,
