@@ -80,7 +80,7 @@ class Api extends Component
             'inventory_item_id' => $id,
         ]);
 
-        if ($variant['variants']) {
+        if (isset($variant['variants'])) {
             return $variant['variants'][0]['product_id'];
         }
 
@@ -99,7 +99,7 @@ class Api extends Component
             return [];
         }
 
-        return $this->getMetafieldsByIdAndOwnerResource($id, 'product');
+        return $this->getMetafieldsByIdAndOwnerResource($id, 'products');
     }
 
     /**
@@ -124,15 +124,25 @@ class Api extends Component
      */
     public function getMetafieldsByIdAndOwnerResource(int $id, string $ownerResource): array
     {
-        /** @var ShopifyMetafield[] $metafields */
-        $metafields = $this->getAll(ShopifyMetafield::class, [
+        /** @var array $metafields */
+        $metafields = $this->get("{$ownerResource}/{$id}/metafields", [
             'metafield' => [
                 'owner_id' => $id,
                 'owner_resource' => $ownerResource,
             ],
         ]);
 
-        return $metafields;
+        if (empty($metafields) || !isset($metafields['metafields'])) {
+            return [];
+        }
+
+        $return = [];
+
+        foreach ($metafields['metafields'] as $metafield) {
+            $return[] = new ShopifyMetafield($this->getSession(), $metafield);
+        }
+
+        return $return;
     }
 
     /**
@@ -144,7 +154,7 @@ class Api extends Component
     {
         $variants = $this->get("products/{$id}/variants");
 
-        return $variants['variants'];
+        return $variants['variants'] ?? [];
     }
 
     /**

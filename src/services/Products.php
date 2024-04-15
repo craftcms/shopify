@@ -6,7 +6,9 @@ use Craft;
 use craft\base\Component;
 use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Db;
 use craft\helpers\ProjectConfig;
+use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
 use craft\shopify\elements\Product;
 use craft\shopify\elements\Product as ProductElement;
@@ -68,7 +70,7 @@ class Products extends Component
 
         foreach ($variants as &$variant) {
             $variantMetafields = $api->getMetafieldsByVariantId($variant['id']);
-            $variant['metafields'] = $variantMetafields;
+            $variant['metafields'] = MetafieldsHelper::unpack($variantMetafields);
         }
 
         $this->createOrUpdateProduct($product, $productMetafields, $variants);
@@ -143,19 +145,19 @@ class Products extends Component
         // Build our attribute set from the Shopify product data:
         $attributes = [
             'shopifyId' => $product->id,
-            'title' => $product->title,
-            'bodyHtml' => $product->body_html,
-            'createdAt' => $product->created_at,
+            'title' => $product->title ? StringHelper::emojiToShortcodes($product->title) : null,
+            'bodyHtml' => $product->body_html ? StringHelper::emojiToShortcodes($product->body_html) : null,
+            'createdAt' => Db::prepareDateForDb($product->created_at),
             'handle' => $product->handle,
             'images' => $product->images,
             'options' => $product->options,
             'productType' => $product->product_type,
-            'publishedAt' => $product->published_at,
+            'publishedAt' => Db::prepareDateForDb($product->published_at),
             'publishedScope' => $product->published_scope,
             'shopifyStatus' => $product->status,
             'tags' => $product->tags,
             'templateSuffix' => $product->template_suffix,
-            'updatedAt' => $product->updated_at,
+            'updatedAt' => Db::prepareDateForDb($product->updated_at),
             'variants' => $variants ?? $product->variants,
             'vendor' => $product->vendor,
             'metaFields' => $metaFields,
