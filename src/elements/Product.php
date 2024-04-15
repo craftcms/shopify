@@ -141,6 +141,16 @@ class Product extends Element
     /**
      * @inheritdoc
      */
+    public function init(): void
+    {
+        $this->title = $this->title ? StringHelper::shortcodesToEmoji($this->title) : null;
+        $this->bodyHtml = $this->bodyHtml ? StringHelper::shortcodesToEmoji($this->bodyHtml) : null;
+        parent::init();
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function searchableAttributes(): array
     {
         return array_merge(parent::searchableAttributes(), [
