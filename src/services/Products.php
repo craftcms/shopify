@@ -8,6 +8,7 @@ use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\ProjectConfig;
+use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
 use craft\shopify\elements\Product;
 use craft\shopify\elements\Product as ProductElement;
@@ -144,8 +145,8 @@ class Products extends Component
         // Build our attribute set from the Shopify product data:
         $attributes = [
             'shopifyId' => $product->id,
-            'title' => $product->title,
-            'bodyHtml' => $product->body_html,
+            'title' => $product->title ? StringHelper::emojiToShortcodes($product->title) : null,
+            'bodyHtml' => $product->body_html ? StringHelper::emojiToShortcodes($product->body_html) : null,
             'createdAt' => Db::prepareDateForDb($product->created_at),
             'handle' => $product->handle,
             'images' => $product->images,

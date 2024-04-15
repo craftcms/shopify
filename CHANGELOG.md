@@ -2,6 +2,7 @@
 
 ## Unreleased 
 
+- Fixed a PHP error that could occur when syncing products with emojis. ([#107](https://github.com/craftcms/shopify/issues/107))
 - Fixed a PHP error that could occur when syncing products. ([#105](https://github.com/craftcms/shopify/issues/105))
 
 ## 4.1.1 - 2024-04-09
