@@ -1,11 +1,14 @@
 # Release Notes for Shopify
 
+## 5.1.2 - 2024-04-24
+
+- Fixed a bug where syncing meta fields would cause Shopify API rate limiting.
+- Fixed a bug where variant meta fields weren’t being unpacked.
+
 ## 5.1.1 - 2024-04-15
 
 - Fixed a PHP error that could occur when syncing products with emojis. ([#107](https://github.com/craftcms/shopify/issues/107))
 - Fixed a PHP error that could occur when syncing products. ([#105](https://github.com/craftcms/shopify/issues/105))
-- Fixed a bug where syncing meta fields would cause Shopify API rate limiting.
-- Fixed a bug where variant meta fields weren’t being unpacked.
 
 ## 5.1.0 - 2024-04-03
 
@@ -25,7 +28,7 @@
 
 ## 4.1.1 - 2024-04-09
 
-- Fixed a bug where syncing meta fields would cause Shopify API rate limiting. 
+- Fixed a bug where syncing meta fields would cause Shopify API rate limiting.
 - Fixed a bug where variant meta fields weren’t being unpacked.
 
 ## 4.1.0 - 2024-04-03
