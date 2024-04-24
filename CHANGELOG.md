@@ -5,6 +5,11 @@
 - Fixed a bug where syncing meta fields would cause Shopify API rate limiting.
 - Fixed a bug where variant meta fields weren’t being unpacked.
 
+## 5.1.1 - 2024-04-15
+
+- Fixed a PHP error that could occur when syncing products with emojis. ([#107](https://github.com/craftcms/shopify/issues/107))
+- Fixed a PHP error that could occur when syncing products. ([#105](https://github.com/craftcms/shopify/issues/105))
+
 ## 5.1.0 - 2024-04-03
 
 - Added support for syncing variant meta fields. ([#99](https://github.com/craftcms/shopify/issues/99))
@@ -15,6 +20,11 @@
 ## 5.0.0 - 2024-03-20
 
 - Shopify now requires Craft CMS 5.0.0-beta.10 or later.
+
+## 4.1.2 - 2024-04-15 
+
+- Fixed a PHP error that could occur when syncing products with emojis. ([#107](https://github.com/craftcms/shopify/issues/107))
+- Fixed a PHP error that could occur when syncing products. ([#105](https://github.com/craftcms/shopify/issues/105))
 
 ## 4.1.1 - 2024-04-09
 

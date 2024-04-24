@@ -738,7 +738,6 @@ The event object has three properties:
 
 - `element`: The product element being updated.
 - `source`: The Shopify product object that was applied.
-- `metafields`: Additional metafields from Shopify that the plugin discovered while performing the synchronization.
 
 ```php
 use craft\shopify\events\ShopifyProductSyncEvent;
@@ -750,12 +749,13 @@ Event::on(
   Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT,
   function(ShopifyProductSyncEvent $event) {
     // Example 1: Cancel the sync if a flag is set via a Shopify metafield:
-    if ($event->metafields['do_not_sync'] ?? false) {
+    $metafields = $event->element->getMetaFields();
+    if (metafields['do_not_sync'] ?? false) {
       $event->isValid = false;
     }
 
     // Example 2: Set a field value from metafield data:
-    $event->element->setFieldValue('myNumberFieldHandle', $event->metafields['cool_factor']);
+    $event->element->setFieldValue('myNumberFieldHandle', $metafields['cool_factor']);
   }
 );
 ```
