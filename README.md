@@ -40,7 +40,7 @@ To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/sho
 
 The plugin works with Shopify’s [Custom Apps](https://help.shopify.com/en/manual/apps/custom-apps) system.
 
-> **Note**  
+> [!NOTE]
 > If you are not the owner of the Shopify store, have the owner add you as a collaborator or staff member with the [_Develop Apps_ permission](https://help.shopify.com/en/manual/apps/custom-apps#api-scope-permissions-for-custom-apps).
 
 Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-apps) for creating a private app (through the _Get the API credentials for a custom app_ section), and take these actions when prompted:
@@ -86,7 +86,7 @@ Now that you have credentials for your custom app, it’s time to add them to Cr
    - **Host Name**: `$SHOPIFY_HOSTNAME`
 3. Click **Save**.
 
-> **Note**  
+> [!NOTE]
 > These settings are stored in [Project Config](https://craftcms.com/docs/5.x/project-config.html), and will be automatically applied in other environments. [Webhooks](#set-up-webhooks) will still need to be configured for each environment!
 
 ### Set up Webhooks
@@ -95,10 +95,10 @@ Once your credentials have been added to Craft, a new **Webhooks** tab will appe
 
 Click **Create** on the Webhooks screen to add the required webhooks to Shopify. The plugin will use the credentials you just configured to perform this operation—so this also serves as an initial communication test.
 
-> **Warning**  
+> [!WARNING]
 > You will need to add webhooks for each environment you deploy the plugin to, because each webhook is tied to a specific URL.
 
-> **Note**  
+> [!NOTE]
 > If you need to test live synchronization in development, we recommend using [ngrok](https://ngrok.com/) to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel, then recreate your webhooks.
 
 ## Upgrading
@@ -148,7 +148,7 @@ In addition to the standard element attributes like `id`, `title`, and `status`,
 
 All of these properties are available when working with a product element [in your templates](#templating).
 
-> **Note**  
+> [!NOTE]  
 > See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2023-10/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
 
 ### Methods
@@ -261,7 +261,7 @@ A new query begins with the `craft.shopifyProducts` factory function:
 
 The following element query parameters are supported, in addition to [Craft’s standard set](https://craftcms.com/docs/5.x/element-queries.html).
 
-> **Note**
+> [!NOTE]
 > Fields stored as JSON (like `options` and `metadata`) are only queryable as plain text. If you need to do advanced organization or filtering, we recommend using custom Category or Tag fields in your Product [field layout](#custom-fields).
 
 #### `shopifyId`
@@ -327,7 +327,7 @@ Show only products that are published to a matching sales channel.
 
 #### `tags`
 
-Tags are stored as a comma-separated list. You may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/searching.html#development).
+Tags are stored as a comma-separated list. You may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/system/searching.html#development).
 
 ```twig
 {# Find products whose tags include the term in any position, with variations on casing: #}
@@ -349,7 +349,7 @@ Filter by the vendor information from Shopify.
 
 #### `images`
 
-Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2023-10/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/searching.html#development).
+Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2023-10/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/system/searching.html#development).
 
 ```twig
 {# Find products that have an image resource mentioning "stripes": #}
@@ -360,7 +360,7 @@ Images are stored as a blob of JSON, and only intended for use in a template in 
 
 #### `options`
 
-[Options](#using-options) are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. You may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/searching.html#development).
+[Options](#using-options) are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. You may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/system/searching.html#development).
 
 ```twig
 {# Find products that use a "color" option: #}
@@ -377,7 +377,7 @@ The above includes quote (`"`) literals, because it’s attempting to locate a s
 
 Products behave just like any other element, in Twig. Once you’ve loaded a product via a [query](#querying-products) (or have a reference to one on its template), you can output its native [Shopify attributes](#native-attributes) and [custom field](#custom-fields) data.
 
-> **Note**  
+> [!NOTE]
 > Some attributes are stored as JSON, which limits nested properties’s types. As a result, dates may be slightly more difficult to work with.
 
 ```twig
@@ -418,7 +418,7 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
 Products don’t have a price, despite what the Shopify UI might imply—instead, every product has at least one
 [Variant](https://shopify.dev/api/admin-rest/2023-10/resources/product-variant#resource-object).
 
-You can get an array of variant objects for a product by calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants, but you can filter them however you like with Craft’s [`collect()`](https://craftcms.com/docs/5.x/dev/functions.html#collect) Twig function.
+You can get an array of variant objects for a product by calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants, but you can filter them however you like with Craft’s [`collect()`](https://craftcms.com/docs/5.x/reference/twig/functions.html#collect) Twig function.
 
 Unlike products, variants in Craft…
 
@@ -436,8 +436,8 @@ Once you have a reference to a variant, you can output its properties:
 {{ defaultVariant.price|currency }}
 ```
 
-> **Note**  
-> The built-in [`currency`](https://craftcms.com/docs/4.x/dev/filters.html#currency) Twig filter is a great way to format money values.
+> [!NOTE]
+> The built-in [`currency`](https://craftcms.com/docs/5.x/reference/twig/filters.html#currency) Twig filter is a great way to format money values.
 > 
 > The `metafields` property will only be populated if the `syncVariantMetafields` setting is enabled.
 
@@ -483,7 +483,7 @@ If you want to let customers pick from options instead of directly select varian
 
 <summary>Script</summary>
 
-The code below can be added to a [`{% js %}` tag](https://craftcms.com/docs/5.x/dev/tags.html#js), alongside the form code.
+The code below can be added to a [`{% js %}` tag](https://craftcms.com/docs/5.x/reference/twig/tags.html#js), alongside the form code.
 
 ```js
 // Store references to <form> elements:
@@ -565,7 +565,7 @@ Cart management and checkout are not currently supported in a native way.
 
 However, Shopify maintains the [Javascript Buy SDK](https://shopify.dev/custom-storefronts/tools/js-buy) as a means of interacting with their [Storefront API](https://shopify.dev/api/storefront) to create completely custom shopping experiences.
 
-> **Note**  
+> [!NOTE]
 > Use of the Storefront API requires a different [access key](https://help.shopify.com/en/manual/apps/custom-apps#update-storefront-api-access-scopes-for-a-custom-app), and assumes that you have published your products into the Storefront app’s [sales channel](https://shopify.dev/custom-storefronts/tools/js-buy#step-2-make-your-products-and-collections-available).
 >
 > Your public Storefront API token can be stored with your other credentials in `.env` and output in your front-end with the `{{ getenv('...') }}` Twig helper—or just baked into a Javascript bundle. **Keep your other secrets safe!** This is the only one that can be disclosed.
@@ -656,8 +656,8 @@ In addition to [product element methods](#methods), the plugin exposes its API t
 
 #### API Service
 
-> **Warning**  
-> Use of API calls in Twig blocks rendering and—depending on traffic—may cause timeouts and/or failures due to rate limits. Consider using the [`{% cache %}` tag](https://craftcms.com/docs/5.x/dev/tags.html#cache) with a key and specific expiry time to avoid making a request every time a template is rendered:
+> [!WARNING]
+> Use of API calls in Twig blocks rendering and—depending on traffic—may cause timeouts and/or failures due to [rate limits](#rate-limits). Consider using the [`{% cache %}` tag](https://craftcms.com/docs/5.x/reference/twig/tags.html#cache) with a key and specific expiry time to avoid making a request every time a template is rendered:
 >
 > ```twig
 > {% cache using key "shopify:collections" for 10 minutes %}
@@ -699,11 +699,11 @@ The same params argument can be passed to a product element’s `getShopifyUrl()
 
 ## Product Field
 
-The plugin provides a _Shopify Products_ field, which uses the familiar [relational field](https://craftcms.com/docs/5.x/relations.html) UI to allow authors to select Product elements.
+The plugin provides a _Shopify Products_ field, which uses the familiar [relational field](https://craftcms.com/docs/5.x/system/relations.html) UI to allow authors to select Product elements.
 
 Relationships defined with the _Shopify Products_ field use stable element IDs under the hood. When Shopify products are archived or deleted, the corresponding elements will also be updated in Craft, and naturally filtered out of your query results—including those explicitly attached via a _Shopify Products_ field.
 
-> **Note**  
+> [!NOTE]
 > Upgrading? Check out the [migration](#migrating-from-v2x) notes for more info.
 
 ---
@@ -760,7 +760,7 @@ Event::on(
 );
 ```
 
-> **Warning**
+> [!WARNING]
 > Do not manually save changes made in this event handler. The plugin will take care of this for you!
 
 ### Element API
@@ -798,4 +798,4 @@ return [
 
 ## Rate Limiting
 
-The Shopify API implements [rate limiting rules](https://shopify.dev/docs/api/usage/rate-limits) the plugin makes its best effort to avoid hitting these limits.
+The plugin makes its best effort to avoid Shopify’s strict [API rate limiting](https://shopify.dev/docs/api/usage/rate-limits) rules by respecting headers in the replies (a feature of the first-party PHP SDK). This means that series of operations (like synchronization or custom API queries within loops) can take grow in a non-linear way.
