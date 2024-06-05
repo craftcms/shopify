@@ -18,6 +18,8 @@ use Shopify\Clients\Rest;
 use Shopify\Context;
 use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
 use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
+use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
+use Shopify\Rest\Base;
 use Shopify\Rest\Base as ShopifyBaseResource;
 
 /**
@@ -146,15 +148,29 @@ class Api extends Component
     }
 
     /**
-     * Retrieves "metafields" for the provided Shopify product ID.
+     * Retrieves "variants" for the provided Shopify product ID.
      *
      * @param int $id Shopify Product ID
      */
     public function getVariantsByProductId(int $id): array
     {
-        $variants = $this->get("products/{$id}/variants");
+        $resources = [];
+        $params = ['limit' => 250];
 
-        return $variants['variants'] ?? [];
+        do {
+            $resources = array_merge($resources, ShopifyVariant::all(
+                $this->getSession(),
+                ['product_id' => $id],
+                ShopifyVariant::$NEXT_PAGE_QUERY ?: $params,
+            ));
+        } while (ShopifyVariant::$NEXT_PAGE_QUERY);
+
+        $variants = [];
+        foreach ($resources as $resource) {
+            $variants[] = $resource->toArray();
+        }
+
+        return $variants;
     }
 
     /**
@@ -183,6 +199,7 @@ class Api extends Component
         // Force maximum page size:
         $params['limit'] = 250;
 
+        /** @var Base $type */
         do {
             $resources = array_merge($resources, $type::all(
                 $this->getSession(),

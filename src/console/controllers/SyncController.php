@@ -25,6 +25,22 @@ class SyncController extends Controller
     public $defaultAction = 'products';
 
     /**
+     * @var bool Whether to slow down API requests to avoid rate limiting.
+     * since
+     */
+    public bool $throttle = false;
+
+    /**
+     * @inheritdoc
+     */
+    public function options($actionID): array
+    {
+        $options = parent::options($actionID);
+        $options[] = 'throttle';
+        return $options;
+    }
+
+    /**
      * Sync all Shopify data.
      */
     public function actionAll()
@@ -47,7 +63,14 @@ class SyncController extends Controller
         $this->stdout('Syncing Shopify products…' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
         // start timer
         $start = microtime(true);
+
+        $originalThrottle = Plugin::getInstance()->getProducts()->throttle;
+        Plugin::getInstance()->getProducts()->throttle = $this->throttle;
+
         Plugin::getInstance()->getProducts()->syncAllProducts();
+
+        Plugin::getInstance()->getProducts()->throttle = $originalThrottle;
+
         // end timer
         $time = microtime(true) - $start;
         $this->stdout('Finished syncing ' . Product::find()->count() . ' product(s) in ' . round($time, 2) . 's' . PHP_EOL . PHP_EOL, Console::FG_GREEN);

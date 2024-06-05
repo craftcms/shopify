@@ -56,6 +56,18 @@ class Products extends Component
     public const EVENT_BEFORE_SYNCHRONIZE_PRODUCT = 'beforeSynchronizeProduct';
 
     /**
+     * @var bool Whether to slow down API requests to avoid rate limiting.
+     * @since
+     */
+    public bool $throttle = false;
+
+    /**
+     * @var int The number of seconds to sleep between requests when `$throttle` is enabled.
+     * @since
+     */
+    public int $sleepSeconds = 1;
+
+    /**
      * @param ShopifyProduct $product
      * @return void
      * @throws \yii\base\InvalidConfigException
@@ -66,6 +78,10 @@ class Products extends Component
         $api = Plugin::getInstance()->getApi();
 
         $variants = $api->getVariantsByProductId($product->id);
+
+        if ($this->throttle) {
+            usleep((int) (1E6 * $this->sleepSeconds));
+        }
         $productMetafields = $api->getMetafieldsByProductId($product->id);
 
         foreach ($variants as &$variant) {
