@@ -199,7 +199,6 @@ class Api extends Component
         // Force maximum page size:
         $params['limit'] = 250;
 
-        /** @var Base $type */
         do {
             $resources = array_merge($resources, $type::all(
                 $this->getSession(),
