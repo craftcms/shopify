@@ -19,7 +19,6 @@ use Shopify\Context;
 use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
 use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
 use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
-use Shopify\Rest\Base;
 use Shopify\Rest\Base as ShopifyBaseResource;
 
 /**
