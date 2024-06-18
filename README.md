@@ -121,6 +121,8 @@ php craft shopify/sync/products
 
 The [`syncProductMetafields` and `syncVariantMetafields` settings](#settings) govern what data is synchronized via this process. Going forward, your products will be automatically kept in sync via [webhooks](#set-up-webhooks).
 
+Larger, more complex, stores may run into [rate limiting](#rate-limiting) issues during a full sync. In these cases, you can use the `--throttle` option to slow down the synchronization process.
+
 > [!NOTE]
 > Smaller stores with only a few products can perform synchronization via the **Shopify Sync** utility.
 
