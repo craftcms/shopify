@@ -57,13 +57,13 @@ class Products extends Component
 
     /**
      * @var bool Whether to slow down API requests to avoid rate limiting.
-     * @since
+     * @since 5.2.0
      */
     public bool $throttle = false;
 
     /**
      * @var int The number of seconds to sleep between requests when `$throttle` is enabled.
-     * @since
+     * @since 5.2.0
      */
     public int $sleepSeconds = 1;
 

@@ -26,7 +26,7 @@ class SyncController extends Controller
 
     /**
      * @var bool Whether to slow down API requests to avoid rate limiting.
-     * since
+     * @since 5.2.0
      */
     public bool $throttle = false;
 
