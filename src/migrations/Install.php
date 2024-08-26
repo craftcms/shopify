@@ -58,7 +58,7 @@ class Install extends Migration
             'tags' => $this->text(),
             'templateSuffix' => $this->string(),
             'updatedAt' => $this->string(),
-            'variants' => $this->text(),
+            'variants' => $this->mediumText(),
             'vendor' => $this->string(),
             'metaFields' => $this->text(),
             'dateCreated' => $this->dateTime()->notNull(),
