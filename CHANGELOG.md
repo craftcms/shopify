@@ -1,10 +1,13 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a bug where variant column data could be larger than a MySQL TEXT column.
+
 ## 5.2.0 - 2024-06-18
 
 - `shopify/sync` commands now support a `--throttle` option.
 - Fixed a bug where syncing Shopify variants would be limited to 50. ([#115](https://github.com/craftcms/shopify/issues/115))
-- Fixed a bug where variant column data could be larger than a MySQL TEXT column.
 - Added `craft\shopify\console\controllers\SyncController::$throttle`.
 - Added `craft\shopify\services\Products::$throttle`.
 - Added `craft\shopify\services\Products::$sleepSeconds`.
