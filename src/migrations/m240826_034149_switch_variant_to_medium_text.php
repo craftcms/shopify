@@ -2,7 +2,6 @@
 
 namespace craft\shopify\migrations;
 
-use Craft;
 use craft\db\Migration;
 
 /**
