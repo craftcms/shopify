@@ -12,8 +12,11 @@ use craft\base\Component;
 use craft\helpers\App;
 use craft\log\MonologTarget;
 use craft\shopify\Plugin;
+use GuzzleHttp\Client;
+use Psr\Http\Client\ClientInterface;
 use Shopify\Auth\FileSessionStorage;
 use Shopify\Auth\Session;
+use Shopify\Clients\HttpClientFactory;
 use Shopify\Clients\Rest;
 use Shopify\Context;
 use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
@@ -254,6 +257,14 @@ class Api extends Component
                 isEmbeddedApp: false,
                 logger: $webLogTarget->getLogger(),
             );
+
+            Context::$HTTP_CLIENT_FACTORY = new class() extends HttpClientFactory {
+                public function client(): ClientInterface
+                {
+                    // This is the default client, but we need to add the header for presentment prices
+                    return new Client(['headers' => ['X-Shopify-Api-Features' => 'include-presentment-prices']]);
+                }
+            };
 
             $hostName = App::parseEnv($pluginSettings->hostName);
             $accessToken = App::parseEnv($pluginSettings->accessToken);
