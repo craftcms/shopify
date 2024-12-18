@@ -18,6 +18,7 @@ class ProductCondition extends ElementCondition
      */
     protected function conditionRuleTypes(): array
     {
+        /** @phpstan-ignore-next-line */
         return array_merge(parent::conditionRuleTypes(), [
             ProductTypeConditionRule::class,
             ShopifyStatusConditionRule::class,

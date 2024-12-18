@@ -694,6 +694,7 @@ class Product extends Element
             'tags',
             'variants',
         ])) {
+            /** @phpstan-ignore-next-line */
             return parent::tableAttributeHtml($attribute);
         }
 

@@ -184,6 +184,7 @@ class Plugin extends BasePlugin
      */
     private function _registerUtilityTypes(): void
     {
+        /** @phpstan-ignore-next-line */
         $eventName = defined(Utilities::class . '::EVENT_REGISTER_UTILITIES') ? Utilities::EVENT_REGISTER_UTILITIES : Utilities::EVENT_REGISTER_UTILITY_TYPES;
 
         Event::on(
