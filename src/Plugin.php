@@ -184,9 +184,11 @@ class Plugin extends BasePlugin
      */
     private function _registerUtilityTypes(): void
     {
+        $eventName = defined(Utilities::class . '::EVENT_REGISTER_UTILITIES') ? Utilities::EVENT_REGISTER_UTILITIES : Utilities::EVENT_REGISTER_UTILITY_TYPES;
+
         Event::on(
             Utilities::class,
-            Utilities::EVENT_REGISTER_UTILITIES,
+            $eventName,
             function(RegisterComponentTypesEvent $event) {
                 $event->types[] = Sync::class;
             }

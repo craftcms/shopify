@@ -14,6 +14,21 @@ class ProductCondition extends ElementCondition
 {
     /**
      * @inheritdoc
+     * @TODO remove this method when support for Craft 4 is dropped
+     */
+    protected function conditionRuleTypes(): array
+    {
+        return array_merge(parent::conditionRuleTypes(), [
+            ProductTypeConditionRule::class,
+            ShopifyStatusConditionRule::class,
+            VendorConditionRule::class,
+            HandleConditionRule::class,
+            TagsConditionRule::class,
+        ]);
+    }
+
+    /**
+     * @inheritdoc
      */
     protected function selectableConditionRules(): array
     {
