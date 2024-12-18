@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- `shopify/sync` commands now support a `--throttle` option.
+
 ## 4.1.2 - 2024-04-15 
 
 - Fixed a PHP error that could occur when syncing products with emojis. ([#107](https://github.com/craftcms/shopify/issues/107))
