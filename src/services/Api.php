@@ -146,7 +146,7 @@ class Api extends Component
     }
 
     /**
-     * Retrieves "metafields" for the provided Shopify product ID.
+     * Retrieves "variants" for the provided Shopify product ID.
      *
      * @param int $id Shopify Product ID
      */
