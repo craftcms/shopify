@@ -60,13 +60,23 @@
     <div id="api">
         {{ forms.autosuggestField({
             first: true,
+            label: 'API Version'|t('shopify'),
+            instructions: 'Supported API versions: {versions}'|t('shopify', {versions: craft.shopify.api.getSupportedApiVersions()|join(', ')}),
+            id: 'apiVersion',
+            name: 'settings[apiVersion]',
+            value: settings.getApiVersion(false),
+            errors: settings.getErrors('apiVersion'),
+            suggestEnvVars: true,
+            autofocus: true
+        }) }}
+
+        {{ forms.autosuggestField({
             label: 'API Key'|t('shopify'),
             id: 'apiKey',
             name: 'settings[apiKey]',
             value: settings.apiKey,
             errors: settings.getErrors('apiKey'),
             suggestEnvVars: true,
-            autofocus: true,
         }) }}
 
         {{ forms.autosuggestField({

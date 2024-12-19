@@ -4,6 +4,7 @@ namespace craft\shopify\services;
 
 use Craft;
 use craft\base\Component;
+use craft\errors\ElementNotFoundException;
 use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
@@ -19,6 +20,11 @@ use craft\shopify\records\ProductData as ProductDataRecord;
 use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
 use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
 use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
+use Shopify\Rest\Admin2024_10\Metafield as ShopifyMetafield2410;
+use Shopify\Rest\Admin2024_10\Product as ShopifyProduct2410;
+use Shopify\Rest\Admin2024_10\Variant as ShopifyVariant2410;
+use yii\base\Exception;
+use yii\base\InvalidConfigException;
 
 /**
  * Shopify Products service.
@@ -68,12 +74,12 @@ class Products extends Component
     public int $sleepSeconds = 1;
 
     /**
-     * @param ShopifyProduct $product
+     * @param ShopifyProduct|ShopifyProduct2410 $product
      * @return void
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      * @since 4.1.0
      */
-    private function _updateProduct(ShopifyProduct $product): void
+    private function _updateProduct(ShopifyProduct|ShopifyProduct2410 $product): void
     {
         $api = Plugin::getInstance()->getApi();
 
@@ -148,12 +154,16 @@ class Products extends Component
     /**
      * This takes the shopify data from the REST API and creates or updates a product element.
      *
-     * @param ShopifyProduct $product
-     * @param ShopifyMetafield[] $metafields
-     * @param ShopifyVariant[] $variants
+     * @param ShopifyProduct|ShopifyProduct2410 $product
+     * @param ShopifyMetafield[]|ShopifyMetafield2410[] $metafields
+     * @param ShopifyVariant[]|ShopifyVariant2410[] $variants
      * @return bool Whether the synchronization succeeded.
+     * @throws \Throwable
+     * @throws ElementNotFoundException
+     * @throws Exception
+     * @throws \yii\db\Exception
      */
-    public function createOrUpdateProduct(ShopifyProduct $product, array $metafields = [], ?array $variants = null): bool
+    public function createOrUpdateProduct(ShopifyProduct|ShopifyProduct2410 $product, array $metafields = [], ?array $variants = null): bool
     {
         // Expand any JSON-like properties:
         $metaFields = MetafieldsHelper::unpack($metafields);
@@ -195,7 +205,6 @@ class Products extends Component
             ->one();
 
         if ($productElement === null) {
-            /** @var ProductElement $productElement */
             $productElement = new ProductElement();
         }
 

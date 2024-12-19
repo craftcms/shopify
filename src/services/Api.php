@@ -14,6 +14,7 @@ use craft\log\MonologTarget;
 use craft\shopify\Plugin;
 use GuzzleHttp\Client;
 use Psr\Http\Client\ClientInterface;
+use Shopify\ApiVersion;
 use Shopify\Auth\FileSessionStorage;
 use Shopify\Auth\Session;
 use Shopify\Clients\HttpClientFactory;
@@ -22,6 +23,9 @@ use Shopify\Context;
 use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
 use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
 use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
+use Shopify\Rest\Admin2024_10\Metafield as ShopifyMetafield2410;
+use Shopify\Rest\Admin2024_10\Product as ShopifyProduct2410;
+use Shopify\Rest\Admin2024_10\Variant as ShopifyVariant2410;
 use Shopify\Rest\Base as ShopifyBaseResource;
 
 /**
@@ -37,6 +41,7 @@ class Api extends Component
 {
     /**
      * @var string
+     * @deprecated in 5.3.0. Use `Settings::getApiVersion()` instead.
      */
     public const SHOPIFY_API_VERSION = '2023-10';
 
@@ -51,14 +56,26 @@ class Api extends Component
     private ?Rest $_client = null;
 
     /**
+     * @return array
+     * @since 5.3.0
+     */
+    public function getSupportedApiVersions(): array
+    {
+        return [
+            ApiVersion::OCTOBER_2024,
+            ApiVersion::OCTOBER_2023,
+        ];
+    }
+
+    /**
      * Retrieve all a shop’s products.
      *
-     * @return ShopifyProduct[]
+     * @return ShopifyProduct[]|ShopifyProduct2410[]
      */
     public function getAllProducts(): array
     {
-        /** @var ShopifyProduct[] $all */
-        $all = $this->getAll(ShopifyProduct::class);
+        /** @var ShopifyProduct[]|ShopifyProduct2410[] $all */
+        $all = $this->getAll($this->getProductClass());
 
         return $all;
     }
@@ -66,11 +83,11 @@ class Api extends Component
     /**
      * Retrieve a single product by its Shopify ID.
      *
-     * @return ShopifyProduct
+     * @return ShopifyProduct|ShopifyProduct2410
      */
-    public function getProductByShopifyId($id): ShopifyProduct
+    public function getProductByShopifyId($id): ShopifyProduct|ShopifyProduct2410
     {
-        return ShopifyProduct::find($this->getSession(), $id);
+        return $this->getProductClass()::find($this->getSession(), $id);
     }
 
     /**
@@ -95,7 +112,7 @@ class Api extends Component
      * Retrieves "metafields" for the provided Shopify product ID.
      *
      * @param int $id Shopify Product ID
-     * @return ShopifyMetafield[]
+     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
      */
     public function getMetafieldsByProductId(int $id): array
     {
@@ -108,7 +125,7 @@ class Api extends Component
 
     /**
      * @param int $id
-     * @return ShopifyMetafield[]
+     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
      * @since 4.1.0
      */
     public function getMetafieldsByVariantId(int $id): array
@@ -123,7 +140,7 @@ class Api extends Component
     /**
      * @param int $id
      * @param string $ownerResource
-     * @return ShopifyMetafield[]
+     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
      * @since 4.1.0
      */
     public function getMetafieldsByIdAndOwnerResource(int $id, string $ownerResource): array
@@ -143,7 +160,8 @@ class Api extends Component
         $return = [];
 
         foreach ($metafields['metafields'] as $metafield) {
-            $return[] = new ShopifyMetafield($this->getSession(), $metafield);
+            $metafieldClass = $this->getMetaFieldClass();
+            $return[] = new $metafieldClass($this->getSession(), $metafield);
         }
 
         return $return;
@@ -160,12 +178,12 @@ class Api extends Component
         $params = ['limit' => 250];
 
         do {
-            $resources = array_merge($resources, ShopifyVariant::all(
+            $resources = array_merge($resources, $this->getVariantClass()::all(
                 $this->getSession(),
                 ['product_id' => $id],
-                ShopifyVariant::$NEXT_PAGE_QUERY ?: $params,
+                $this->getVariantClass()::$NEXT_PAGE_QUERY ?: $params,
             ));
-        } while (ShopifyVariant::$NEXT_PAGE_QUERY);
+        } while ($this->getVariantClass()::$NEXT_PAGE_QUERY);
 
         $variants = [];
         foreach ($resources as $resource) {
@@ -253,7 +271,7 @@ class Api extends Component
                 // Shopify wants a name for the host/environment that is initiating the connection.
                 hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
                 sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
-                apiVersion: self::SHOPIFY_API_VERSION,
+                apiVersion: $pluginSettings->getApiVersion(),
                 isEmbeddedApp: false,
                 logger: $webLogTarget->getLogger(),
             );
@@ -280,5 +298,43 @@ class Api extends Component
         }
 
         return $this->_session;
+    }
+
+    /**
+     * @return string
+     * @since 5.3.0
+     * @phpstan-return class-string<ShopifyProduct|ShopifyProduct2410>
+     */
+    public function getProductClass(): string
+    {
+        return $this->_apiNamespace() . '\Product';
+    }
+
+    /**
+     * @return string
+     * @since 5.3.0
+     * @phpstan-return class-string<ShopifyVariant|ShopifyVariant2410>
+     */
+    public function getVariantClass(): string
+    {
+        return $this->_apiNamespace() . '\Variant';
+    }
+
+    /**
+     * @return string
+     * @since 5.3.0
+     * @phpstan-return class-string<ShopifyMetafield|ShopifyMetafield2410>
+     */
+    public function getMetaFieldClass(): string
+    {
+        return $this->_apiNamespace() . '\Metafield';
+    }
+
+    /**
+     * @return string
+     */
+    private function _apiNamespace(): string
+    {
+        return 'Shopify\Rest\Admin' . str_replace('-', '_', Plugin::getInstance()->getSettings()->getApiVersion());
     }
 }

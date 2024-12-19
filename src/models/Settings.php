@@ -9,8 +9,11 @@ namespace craft\shopify\models;
 
 use Craft;
 use craft\base\Model;
+use craft\helpers\App;
 use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
+use craft\shopify\Plugin;
+use Shopify\ApiVersion;
 
 /**
  * Shopify Settings model.
@@ -27,6 +30,13 @@ class Settings extends Model
     public string $uriFormat = '';
     public string $template = '';
     private mixed $_productFieldLayout;
+
+    /**
+     * @var string The Shopify API version to use.
+     * @see setApiVersion()
+     * @see getApiVersion()
+     */
+    private string $_apiVersion = ApiVersion::OCTOBER_2024;
 
     /**
      * Whether product metafields should be included when syncing products. This adds an extra API request per product.
@@ -47,8 +57,17 @@ class Settings extends Model
     public function rules(): array
     {
         return [
-            [['apiSecretKey', 'apiKey', 'accessToken', 'hostName'], 'required'],
+            [['apiSecretKey', 'apiKey', 'accessToken', 'hostName', 'apiVersion'], 'required'],
+            [['apiVersion'], 'in', 'range' => Plugin::getInstance()->getApi()->getSupportedApiVersions()],
         ];
+    }
+
+    public function attributes()
+    {
+        $names = parent::attributes();
+        $names[] = 'apiVersion';
+
+        return $names;
     }
 
     /**
@@ -59,11 +78,32 @@ class Settings extends Model
         return [
             'apiKey' => Craft::t('shopify', 'Shopify API Key'),
             'apiSecretKey' => Craft::t('shopify', 'Shopify API Secret Key'),
+            'apiVersion' => Craft::t('shopify', 'Shopify API Version'),
             'accessToken' => Craft::t('shopify', 'Shopify Access Token'),
             'hostName' => Craft::t('shopify', 'Shopify Host Name'),
             'uriFormat' => Craft::t('shopify', 'Product URI format'),
             'template' => Craft::t('shopify', 'Product Template'),
         ];
+    }
+
+    /**
+     * @param string $apiVersion
+     * @return void
+     * @since 5.3.0
+     */
+    public function setApiVersion(string $apiVersion): void
+    {
+        $this->_apiVersion = $apiVersion;
+    }
+
+    /**
+     * @param bool $parse
+     * @return string
+     * @since 5.3.0
+     */
+    public function getApiVersion(bool $parse = true): string
+    {
+        return $parse ? App::parseEnv($this->_apiVersion) : $this->_apiVersion;
     }
 
     /**
