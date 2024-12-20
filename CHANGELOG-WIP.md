@@ -1,6 +1,7 @@
 # Release Notes for Shopify 5.3 (WIP)
 
 - It is now possible to set the API version in the plugin settings.
+- Added the `apiVersion` config setting, which determines which version of the Shopify API to use.
 - Added Craft CMS 4 compatibility.
 - Added support for selecting products in Link fields.
 - Syncing products now returns presentment prices by default. ([#122](https://github.com/craftcms/shopify/issues/122))
