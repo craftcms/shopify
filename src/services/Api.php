@@ -200,7 +200,7 @@ class Api extends Component
      */
     public function get($path, array $query = [])
     {
-        $response = $this->getClient()->get($path, [], $query);
+        $response = $this->getClient()->get($path, [], $query, 5);
 
         return $response->getDecodedBody();
     }
