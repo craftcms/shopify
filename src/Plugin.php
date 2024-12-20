@@ -18,6 +18,7 @@ use craft\console\controllers\ResaveController;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\fields\Link;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\services\Fields;
@@ -25,6 +26,7 @@ use craft\services\Utilities;
 use craft\shopify\elements\Product;
 use craft\shopify\fields\Products as ProductsField;
 use craft\shopify\handlers\Product as ProductHandler;
+use craft\shopify\linktypes\Product as ProductLinkType;
 use craft\shopify\models\Settings;
 use craft\shopify\services\Api;
 use craft\shopify\services\Products;
@@ -56,7 +58,7 @@ class Plugin extends BasePlugin
     /**
      * @var string
      */
-    public string $schemaVersion = '5.1.3.0';
+    public string $schemaVersion = '5.3.0.0';
 
     /**
      * @inheritdoc
@@ -113,6 +115,7 @@ class Plugin extends BasePlugin
         $this->_registerElementTypes();
         $this->_registerUtilityTypes();
         $this->_registerFieldTypes();
+        $this->_registerLinkTypes();
         $this->_registerVariables();
         $this->_registerResaveCommands();
 
@@ -181,9 +184,12 @@ class Plugin extends BasePlugin
      */
     private function _registerUtilityTypes(): void
     {
+        /** @phpstan-ignore-next-line */
+        $eventName = defined(Utilities::class . '::EVENT_REGISTER_UTILITIES') ? Utilities::EVENT_REGISTER_UTILITIES : Utilities::EVENT_REGISTER_UTILITY_TYPES;
+
         Event::on(
             Utilities::class,
-            Utilities::EVENT_REGISTER_UTILITIES,
+            $eventName,
             function(RegisterComponentTypesEvent $event) {
                 $event->types[] = Sync::class;
             }
@@ -211,6 +217,22 @@ class Plugin extends BasePlugin
     {
         Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, static function(RegisterComponentTypesEvent $event) {
             $event->types[] = ProductsField::class;
+        });
+    }
+
+    /**
+     * Register Link types
+     *
+     * @since 5.2.0
+     */
+    private function _registerLinkTypes(): void
+    {
+        if (!class_exists(Link::class)) {
+            return;
+        }
+
+        Event::on(Link::class, Link::EVENT_REGISTER_LINK_TYPES, function(RegisterComponentTypesEvent $event) {
+            $event->types[] = ProductLinkType::class;
         });
     }
 

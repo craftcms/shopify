@@ -14,7 +14,7 @@ Build a content-driven storefront by synchronizing [Shopify](https://shopify.com
 
 ## Installation
 
-The Shopify plugin requires Craft CMS 5.0.0 or later.
+Shopify requires Craft CMS 4.3.0+ or 5.0.0+.
 
 To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/shopify) from your Craft project, or follow these instructions.
 
@@ -52,7 +52,7 @@ Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-a
    - `read_product_listings`
    - `read_inventory`
 
-   Additionally (at the bottom of this screen), the **Webhook subscriptions** → **Event version** should be `2023-10`.
+   Additionally (at the bottom of this screen), the **Webhook subscriptions** → **Event version** should be `2024-10`.
 
 3. **Admin API access token**: Reveal and copy this value into your `.env` file, as `SHOPIFY_ADMIN_ACCESS_TOKEN`.
 4. **API key and secret key**: Reveal and/or copy the **API key** and **API secret key** into your `.env` under `SHOPIFY_API_KEY` and `SHOPIFY_API_SECRET_KEY`, respectively.
@@ -69,6 +69,7 @@ Save this value (_without_ the leading `http://` or `https://`) in your `.env` a
 # ...
 
 SHOPIFY_ADMIN_ACCESS_TOKEN="..."
+SHOPIFY_API_VERSION="2024-10"
 SHOPIFY_API_KEY="..."
 SHOPIFY_API_SECRET_KEY="..."
 SHOPIFY_HOSTNAME="my-storefront.myshopify.com"
@@ -80,6 +81,7 @@ Now that you have credentials for your custom app, it’s time to add them to Cr
 
 1. Visit the **Shopify** → **Settings** screen in your project’s control panel.
 2. Assign the four environment variables to the corresponding settings, using the special [config syntax](https://craftcms.com/docs/5.x/config/#control-panel-settings):
+   - **API Version**: `$SHOPIFY_API_VERSION`
    - **API Key**: `$SHOPIFY_API_KEY`
    - **API Secret Key**: `$SHOPIFY_API_SECRET_KEY`
    - **Access Token**: `$SHOPIFY_ACCESS_TOKEN`
@@ -128,10 +130,10 @@ Larger, more complex, stores may run into [rate limiting](#rate-limiting) issues
 
 ### Native Attributes
 
-In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Product resource](https://shopify.dev/api/admin-rest/2023-10/resources/product#resource-object):
+In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Product resource](https://shopify.dev/api/admin-rest/2024-10/resources/product#resource-object):
 
 | Attribute        | Description                                                                                                                                                                                | Type       |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| ---------------- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ---------- |
 | `shopifyId`      | The unique product identifier in your Shopify store.                                                                                                                                       | `String`   |
 | `shopifyStatus`  | The status of the product in your Shopify store. Values can be `active`, `draft`, or `archived`.                                                                                           | `String`   |
 | `handle`         | The product’s “URL handle” in Shopify, equivalent to a “slug” in Craft. For existing products, this is visible under the **Search engine listing** section of the edit screen.             | `String`   |
@@ -141,8 +143,8 @@ In addition to the standard element attributes like `id`, `title`, and `status`,
 | `tags`           | Tags associated with the product in Shopify.                                                                                                                                               | `Array`    |
 | `templateSuffix` | [Liquid template suffix](https://shopify.dev/themes/architecture/templates#name-structure) used for the product page in Shopify.                                                           | `String`   |
 | `vendor`         | Vendor of the product.                                                                                                                                                                     | `String`   |
-| `metaFields`     | [Metafields](https://shopify.dev/api/admin-rest/2023-10/resources/metafield#resource-object) associated with the product.                                                                  | `Array`    |
-| `images`         | Images attached to the product in Shopify. The complete [Product Image resources](https://shopify.dev/api/admin-rest/2023-10/resources/product-image#resource-object) are stored in Craft. | `Array`    |
+| `metaFields`     | [Metafields](https://shopify.dev/api/admin-rest/2024-10/resources/metafield#resource-object) associated with the product.                                                                  | `Array`    |
+| `images`         | Images attached to the product in Shopify. The complete [Product Image resources](https://shopify.dev/api/admin-rest/2024-10/resources/product-image#resource-object) are stored in Craft. | `Array`    |
 | `options`        | Product options, as configured in Shopify. Each option has a `name`, `position`, and an array of `values`.                                                                                 | `Array`    |
 | `createdAt`      | When the product was created in your Shopify store.                                                                                                                                        | `DateTime` |
 | `publishedAt`    | When the product was published in your Shopify store.                                                                                                                                      | `DateTime` |
@@ -151,7 +153,7 @@ In addition to the standard element attributes like `id`, `title`, and `status`,
 All of these properties are available when working with a product element [in your templates](#templating).
 
 > [!NOTE]  
-> See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2023-10/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
+> See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2024-10/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
 
 ### Methods
 
@@ -351,7 +353,7 @@ Filter by the vendor information from Shopify.
 
 #### `images`
 
-Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2023-10/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/system/searching.html#development).
+Images are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. Filtering directly by [image resource](https://shopify.dev/api/admin-rest/2024-10/resources/product-image#resource-object) values can be difficult and unpredictable—you may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/system/searching.html#development).
 
 ```twig
 {# Find products that have an image resource mentioning "stripes": #}
@@ -418,13 +420,13 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
 ### Variants and Pricing
 
 Products don’t have a price, despite what the Shopify UI might imply—instead, every product has at least one
-[Variant](https://shopify.dev/api/admin-rest/2023-10/resources/product-variant#resource-object).
+[Variant](https://shopify.dev/api/admin-rest/2024-10/resources/product-variant#resource-object).
 
 You can get an array of variant objects for a product by calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants, but you can filter them however you like with Craft’s [`collect()`](https://craftcms.com/docs/5.x/reference/twig/functions.html#collect) Twig function.
 
 Unlike products, variants in Craft…
 
-- …are represented as [the API](https://shopify.dev/api/admin-rest/2023-10/resources/product-variant#resource-object) returns them;
+- …are represented as [the API](https://shopify.dev/api/admin-rest/2024-10/resources/product-variant#resource-object) returns them;
 - …the `metafields` property is accessible in addition to the API’s returned properties;
 - …use Shopify’s convention of underscores in property names instead of exposing [camel-cased equivalents](#native-attributes);
 - …are plain associative arrays;

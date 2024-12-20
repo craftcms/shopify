@@ -9,6 +9,7 @@ namespace craft\shopify\helpers;
 
 use craft\helpers\Json;
 use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
+use Shopify\Rest\Admin2024_10\Metafield as ShopifyMetafield2410;
 
 class Metafields
 {
@@ -33,7 +34,7 @@ class Metafields
     /**
      * Unpacks metadata from the Shopify API.
      *
-     * @param ShopifyMetafield[] $fields
+     * @param ShopifyMetafield[]|ShopifyMetafield2410[] $fields
      * @return array
      */
     public static function unpack(array $fields): array
@@ -50,7 +51,7 @@ class Metafields
     /**
      * Turn a metafield API resource into a simple value, based on its type.
      */
-    public static function decode(ShopifyMetafield $field)
+    public static function decode(ShopifyMetafield|ShopifyMetafield2410 $field)
     {
         $value = $field->value;
 

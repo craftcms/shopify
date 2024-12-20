@@ -682,6 +682,29 @@ class Product extends Element
      * @param string $attribute
      * @return string
      * @throws InvalidConfigException
+     * @TODO remove this method when support for Craft 4 is dropped
+     */
+    protected function tableAttributeHtml(string $attribute): string
+    {
+        if (!in_array($attribute, [
+            'shopifyEdit',
+            'shopifyStatus',
+            'shopifyId',
+            'options',
+            'tags',
+            'variants',
+        ])) {
+            /** @phpstan-ignore-next-line */
+            return parent::tableAttributeHtml($attribute);
+        }
+
+        return $this->attributeHtml($attribute);
+    }
+
+    /**
+     * @param string $attribute
+     * @return string
+     * @throws InvalidConfigException
      */
     protected function attributeHtml(string $attribute): string
     {
