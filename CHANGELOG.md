@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 5.3.0 - 2024-12-20
 
 - Shopify now requires Craft CMS 4.3.0+ or 5.0.0+.
 - Added the “API Version” setting. ([#128](https://github.com/craftcms/shopify/issues/128), [#121](https://github.com/craftcms/shopify/issues/121))
