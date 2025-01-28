@@ -1,8 +1,8 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 5.3.1 - 2025-01-28
 
-- Fixed an error that could occur when trying to create webhooks. ([#129](https://github.com/craftcms/shopify/issues/129))
+- Fixed a PHP error that could occur when trying to create webhooks. ([#129](https://github.com/craftcms/shopify/issues/129))
 
 ## 5.3.0 - 2024-12-20
 
