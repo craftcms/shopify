@@ -13,6 +13,7 @@ use craft\shopify\Plugin;
 use craft\web\assets\admintable\AdminTableAsset;
 use craft\web\Controller;
 use Shopify\Rest\Admin2023_10\Webhook;
+use Shopify\Rest\Admin2024_10\Webhook as Webhook2410;
 use Shopify\Webhooks\Registry;
 use Shopify\Webhooks\Topics;
 use yii\web\ConflictHttpException;
@@ -27,6 +28,19 @@ use yii\web\Response as YiiResponse;
 class WebhooksController extends Controller
 {
     /**
+     * @var string
+     * @phpstan-var class-string<Webhook|Webhook2410>
+     */
+    private string $_webhookClass;
+
+    public function init(): void
+    {
+        parent::init();
+
+        $this->_webhookClass = 'Shopify\Rest\Admin' . str_replace('-', '_', Plugin::getInstance()->getSettings()->getApiVersion()) . '\Webhook';
+    }
+
+    /**
      * Edit page for the webhook management
      *
      * @return YiiResponse
@@ -40,7 +54,7 @@ class WebhooksController extends Controller
             throw new ConflictHttpException('No Shopify API session found, check credentials in settings.');
         }
 
-        $webhooks = collect(Webhook::all($session));
+        $webhooks = collect($this->_webhookClass::all($session));
 
         // If we don't have all webhooks needed for the current environment show the create button
 
@@ -126,7 +140,7 @@ class WebhooksController extends Controller
         $id = Craft::$app->getRequest()->getBodyParam('id');
 
         if ($session = Plugin::getInstance()->getApi()->getSession()) {
-            Webhook::delete($session, $id);
+            $this->_webhookClass::delete($session, $id);
             return $this->asSuccess(Craft::t('shopify', 'Webhook deleted'));
         }
 
