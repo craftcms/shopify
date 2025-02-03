@@ -31,14 +31,14 @@
         {% set tableData = tableData|merge([{
             id: webhook.id,
             title: webhook.topic,
-            address: webhook.address
+            callbackUrl: webhook.endpoint.callbackUrl
         }]) %}
     {% endfor %}
 
     {% js %}
         var columns = [
         { name: '__slot:title', title: '{{ 'Topic'|t('shopify') }}' },
-        { name: 'address', title: '{{ 'URL'|t('shopify') }}' }
+        { name: 'callbackUrl', title: '{{ 'URL'|t('shopify') }}' }
         ];
 
         new Craft.VueAdminTable({

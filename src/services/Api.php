@@ -10,23 +10,33 @@ namespace craft\shopify\services;
 use Craft;
 use craft\base\Component;
 use craft\helpers\App;
+use craft\helpers\ArrayHelper;
 use craft\log\MonologTarget;
 use craft\shopify\Plugin;
+use GraphQL\InlineFragment;
+use GraphQL\Mutation;
+use GraphQL\QueryBuilder\QueryBuilder;
+use GraphQL\Variable;
 use GuzzleHttp\Client;
+use Illuminate\Support\Collection;
+use MaxGraphQL\Types\Query;
 use Psr\Http\Client\ClientInterface;
 use Shopify\ApiVersion;
 use Shopify\Auth\FileSessionStorage;
 use Shopify\Auth\Session;
+use Shopify\Clients\Graphql;
 use Shopify\Clients\HttpClientFactory;
 use Shopify\Clients\Rest;
 use Shopify\Context;
+use Shopify\Exception\HttpRequestException;
+use Shopify\Exception\MissingArgumentException;
 use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
 use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
 use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
 use Shopify\Rest\Admin2024_10\Metafield as ShopifyMetafield2410;
 use Shopify\Rest\Admin2024_10\Product as ShopifyProduct2410;
 use Shopify\Rest\Admin2024_10\Variant as ShopifyVariant2410;
-use Shopify\Rest\Base as ShopifyBaseResource;
+use Shopify\Webhooks\Topics;
 
 /**
  * Shopify API service.
@@ -46,14 +56,26 @@ class Api extends Component
     public const SHOPIFY_API_VERSION = '2023-10';
 
     /**
+     * @var string[]
+     * @since 6.0.0
+     */
+    public const WEBHOOK_TOPICS = [
+        Topics::PRODUCTS_CREATE,
+        Topics::PRODUCTS_UPDATE,
+        Topics::PRODUCTS_DELETE,
+        Topics::INVENTORY_LEVELS_UPDATE,
+        Topics::BULK_OPERATIONS_FINISH,
+    ];
+
+    /**
      * @var Session|null
      */
     private ?Session $_session = null;
 
     /**
-     * @var Rest|null
+     * @var Graphql|null
      */
-    private ?Rest $_client = null;
+    private ?Graphql $_client = null;
 
     /**
      * @return array
@@ -68,16 +90,241 @@ class Api extends Component
     }
 
     /**
+     * @since 6.0.0
+     */
+    public function getProductGql(): \GraphQL\Query
+    {
+        $fields = collect([
+            'edges' => [
+                'node' => [
+                    'descriptionHtml',
+                    'createdAt',
+                    'handle',
+                    'id',
+                    'media' => [
+                        'edges' => [
+                            'node' => [
+                                'mediaContentType',
+                                'id',
+                                '... on MediaImage' => [
+                                    'createdAt',
+                                    'updatedAt',
+                                    'image' => [
+                                        'altText',
+                                        'height',
+                                        'width',
+                                        'url',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                    'productType',
+                    'publishedAt',
+                    'status',
+                    'tags',
+                    'templateSuffix',
+                    'title',
+                    'totalInventory',
+                    'updatedAt',
+                    'variants' => [
+                        'edges' => [
+                            'node' => [
+                                'id',
+                                'barcode',
+                                'compareAtPrice',
+                                'createdAt',
+                                'price',
+                                'sku',
+                                'taxable',
+                                'updatedAt',
+                                'inventoryItem' => [
+                                    'id',
+                                ],
+                                'inventoryQuantity',
+                            ],
+                        ],
+                    ],
+                    'vendor',
+                ],
+            ]
+        ]);
+
+        $builder = (new QueryBuilder('products'));
+
+        foreach ($fields as $key => $value) {
+            $this->_getBuilderValue($key, $value, $builder);
+        }
+
+        return $builder->getQuery();
+    }
+
+    private function _getBuilderValue($key, $value, QueryBuilder $builderQuery)
+    {
+        if (is_array($value)) {
+            $subQueryBuilder = (new QueryBuilder($key));
+            foreach ($value as $k => $v) {
+                $this->_getBuilderValue($k, $v, $subQueryBuilder);
+            }
+
+            $value = $subQueryBuilder->getQuery();
+        }
+
+        $builderQuery->selectField($value);
+    }
+
+    /**
      * Retrieve all a shop’s products.
      *
      * @return ShopifyProduct[]|ShopifyProduct2410[]
      */
-    public function getAllProducts(): array
+    public function createProductsBulkOperation(): mixed
     {
-        /** @var ShopifyProduct[]|ShopifyProduct2410[] $all */
-        $all = $this->getAll($this->getProductClass());
+        $mutation = (new Mutation('bulkOperationRunQuery'))
+            ->setOperationName('bulkOperationRunQuery')
+            ->setVariables([new Variable('query', 'String!')])
+            ->setArguments(['query' => '$query'])
+            ->setSelectionSet([
+                (new \GraphQL\Query('bulkOperation'))
+                    ->setSelectionSet([
+                        'id',
+                        'status',
+                        'type',
+                    ]),
+                (new \GraphQL\Query('userErrors'))
+                    ->setSelectionSet([
+                        'field',
+                        'message',
+                    ]),
+            ]);
 
-        return $all;
+        return $this->query($mutation, ['query' => (string)$this->getProductGql()]);
+    }
+
+    /**
+     * Run a Shopify GraphQL query.
+     *
+     * @param \GraphQL\Query $query
+     * @param array|null $variables
+     * @return mixed
+     */
+    public function query(\GraphQL\Query $query, ?array $variables = null): mixed
+    {
+        $data = ['query' => (string)$query];
+        if ($variables) {
+            $data['variables'] = $variables;
+        }
+
+        try {
+            $response = $this->getClient()->query($data);
+            $body = $response->getDecodedBody();
+
+            if (!isset($body['data'])) {
+                throw new \Exception('No data returned from GraphQL query.');
+            }
+
+            $data = $body['data'];
+            $data = ArrayHelper::firstValue($data);
+            if (!empty($data['userErrors'])) {
+                throw new \Exception($data['userErrors'][0]['message']);
+            }
+
+            return $data;
+        } catch (\Exception $e) {
+            Craft::error('Could not run GraphQL query: ' . $e->getMessage(), __METHOD__);
+
+            return false;
+        }
+    }
+
+    /**
+     * Iteratively retrieves a paginated collection of API resources.
+     *
+     * @param Query $query
+     * @return Collection
+     */
+    public function getAll(\GraphQL\Query $query, ?array $variables = null): Collection
+    {
+        $return = [];
+        $hasNextPage = true;
+
+        do {
+            $data = ['query' => $query->__toString()];
+            if ($variables) {
+                $data['variables'] = $variables;
+            }
+
+            $response = $this->getClient()->query($data);
+            $body = $response->getDecodedBody();
+
+            if (!$body || !isset($body['data'])) {
+                if (isset($body['errors'])) {
+                    throw new \Exception($body['errors'][0]['message']);
+                }
+
+                $hasNextPage = false;
+                continue;
+            }
+
+            $data = $body['data'];
+            $data = ArrayHelper::firstValue($data);
+
+            if (in_array('edges', array_keys($data))) {
+                $data = $data['edges'];
+            } elseif (in_array('nodes', array_keys($data))) {
+                $data = $data['nodes'];
+            }
+
+            $return = array_merge($return, $data);
+
+            if (!isset($data['pageInfo']) || !isset($data['pageInfo']['hasNextPage'])) {
+                $hasNextPage = false;
+                continue;
+            }
+
+            $hasNextPage = $data['pageInfo']['hasNextPage'];
+            if ($hasNextPage) {
+                $arguments = $query->getArguments();
+                $arguments['after'] = $data['pageInfo']['endCursor'];
+                $query->addArguments($arguments);
+            }
+        } while ($hasNextPage);
+
+        return collect($return);
+    }
+
+    public function handleBulkOperationFinished(array $data): void
+    {
+        if (!isset($data['admin_graphql_api_id']) || !isset($data['status']) || $data['status'] !== 'completed') {
+            return;
+        }
+
+        $query = (new \GraphQL\Query('node'))
+            ->setArguments(['id' => $data['admin_graphql_api_id']])
+            ->setSelectionSet([
+                (new InlineFragment('BulkOperation'))
+                    ->setSelectionSet([
+                        'url',
+                        'partialDataUrl',
+                        'objectCount',
+                    ]),
+            ]);
+
+
+        try {
+            $response = $this->getClient()->query(['query' => (string)$query]);
+            $body = $response->getDecodedBody();
+
+            if (!isset($body['data']['node'])) {
+                return;
+            }
+
+            // Store the data from the `$body['data']['url'] and start the queue job to process it
+
+
+        } catch (\Exception $e) {
+            Craft::error('Could not get bulk operation data: ' . $e->getMessage(), __METHOD__);
+        }
     }
 
     /**
@@ -206,40 +453,16 @@ class Api extends Component
     }
 
     /**
-     * Iteratively retrieves a paginated collection of API resources.
-     *
-     * @param string $type Stripe API resource class
-     * @param array $params
-     * @return ShopifyBaseResource[]
-     */
-    public function getAll(string $type, array $params = []): array
-    {
-        $resources = [];
-
-        // Force maximum page size:
-        $params['limit'] = 250;
-
-        do {
-            $resources = array_merge($resources, $type::all(
-                $this->getSession(),
-                [],
-                $type::$NEXT_PAGE_QUERY ?: $params,
-            ));
-        } while ($type::$NEXT_PAGE_QUERY);
-
-        return $resources;
-    }
-
-    /**
      * Returns or sets up a Rest API client.
      *
-     * @return Rest
+     * @return Graphql
+     * @throws MissingArgumentException
      */
-    public function getClient(): Rest
+    public function getClient(): Graphql
     {
         if ($this->_client === null) {
             $session = $this->getSession();
-            $this->_client = new Rest($session->getShop(), $session->getAccessToken());
+            $this->_client = new Graphql($session->getShop(), $session->getAccessToken());
         }
 
         return $this->_client;
@@ -298,6 +521,33 @@ class Api extends Component
         }
 
         return $this->_session;
+    }
+
+    /**
+     * @return Collection
+     * @throws \Exception
+     * @since 6.0.0
+     */
+    public function getWebhooks(): Collection
+    {
+        $query = (new \GraphQL\Query('webhookSubscriptions'))
+            ->setArguments(['first' => 100])
+            ->setSelectionSet([
+                (new \GraphQL\Query('nodes'))
+                    ->setSelectionSet([
+                        'id',
+                        'topic',
+                        (new \GraphQL\Query('endpoint'))
+                            ->setSelectionSet([
+                                (new InlineFragment('WebhookHttpEndpoint'))
+                                    ->setSelectionSet([
+                                        'callbackUrl'
+                                    ]),
+                            ]),
+                    ])
+            ]);
+
+        return $this->getAll($query);
     }
 
     /**

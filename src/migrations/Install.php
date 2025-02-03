@@ -66,6 +66,18 @@ class Install extends Migration
             'uid' => $this->string(),
             'PRIMARY KEY([[shopifyId]])',
         ]);
+
+        $this->archiveTableIfExists(Table::DATA);
+        $this->createTable(Table::DATA, [
+            'shopifyId' => $this->string(),
+            'type' => $this->string(),
+            'data' => $this->json(),
+            'parentId' => $this->string(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+            'PRIMARY KEY([[shopifyId]])',
+        ]);
     }
 
     /**
@@ -74,6 +86,8 @@ class Install extends Migration
     public function createIndexes(): void
     {
         $this->createIndex(null, Table::PRODUCTDATA, ['shopifyId'], true);
+        $this->createIndex(null, Table::DATA, ['shopifyId'], true);
+        $this->createIndex(null, Table::DATA, ['parentId'], false);
     }
 
     /**
@@ -81,7 +95,7 @@ class Install extends Migration
      */
     public function addForeignKeys(): void
     {
-        $this->addForeignKey(null, Table::PRODUCTS, ['shopifyId'], Table::PRODUCTDATA, ['shopifyId'], 'CASCADE', 'CASCADE');
+        $this->addForeignKey(null, Table::PRODUCTS, ['shopifyId'], Table::DATA, ['shopifyId'], null, null);
         $this->addForeignKey(null, Table::PRODUCTS, ['id'], CraftTable::ELEMENTS, ['id'], 'CASCADE', 'CASCADE');
     }
 

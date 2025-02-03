@@ -26,6 +26,9 @@ class Product implements Handler
             case Topics::INVENTORY_ITEMS_UPDATE:
                 Plugin::getInstance()->getProducts()->syncProductByInventoryItemId($body['inventory_item_id']);
                 break;
+            case Topics::BULK_OPERATIONS_FINISH:
+                Plugin::getInstance()->getApi()->handleBulkOperationFinished($body);
+                break;
         }
     }
 }

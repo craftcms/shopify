@@ -61,18 +61,14 @@ class SyncController extends Controller
     private function _syncProducts(): void
     {
         $this->stdout('Syncing Shopify products…' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
-        // start timer
-        $start = microtime(true);
 
-        $originalThrottle = Plugin::getInstance()->getProducts()->throttle;
-        Plugin::getInstance()->getProducts()->throttle = $this->throttle;
+        $result = Plugin::getInstance()->getApi()->createProductsBulkOperation();
 
-        Plugin::getInstance()->getProducts()->syncAllProducts();
+        if ($result === false) {
+            $this->stderr('Failed to create a bulk operation.' . PHP_EOL, Console::FG_RED);
+            return;
+        }
 
-        Plugin::getInstance()->getProducts()->throttle = $originalThrottle;
-
-        // end timer
-        $time = microtime(true) - $start;
-        $this->stdout('Finished syncing ' . Product::find()->count() . ' product(s) in ' . round($time, 2) . 's' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
+        $this->stdout('Shopify products sync requested ' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
     }
 }

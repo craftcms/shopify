@@ -107,18 +107,18 @@ class Products extends Component
     {
         $api = Plugin::getInstance()->getApi();
         $products = $api->getAllProducts();
-
-        foreach ($products as $product) {
-            $this->_updateProduct($product);
-        }
-
-        // Remove any products that are no longer in Shopify just in case.
-        $shopifyIds = ArrayHelper::getColumn($products, 'id');
-        $deletableProductElements = ProductElement::find()->shopifyId(['not', $shopifyIds])->all();
-
-        foreach ($deletableProductElements as $element) {
-            Craft::$app->elements->deleteElement($element);
-        }
+        //
+        // foreach ($products as $product) {
+        //     $this->_updateProduct($product);
+        // }
+        //
+        // // Remove any products that are no longer in Shopify just in case.
+        // $shopifyIds = ArrayHelper::getColumn($products, 'id');
+        // $deletableProductElements = ProductElement::find()->shopifyId(['not', $shopifyIds])->all();
+        //
+        // foreach ($deletableProductElements as $element) {
+        //     Craft::$app->elements->deleteElement($element);
+        // }
     }
 
     /**

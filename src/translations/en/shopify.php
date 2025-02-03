@@ -14,8 +14,11 @@
  * @since     0.0.1
  */
 return [
+    'Failed to create products sync' => 'Failed to create products sync',
+    'Processing bulk operation data' => 'Processing bulk operation data',
     'Product Template' => 'Product Template',
     'Product URI format' => 'Product URI format',
+    'Products sync created' => 'Products sync created',
     'Shopify API Key' => 'Shopify API Key',
     'Shopify API Secret Key' => 'Shopify API Secret Key',
     'Shopify API Version' => 'Shopify API Version',

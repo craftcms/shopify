@@ -15,6 +15,7 @@ namespace craft\shopify\db;
  */
 abstract class Table
 {
+    public const DATA = '{{%shopify_data}}';
     public const PRODUCTDATA = '{{%shopify_productdata}}';
     public const PRODUCTS = '{{%shopify_products}}';
 }

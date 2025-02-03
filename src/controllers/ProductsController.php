@@ -41,12 +41,17 @@ class ProductsController extends \craft\web\Controller
     /**
      * Syncs all products
      *
-     * @return Response
+     * @return Response|null
      */
-    public function actionSync(): Response
+    public function actionSync(): ?Response
     {
-        Plugin::getInstance()->getProducts()->syncAllProducts();
-        return $this->asSuccess(Craft::t('shopify', 'Products successfully synced'));
+        $result = Plugin::getInstance()->getApi()->createProductsBulkOperation();
+
+        if ($result === false) {
+            return $this->asFailure(Craft::t('shopify', 'Failed to create products sync'));
+        }
+
+        return $this->asSuccess(Craft::t('shopify', 'Products sync created'));
     }
 
     /**

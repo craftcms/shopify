@@ -8,13 +8,12 @@
 namespace craft\shopify\controllers;
 
 use Craft;
-use craft\helpers\App;
 use craft\shopify\Plugin;
 use craft\web\assets\admintable\AdminTableAsset;
 use craft\web\Controller;
-use Shopify\Rest\Admin2023_10\Webhook;
-use Shopify\Webhooks\Registry;
-use Shopify\Webhooks\Topics;
+use GraphQL\InlineFragment;
+use GraphQL\Query;
+use GraphQL\Variable;
 use yii\web\ConflictHttpException;
 use yii\web\Response as YiiResponse;
 
@@ -35,30 +34,18 @@ class WebhooksController extends Controller
     {
         $view = $this->getView();
         $view->registerAssetBundle(AdminTableAsset::class);
+        $api = Plugin::getInstance()->getApi();
 
-        if (!$session = Plugin::getInstance()->getApi()->getSession()) {
+        if (!$session = $api->getSession()) {
             throw new ConflictHttpException('No Shopify API session found, check credentials in settings.');
         }
 
-        $webhooks = collect(Webhook::all($session));
+        $webhooks = $api->getWebhooks();
 
         // If we don't have all webhooks needed for the current environment show the create button
-
-        $containsAllWebhooks = (
-            $webhooks->contains(function($item) {
-                return str_contains($item->address, Craft::$app->getRequest()->getHostName()) && $item->topic === 'products/create';
-            }) &&
-            $webhooks->contains(function($item) {
-                return str_contains($item->address, Craft::$app->getRequest()->getHostName()) && $item->topic === 'products/delete';
-            }) &&
-            $webhooks->contains(function($item) {
-                return str_contains($item->address, Craft::$app->getRequest()->getHostName()) && $item->topic === 'products/update';
-            }) &&
-            $webhooks->contains(function($item) {
-                return str_contains($item->address, Craft::$app->getRequest()->getHostName()) && $item->topic === 'inventory_levels/update';
-            })
-        );
-
+        $containsAllWebhooks = $webhooks->filter(function($item) use ($api) {
+                return in_array($item['topic'], $api::WEBHOOK_TOPICS) && $item['endpoint']['callbackUrl'] == Plugin::getInstance()->getSettings()->getWebhookUrl();
+            })->count() === count($api::WEBHOOK_TOPICS);
 
         return $this->renderTemplate('shopify/webhooks/index', compact('webhooks', 'containsAllWebhooks'));
     }
@@ -74,44 +61,83 @@ class WebhooksController extends Controller
 
         $view = $this->getView();
         $view->registerAssetBundle(AdminTableAsset::class);
+        $api = Plugin::getInstance()->getApi();
 
-        $pluginSettings = Plugin::getInstance()->getSettings();
-
-        if (!$session = Plugin::getInstance()->getApi()->getSession()) {
+        if (!$session = $api->getSession()) {
             throw new ConflictHttpException('No Shopify API session found, check credentials in settings.');
         }
 
-        $responseCreate = Registry::register(
-            path: 'shopify/webhook/handle',
-            topic: Topics::PRODUCTS_CREATE,
-            shop: App::parseEnv($pluginSettings->hostName),
-            accessToken: App::parseEnv($pluginSettings->accessToken)
-        );
-        $responseUpdate = Registry::register(
-            path: 'shopify/webhook/handle',
-            topic: Topics::PRODUCTS_UPDATE,
-            shop: App::parseEnv($pluginSettings->hostName),
-            accessToken: App::parseEnv($pluginSettings->accessToken)
-        );
-        $responseDelete = Registry::register(
-            path: 'shopify/webhook/handle',
-            topic: Topics::PRODUCTS_DELETE,
-            shop: App::parseEnv($pluginSettings->hostName),
-            accessToken: App::parseEnv($pluginSettings->accessToken)
-        );
+        $webhooks = $api->getWebhooks();
+        $errors = [];
 
-        $responseInventoryUpdate = Registry::register(
-            path: 'shopify/webhook/handle',
-            topic: Topics::INVENTORY_LEVELS_UPDATE,
-            shop: App::parseEnv($pluginSettings->hostName),
-            accessToken: App::parseEnv($pluginSettings->accessToken)
-        );
+        // If we don't have all the webhooks loop through the topics and create them if they don't exist
+        foreach ($api::WEBHOOK_TOPICS as $topic) {
+            // If the webhook already exists skip
+            if ($webhooks->filter(function($item) use ($topic) {
+                return $item['topic'] === $topic && $item['endpoint']['callbackUrl'] == Plugin::getInstance()->getSettings()->getWebhookUrl();
+            })->count() > 0) {
+                continue;
+            }
 
-        if (!$responseCreate->isSuccess() || !$responseUpdate->isSuccess() || !$responseDelete->isSuccess() || !$responseInventoryUpdate->isSuccess()) {
-            Craft::error('Could not register webhooks with Shopify API.', __METHOD__);
+            $query = (new \GraphQL\Mutation('webhookSubscriptionCreate'))
+                ->setOperationName('webhookSubscriptionCreate')
+                ->setVariables([
+                    new Variable('topic', 'WebhookSubscriptionTopic!'),
+                    new Variable('webhookSubscription', 'WebhookSubscriptionInput!'),
+                ])
+                ->setArguments([
+                    'topic' => '$topic',
+                    'webhookSubscription' => '$webhookSubscription',
+                ])
+                ->setSelectionSet([
+                    (new Query('webhookSubscription'))
+                        ->setSelectionSet([
+                            'id',
+                            'topic',
+                            'format',
+                            (new Query('endpoint'))
+                                ->setSelectionSet([
+                                    '__typename',
+                                    (new InlineFragment('WebhookHttpEndpoint'))
+                                        ->setSelectionSet([
+                                            'callbackUrl',
+                                        ])
+                                ])
+                        ]),
+                    (new Query('userErrors'))
+                        ->setSelectionSet([
+                            'field',
+                            'message',
+                        ]),
+                ]);
+
+            $variables = [
+                'topic' => $topic,
+                'webhookSubscription' => [
+                    'format' => 'JSON',
+                    'callbackUrl' => Plugin::getInstance()->getSettings()->getWebhookUrl(),
+                ],
+            ];
+
+            try {
+                $response = $api->getClient()->query(['query' => $query->__toString(), 'variables' => $variables]);
+                $body = $response->getDecodedBody();
+
+                if (array_key_exists('errors', $body)) {
+                    throw new \Exception($body['errors'][0]['message']);
+                }
+            } catch (\Exception $e) {
+                Craft::error('Could not register webhooks with Shopify API: ' . $e->getMessage(), __METHOD__);
+                $errors[] = $e->getMessage();
+            }
         }
 
-        $this->setSuccessFlash(Craft::t('app', 'Webhooks registered.'));
+        if (!empty($errors)) {
+            $this->setFailFlash(Craft::t('app', 'Webhooks could not be registered.'));
+        } else {
+            $this->setSuccessFlash(Craft::t('app', 'Webhooks registered.'));
+        }
+
         return $this->redirectToPostedUrl();
     }
 
@@ -126,8 +152,37 @@ class WebhooksController extends Controller
         $id = Craft::$app->getRequest()->getBodyParam('id');
 
         if ($session = Plugin::getInstance()->getApi()->getSession()) {
-            Webhook::delete($session, $id);
-            return $this->asSuccess(Craft::t('shopify', 'Webhook deleted'));
+            $mutation = (new \GraphQL\Mutation('webhookSubscriptionDelete'))
+                ->setOperationName('webhookSubscriptionDelete')
+                ->setVariables([
+                    new Variable('id', 'ID!'),
+                ])
+                ->setArguments([
+                    'id' => '$id',
+                ])
+                ->setSelectionSet([
+                    (new Query('userErrors'))
+                        ->setSelectionSet([
+                            'field',
+                            'message',
+                        ]),
+                    'deletedWebhookSubscriptionId',
+                ]);
+
+            try {
+                Plugin::getInstance()->getApi()->getClient()->query([
+                    'query' => $mutation->__toString(),
+                    'variables' => [
+                        'id' => $id,
+                    ],
+                ]);
+
+                return $this->asSuccess(Craft::t('shopify', 'Webhook deleted'));
+            } catch (\Exception $e) {
+                Craft::error('Could not delete webhook with Shopify API: ' . $e->getMessage(), __METHOD__);
+
+                return $this->asFailure(Craft::t('shopify', 'Webhook could not be deleted'));
+            }
         }
 
         return $this->asSuccess(Craft::t('shopify', 'Webhook could not be deleted'));
