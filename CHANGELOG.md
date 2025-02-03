@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## 5.3.1 - 2025-01-28
+
+- Fixed a PHP error that could occur when trying to create webhooks. ([#129](https://github.com/craftcms/shopify/issues/129))
+
 ## 5.3.0 - 2024-12-20
 
 - Shopify now requires Craft CMS 4.3.0+ or 5.0.0+.
