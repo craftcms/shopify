@@ -3,8 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - '5.x'
-      - '5.3'
+      - '6.x'
   pull_request:
 permissions:
   contents: read
