@@ -225,7 +225,7 @@ For your administrators, you can even link directly to the Shopify admin:
 
 ### Custom Fields
 
-Products synchronized from Shopify have a dedicated field layout, which means they support Craft’s full array of [content tools](https://craftcms.com/docs/5.x/fields.html).
+Products synchronized from Shopify have a dedicated field layout, which means they support Craft’s full array of [content tools](https://craftcms.com/docs/5.x/system/fields.html).
 
 The product field layout can be edited by going to **Shopify** → **Settings** → **Products**, and scrolling down to **Field Layout**.
 
