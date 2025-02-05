@@ -18,12 +18,14 @@ use craft\console\controllers\ResaveController;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\feedme\events\RegisterFeedMeFieldsEvent;
 use craft\fields\Link;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Utilities;
 use craft\shopify\elements\Product;
+use craft\shopify\feedme\fields\Products as FeedMeProductsField;
 use craft\shopify\fields\Products as ProductsField;
 use craft\shopify\handlers\Product as ProductHandler;
 use craft\shopify\linktypes\Product as ProductLinkType;
@@ -118,6 +120,7 @@ class Plugin extends BasePlugin
         $this->_registerLinkTypes();
         $this->_registerVariables();
         $this->_registerResaveCommands();
+        $this->_registerFeedMeEvents();
 
         if (!$request->getIsConsoleRequest()) {
             if ($request->getIsCpRequest()) {
@@ -175,6 +178,16 @@ class Plugin extends BasePlugin
     public function getStore(): Store
     {
         return $this->get('store');
+    }
+
+    /**
+     * @return void
+     */
+    private function _registerFeedMeEvents(): void
+    {
+        Event::on(\craft\feedme\services\Fields::class, \craft\feedme\services\Fields::EVENT_REGISTER_FEED_ME_FIELDS, function(RegisterFeedMeFieldsEvent $event) {
+            $event->fields[] = FeedMeProductsField::class;
+        });
     }
 
     /**
