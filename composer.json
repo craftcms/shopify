@@ -25,7 +25,7 @@
     "shopify/shopify-api": "^5.2.0"
   },
   "require-dev": {
-    "craftcms/feed-me": "^5.9.0||^6.6.1",
+    "craftcms/feed-me": "^6.6.1||^5.9.0",
     "craftcms/ecs": "dev-main",
     "craftcms/phpstan": "dev-main",
     "craftcms/rector": "dev-main",
