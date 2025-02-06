@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- It is now possible to associate Shopify products with elements when importing data in Feed Me. ([#116](https://github.com/craftcms/shopify/issues/116))
+- It is now possible to associate Shopify products with elements imported in Feed Me. ([#116](https://github.com/craftcms/shopify/issues/116))
 - Added `craft\shopify\feedme\fields\Products`.
 
 ## 5.3.1 - 2025-01-28
