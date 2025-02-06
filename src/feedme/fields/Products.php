@@ -9,14 +9,13 @@ namespace craft\shopify\feedme\fields;
 
 use Cake\Utility\Hash;
 use Craft;
-use craft\shopify\elements\Product as ProductElement;
-use craft\shopify\fields\Products as ProductsField;
 use craft\feedme\base\Field;
 use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
 use craft\feedme\Plugin;
-use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\shopify\elements\Product as ProductElement;
+use craft\shopify\fields\Products as ProductsField;
 
 /**
  *
