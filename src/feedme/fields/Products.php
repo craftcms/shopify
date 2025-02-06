@@ -103,7 +103,8 @@ class Products extends Field implements FieldInterface
             $columnName = $match;
 
             if (Craft::$app->getFields()->getFieldByHandle($match)) {
-                $columnName = Craft::$app->getFields()->oldFieldColumnPrefix . $match;
+                $prefix = property_exists(Craft::$app->getFields(), 'oldFieldColumnPrefix') ? Craft::$app->getFields()->oldFieldColumnPrefix : '';
+                $columnName = $prefix . $match;
             }
 
             $query = ProductElement::find();
