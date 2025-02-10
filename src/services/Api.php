@@ -28,7 +28,6 @@ use Shopify\Clients\Graphql;
 use Shopify\Clients\HttpClientFactory;
 use Shopify\Clients\Rest;
 use Shopify\Context;
-use Shopify\Exception\HttpRequestException;
 use Shopify\Exception\MissingArgumentException;
 use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
 use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
