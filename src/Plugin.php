@@ -185,6 +185,11 @@ class Plugin extends BasePlugin
      */
     private function _registerFeedMeEvents(): void
     {
+        $feedMePlugin = Craft::$app->getPlugins()->getPlugin('feed-me');
+        if (!class_exists(\craft\feedme\services\Fields::class) || !$feedMePlugin) {
+            return;
+        }
+
         Event::on(\craft\feedme\services\Fields::class, \craft\feedme\services\Fields::EVENT_REGISTER_FEED_ME_FIELDS, function(RegisterFeedMeFieldsEvent $event) {
             $event->fields[] = FeedMeProductsField::class;
         });
