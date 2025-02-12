@@ -126,13 +126,9 @@ class Products extends Component
      * @throws \Throwable
      * @throws \yii\base\InvalidConfigException
      */
-    public function syncProductByShopifyId($id): void
+    public function syncProductByShopifyId(string $id): void
     {
-        $api = Plugin::getInstance()->getApi();
-
-        $product = $api->getProductByShopifyId($id);
-
-        $this->_updateProduct($product);
+        Plugin::getInstance()->getBulkOperations()->createBulkOperation((string)Plugin::getInstance()->getApi()->getProductGql($id));
     }
 
     /**

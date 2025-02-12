@@ -151,40 +151,11 @@ class WebhooksController extends Controller
         $this->requireAcceptsJson();
         $id = Craft::$app->getRequest()->getBodyParam('id');
 
-        if ($session = Plugin::getInstance()->getApi()->getSession()) {
-            $mutation = (new \GraphQL\Mutation('webhookSubscriptionDelete'))
-                ->setOperationName('webhookSubscriptionDelete')
-                ->setVariables([
-                    new Variable('id', 'ID!'),
-                ])
-                ->setArguments([
-                    'id' => '$id',
-                ])
-                ->setSelectionSet([
-                    (new Query('userErrors'))
-                        ->setSelectionSet([
-                            'field',
-                            'message',
-                        ]),
-                    'deletedWebhookSubscriptionId',
-                ]);
-
-            try {
-                Plugin::getInstance()->getApi()->getClient()->query([
-                    'query' => $mutation->__toString(),
-                    'variables' => [
-                        'id' => $id,
-                    ],
-                ]);
-
-                return $this->asSuccess(Craft::t('shopify', 'Webhook deleted'));
-            } catch (\Exception $e) {
-                Craft::error('Could not delete webhook with Shopify API: ' . $e->getMessage(), __METHOD__);
-
-                return $this->asFailure(Craft::t('shopify', 'Webhook could not be deleted'));
-            }
+        $error = null;
+        if (Plugin::getInstance()->getApi()->deleteWebhookById($id, $error)) {
+            return $this->asSuccess(Craft::t('shopify', 'Webhook deleted'));
         }
 
-        return $this->asSuccess(Craft::t('shopify', 'Webhook could not be deleted'));
+        return $this->asFailure($error);
     }
 }

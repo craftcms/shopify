@@ -7,6 +7,7 @@ use craft\db\Table as CraftTable;
 use craft\helpers\MigrationHelper;
 use craft\shopify\db\Table;
 use craft\shopify\elements\Product as ProductElement;
+use craft\shopify\records\BulkOperation;
 use ReflectionClass;
 use yii\base\NotSupportedException;
 
@@ -36,6 +37,7 @@ class Install extends Migration
         $this->createTable(Table::PRODUCTS, [
             'id' => $this->integer()->notNull(),
             'shopifyId' => $this->string(),
+            'shopifyGid' => $this->string(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -78,6 +80,62 @@ class Install extends Migration
             'uid' => $this->uid(),
             'PRIMARY KEY([[shopifyId]])',
         ]);
+
+        $this->archiveTableIfExists(Table::BULK_OPERATIONS);
+        $this->createTable(Table::BULK_OPERATIONS, [
+            'id' => $this->primaryKey(),
+            'shopifyId' => $this->string(),
+            'url' => $this->text(),
+            'objectCount' => $this->integer(),
+            'query' => $this->text(),
+            'status' => $this->enum('status', [BulkOperation::STATUS_QUEUED, BulkOperation::STATUS_CREATED, BulkOperation::STATUS_PROCESSING, BulkOperation::STATUS_COMPLETED])->notNull()->defaultValue(BulkOperation::STATUS_QUEUED),
+            'shopifyStatus' => $this->string(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->createGeneratedColumns();
+    }
+
+    /**
+     * @return void
+     * @since 6.0.0
+     */
+    public function createGeneratedColumns(): void
+    {
+        $db = \Craft::$app->getDb();
+        $qb = $db->getQueryBuilder();
+
+        $varcharColumns = [
+            'createdAt' => 'createdAt',
+            'handle' => 'handle',
+            'productType' => 'productType',
+            'publishedScope' => 'publishedScope',
+            'publishedAt' => 'publishedAt',
+            'status' => 'shopifyStatus',
+            'templateSuffix' => 'templateSuffix',
+            'title' => 'title',
+            'updatedAt' => 'updatedAt',
+            'vendor' => 'vendor',
+        ];
+
+        foreach ($varcharColumns as $col => $alias) {
+            $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
+                $db->quoteColumnName($alias) .  " " . $qb->getColumnType($this->string()) . " GENERATED ALWAYS AS (" .
+                $qb->jsonExtract('data', [$col]) . ") STORED;");
+        }
+
+        $textColumns = [
+            'tags' => 'tags',
+            'options' => 'options',
+        ];
+
+        foreach ($textColumns as $col => $alias) {
+            $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
+                $db->quoteColumnName($alias) .  ' ' . $qb->getColumnType($this->text()) . " GENERATED ALWAYS AS (" .
+                $qb->jsonExtract('data', [$col]) . ") STORED;");
+        }
     }
 
     /**
@@ -85,6 +143,8 @@ class Install extends Migration
      */
     public function createIndexes(): void
     {
+        $this->createIndex(null, Table::PRODUCTS, ['shopifyId'], true);
+        $this->createIndex(null, Table::PRODUCTS, ['shopifyGid'], true);
         $this->createIndex(null, Table::PRODUCTDATA, ['shopifyId'], true);
         $this->createIndex(null, Table::DATA, ['shopifyId'], true);
         $this->createIndex(null, Table::DATA, ['parentId'], false);
@@ -95,7 +155,7 @@ class Install extends Migration
      */
     public function addForeignKeys(): void
     {
-        $this->addForeignKey(null, Table::PRODUCTS, ['shopifyId'], Table::DATA, ['shopifyId'], null, null);
+        $this->addForeignKey(null, Table::PRODUCTS, ['shopifyGid'], Table::DATA, ['shopifyId'], null, null);
         $this->addForeignKey(null, Table::PRODUCTS, ['id'], CraftTable::ELEMENTS, ['id'], 'CASCADE', 'CASCADE');
     }
 

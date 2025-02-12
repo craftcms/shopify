@@ -31,6 +31,7 @@ use craft\shopify\handlers\Product as ProductHandler;
 use craft\shopify\linktypes\Product as ProductLinkType;
 use craft\shopify\models\Settings;
 use craft\shopify\services\Api;
+use craft\shopify\services\BulkOperations;
 use craft\shopify\services\Products;
 use craft\shopify\services\Store;
 use craft\shopify\utilities\Sync;
@@ -60,7 +61,7 @@ class Plugin extends BasePlugin
     /**
      * @var string
      */
-    public string $schemaVersion = '6.0.0.1';
+    public string $schemaVersion = '6.0.0.4';
 
     /**
      * @inheritdoc
@@ -85,6 +86,7 @@ class Plugin extends BasePlugin
         return [
             'components' => [
                 'api' => ['class' => Api::class],
+                'bulkOperations' => ['class' => BulkOperations::class],
                 'products' => ['class' => Products::class],
                 'store' => ['class' => Store::class],
             ],
@@ -142,6 +144,17 @@ class Plugin extends BasePlugin
         Registry::addHandler(Topics::PRODUCTS_DELETE, new ProductHandler());
         Registry::addHandler(Topics::PRODUCTS_UPDATE, new ProductHandler());
         Registry::addHandler(Topics::INVENTORY_LEVELS_UPDATE, new ProductHandler());
+        Registry::addHandler(Topics::BULK_OPERATIONS_FINISH, new ProductHandler());
+    }
+
+    /**
+     * @return BulkOperations
+     * @throws InvalidConfigException
+     * @since 6.0.0
+     */
+    public function getBulkOperations(): BulkOperations
+    {
+        return $this->get('bulkOperations');
     }
 
     /**

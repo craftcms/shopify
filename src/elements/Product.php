@@ -11,6 +11,8 @@ use Craft;
 use craft\base\Element;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\User;
+use craft\errors\DeprecationException;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
@@ -57,9 +59,38 @@ class Product extends Element
     public const SHOPIFY_STATUS_ARCHIVED = 'archived';
 
     /**
-     * @var string
+     * @param string|null $bodyHtml
+     * @return void
+     * @throws DeprecationException
+     * @deprecated in 6.0.0. Use [[setDescriptionHtml()]] instead.
      */
-    public ?string $bodyHtml = null;
+    public function setBodyHtml(?string $bodyHtml): void
+    {
+        // Craft::$app->getDeprecator()->log(__METHOD__, 'Product::setBodyHtml() has been deprecated. Use setDescriptionHtml() instead.');
+    }
+
+    /**
+     * @return string|null
+     * @deprecated in 6.0.0. Use [[getDescriptionHtml()]] instead.
+     */
+    public function getBodyHtml(): ?string
+    {
+        return $this->getDescriptionHtml();
+    }
+
+    /**
+     * @return string|null
+     * @since 6.0.0
+     */
+    public function getDescriptionHtml(): ?string
+    {
+        $descriptionHtml = ArrayHelper::getValue($this->getData(), 'descriptionHtml');
+        if ($descriptionHtml === null) {
+            return null;
+        }
+
+        return StringHelper::shortcodesToEmoji($descriptionHtml);
+    }
 
     /**
      * @var ?DateTime
@@ -109,6 +140,11 @@ class Product extends Element
     public ?int $shopifyId = null;
 
     /**
+     * @var string|null
+     */
+    public ?string $shopifyGid = null;
+
+    /**
      * @var string
      */
     public string $shopifyStatus = 'active';
@@ -139,12 +175,42 @@ class Product extends Element
     public ?string $vendor = null;
 
     /**
+     * @var array|null
+     * @see self::getData()
+     * @see self::setData()
+     */
+    private ?array $_data = null;
+
+    /**
+     * @param array|string|null $data
+     * @return void
+     * @since 6.0.0
+     */
+    public function setData(array|string|null $data): void
+    {
+        if ($data === null || is_array($data)) {
+            $this->_data = $data;
+            return;
+        }
+
+        $this->_data = Json::decodeIfJson($data);
+    }
+
+    /**
+     * @return array
+     * @since 6.0.0
+     */
+    public function getData(): array
+    {
+        return $this->_data ?? [];
+    }
+
+    /**
      * @inheritdoc
      */
     public function init(): void
     {
         $this->title = $this->title ? StringHelper::shortcodesToEmoji($this->title) : null;
-        $this->bodyHtml = $this->bodyHtml ? StringHelper::shortcodesToEmoji($this->bodyHtml) : null;
         parent::init();
     }
 

@@ -8,6 +8,8 @@ use craft\helpers\Assets;
 use craft\helpers\FileHelper;
 use craft\queue\BaseBatchedJob;
 use craft\shopify\api\BulkDataBatcher;
+use craft\shopify\Plugin;
+use craft\shopify\records\BulkOperation;
 use craft\shopify\records\ShopifyData;
 
 /**
@@ -20,9 +22,17 @@ class ProcessBulkOperationData extends BaseBatchedJob
     /**
      * @var string
      */
+    public string $bulkOperationShopifyId;
+
+    /**
+     * @var string
+     */
     public string $dataUrl;
 
-    public int $totalObjects = 0;
+    /**
+     * @var int
+     */
+    public int $objectCount = 0;
 
     /**
      * @inheritdoc
@@ -49,7 +59,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
 
         $bulkDataBatcher = new BulkDataBatcher();
         $bulkDataBatcher->filePath = $filePath;
-        $bulkDataBatcher->total = $this->totalObjects;
+        $bulkDataBatcher->total = $this->objectCount;
 
         return $bulkDataBatcher;
     }
@@ -80,19 +90,51 @@ class ProcessBulkOperationData extends BaseBatchedJob
         $record->data = $item;
         $record->parentId = $item['__parentId'] ?? null;
         $record->save();
+
+        // Proccess the data based on the type
+        if ($record->type !== 'Product') {
+            return;
+        }
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function before(): void
     {
         parent::before();
 
-        // Mark bulk op as started
+        // Make sure bulk op is marked as processing
+        $bulkOperation = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyId($this->bulkOperationShopifyId);
+
+        if (!$bulkOperation) {
+            return;
+        }
+
+        $bulkOperation->status = BulkOperation::STATUS_PROCESSING;
+
+        Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function after(): void
     {
         parent::after();
 
         // Mark bulk op as completed
+        $bulkOperation = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyId($this->bulkOperationShopifyId);
+
+        if (!$bulkOperation) {
+            return;
+        }
+
+        $bulkOperation->status = BulkOperation::STATUS_COMPLETED;
+
+        Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
+
+        // Start the next bulk op if there is one
+        Plugin::getInstance()->getBulkOperations()->nextBulkOperation();
     }
 }

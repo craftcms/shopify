@@ -89,9 +89,11 @@ class Api extends Component
     }
 
     /**
+     * @param string|null $id
+     * @return \GraphQL\Query
      * @since 6.0.0
      */
-    public function getProductGql(): \GraphQL\Query
+    public function getProductGql(?string $id = null): \GraphQL\Query
     {
         $fields = collect([
             'edges' => [
@@ -117,6 +119,12 @@ class Api extends Component
                                 ],
                             ],
                         ],
+                    ],
+                    'options' => [
+                        'id',
+                        'name',
+                        'position',
+                        'values',
                     ],
                     'productType',
                     'publishedAt',
@@ -151,6 +159,13 @@ class Api extends Component
 
         $builder = (new QueryBuilder('products'));
 
+        if ($id) {
+            // Strip Shopify prefix if it exists
+            $id = str_replace('gid://shopify/Product/', '', $id);
+
+            $builder->setArgument('query', sprintf('id:%s', $id));
+        }
+
         foreach ($fields as $key => $value) {
             $this->_getBuilderValue($key, $value, $builder);
         }
@@ -158,6 +173,12 @@ class Api extends Component
         return $builder->getQuery();
     }
 
+    /**
+     * @param $key
+     * @param $value
+     * @param QueryBuilder $builderQuery
+     * @return void
+     */
     private function _getBuilderValue($key, $value, QueryBuilder $builderQuery)
     {
         if (is_array($value)) {
@@ -170,34 +191,6 @@ class Api extends Component
         }
 
         $builderQuery->selectField($value);
-    }
-
-    /**
-     * Retrieve all a shop’s products.
-     *
-     * @return ShopifyProduct[]|ShopifyProduct2410[]
-     */
-    public function createProductsBulkOperation(): mixed
-    {
-        $mutation = (new Mutation('bulkOperationRunQuery'))
-            ->setOperationName('bulkOperationRunQuery')
-            ->setVariables([new Variable('query', 'String!')])
-            ->setArguments(['query' => '$query'])
-            ->setSelectionSet([
-                (new \GraphQL\Query('bulkOperation'))
-                    ->setSelectionSet([
-                        'id',
-                        'status',
-                        'type',
-                    ]),
-                (new \GraphQL\Query('userErrors'))
-                    ->setSelectionSet([
-                        'field',
-                        'message',
-                    ]),
-            ]);
-
-        return $this->query($mutation, ['query' => (string)$this->getProductGql()]);
     }
 
     /**
@@ -290,40 +283,6 @@ class Api extends Component
         } while ($hasNextPage);
 
         return collect($return);
-    }
-
-    public function handleBulkOperationFinished(array $data): void
-    {
-        if (!isset($data['admin_graphql_api_id']) || !isset($data['status']) || $data['status'] !== 'completed') {
-            return;
-        }
-
-        $query = (new \GraphQL\Query('node'))
-            ->setArguments(['id' => $data['admin_graphql_api_id']])
-            ->setSelectionSet([
-                (new InlineFragment('BulkOperation'))
-                    ->setSelectionSet([
-                        'url',
-                        'partialDataUrl',
-                        'objectCount',
-                    ]),
-            ]);
-
-
-        try {
-            $response = $this->getClient()->query(['query' => (string)$query]);
-            $body = $response->getDecodedBody();
-
-            if (!isset($body['data']['node'])) {
-                return;
-            }
-
-            // Store the data from the `$body['data']['url'] and start the queue job to process it
-
-
-        } catch (\Exception $e) {
-            Craft::error('Could not get bulk operation data: ' . $e->getMessage(), __METHOD__);
-        }
     }
 
     /**
@@ -547,6 +506,54 @@ class Api extends Component
             ]);
 
         return $this->getAll($query);
+    }
+
+    /**
+     * @param string $id
+     * @param string|null $error
+     * @return bool
+     * @throws MissingArgumentException
+     * @since 6.0.0
+     */
+    public function deleteWebhookById(string $id, ?string &$error = null): bool
+    {
+        if ($this->getSession() === null) {
+            $error = Craft::t('shopify', 'No Shopify session available.');
+            return false;
+        }
+
+        $mutation = (new Mutation('webhookSubscriptionDelete'))
+            ->setOperationName('webhookSubscriptionDelete')
+            ->setVariables([
+                new Variable('id', 'ID!'),
+            ])
+            ->setArguments([
+                'id' => '$id',
+            ])
+            ->setSelectionSet([
+                (new \GraphQL\Query('userErrors'))
+                    ->setSelectionSet([
+                        'field',
+                        'message',
+                    ]),
+                'deletedWebhookSubscriptionId',
+            ]);
+
+        try {
+            Plugin::getInstance()->getApi()->getClient()->query([
+                'query' => (string)$mutation,
+                'variables' => [
+                    'id' => $id,
+                ],
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Craft::error('Could not delete webhook with Shopify API: ' . $e->getMessage(), __METHOD__);
+
+            $error = Craft::t('shopify', 'Webhook could not be deleted');
+            return false;
+        }
     }
 
     /**

@@ -10,7 +10,9 @@ namespace craft\shopify\elements\db;
 use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
+use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
+use yii\db\Expression;
 
 /**
  * ProductQuery represents a SELECT SQL statement for entries in a way that is independent of DBMS.
@@ -189,61 +191,59 @@ class ProductQuery extends ElementQuery
             return false;
         }
 
-        $productTable = 'shopify_products';
-        $productDataTable = 'shopify_productdata';
-
         // join standard product element table that only contains the shopifyId
-        $this->joinElementTable($productTable);
+        $this->joinElementTable('shopify_products');
 
-        $productDataJoinTable = [$productDataTable => "{{%$productDataTable}}"];
-        $this->query->innerJoin($productDataJoinTable, "[[$productDataTable.shopifyId]] = [[$productTable.shopifyId]]");
-        $this->subQuery->innerJoin($productDataJoinTable, "[[$productDataTable.shopifyId]] = [[$productTable.shopifyId]]");
+        $this->query->innerJoin(Table::PRODUCTDATA . ' shopify_productdata', "[[shopify_productdata.shopifyId]] = [[shopify_products.shopifyId]]");
+        $this->query->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyId]] = CONCAT("gid://shopify/Product/", [[shopify_productdata.shopifyId]])'));
+        $this->subQuery->innerJoin(Table::PRODUCTDATA . ' shopify_productdata', "[[shopify_productdata.shopifyId]] = [[shopify_products.shopifyId]]");
+        $this->subQuery->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyId]] = CONCAT("gid://shopify/Product/", [[shopify_productdata.shopifyId]])'));
 
         $this->query->select([
             'shopify_products.shopifyId',
-            'shopify_productdata.shopifyStatus',
-            'shopify_productdata.handle',
-            'shopify_productdata.productType',
-            'shopify_productdata.bodyHtml',
-            'shopify_productdata.createdAt',
-            'shopify_productdata.publishedAt',
+            'data.shopifyStatus',
+            'data.handle',
+            'data.productType',
+            'data.createdAt',
+            'data.publishedAt',
             'shopify_productdata.publishedScope',
-            'shopify_productdata.tags',
-            'shopify_productdata.templateSuffix',
-            'shopify_productdata.updatedAt',
-            'shopify_productdata.vendor',
+            'data.tags',
+            'data.templateSuffix',
+            'data.updatedAt',
+            'data.vendor',
             'shopify_productdata.metaFields',
             'shopify_productdata.images',
-            'shopify_productdata.options',
+            'data.options',
             'shopify_productdata.variants',
+            'data.data',
         ]);
 
         if (isset($this->shopifyId)) {
-            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.shopifyId', $this->shopifyId));
+            $this->subQuery->andWhere(Db::parseParam('shopify_products.shopifyId', $this->shopifyId));
         }
 
         if (isset($this->productType)) {
-            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.productType', $this->productType));
+            $this->subQuery->andWhere(Db::parseParam('data.productType', $this->productType));
         }
 
         if (isset($this->publishedScope)) {
-            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.publishedScope', $this->publishedScope));
+            $this->subQuery->andWhere(Db::parseParam('data.publishedScope', $this->publishedScope));
         }
 
         if (isset($this->shopifyStatus)) {
-            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.shopifyStatus', $this->shopifyStatus));
+            $this->subQuery->andWhere(Db::parseParam('data.shopifyStatus', $this->shopifyStatus));
         }
 
         if (isset($this->handle)) {
-            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.handle', $this->handle));
+            $this->subQuery->andWhere(Db::parseParam('data.handle', $this->handle));
         }
 
         if (isset($this->vendor)) {
-            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.vendor', $this->vendor));
+            $this->subQuery->andWhere(Db::parseParam('data.vendor', $this->vendor));
         }
 
         if (isset($this->tags)) {
-            $this->subQuery->andWhere(Db::parseParam('shopify_productdata.tags', $this->tags));
+            $this->subQuery->andWhere(Db::parseParam('data.tags', $this->tags));
         }
 
         return parent::beforePrepare();
