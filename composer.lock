@@ -4,53 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "33a9a138af46009d17666f38ade857f0",
+    "content-hash": "5579c69093cba4acf980d707db8d2838",
     "packages": [
-        {
-            "name": "adeey/graphql-php",
-            "version": "1.0.47",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Adeey/graphql-php.git",
-                "reference": "9019c7aa60d001921adaf4a80b3b5a6c3ca1afff"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Adeey/graphql-php/zipball/9019c7aa60d001921adaf4a80b3b5a6c3ca1afff",
-                "reference": "9019c7aa60d001921adaf4a80b3b5a6c3ca1afff",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.5"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^9.6"
-            },
-            "type": "library",
-            "autoload": {
-                "classmap": [
-                    "src/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "GraphQL php library",
-            "keywords": [
-                "array",
-                "field",
-                "graphql",
-                "graphql-php",
-                "php",
-                "query"
-            ],
-            "support": {
-                "issues": "https://github.com/Adeey/graphql-php/issues",
-                "source": "https://github.com/Adeey/graphql-php/tree/1.0.47"
-            },
-            "time": "2024-11-11T15:00:30+00:00"
-        },
         {
             "name": "bacon/bacon-qr-code",
             "version": "2.0.8",
