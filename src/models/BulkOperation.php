@@ -7,14 +7,8 @@
 
 namespace craft\shopify\models;
 
-use Craft;
 use craft\base\Model;
-use craft\helpers\App;
-use craft\helpers\UrlHelper;
-use craft\shopify\elements\Product;
-use craft\shopify\Plugin;
 use DateTime;
-use Shopify\ApiVersion;
 
 /**
  * Bulk Operations model.

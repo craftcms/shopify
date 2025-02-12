@@ -122,7 +122,7 @@ class Install extends Migration
 
         foreach ($varcharColumns as $col => $alias) {
             $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
-                $db->quoteColumnName($alias) .  " " . $qb->getColumnType($this->string()) . " GENERATED ALWAYS AS (" .
+                $db->quoteColumnName($alias) . " " . $qb->getColumnType($this->string()) . " GENERATED ALWAYS AS (" .
                 $qb->jsonExtract('data', [$col]) . ") STORED;");
         }
 
@@ -133,7 +133,7 @@ class Install extends Migration
 
         foreach ($textColumns as $col => $alias) {
             $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
-                $db->quoteColumnName($alias) .  ' ' . $qb->getColumnType($this->text()) . " GENERATED ALWAYS AS (" .
+                $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->text()) . " GENERATED ALWAYS AS (" .
                 $qb->jsonExtract('data', [$col]) . ") STORED;");
         }
     }

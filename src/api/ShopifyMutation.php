@@ -40,6 +40,5 @@ class ShopifyMutation extends Mutation
     public function getType()
     {
         $type = parent::getType();
-
     }
 }

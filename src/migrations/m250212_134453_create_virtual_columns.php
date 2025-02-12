@@ -2,7 +2,6 @@
 
 namespace craft\shopify\migrations;
 
-use Craft;
 use craft\db\Migration;
 use craft\shopify\db\Table;
 
@@ -34,7 +33,7 @@ class m250212_134453_create_virtual_columns extends Migration
 
         foreach ($varcharColumns as $col => $alias) {
             $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
-                $db->quoteColumnName($alias) .  " " . $qb->getColumnType($this->string()) . " GENERATED ALWAYS AS (" .
+                $db->quoteColumnName($alias) . " " . $qb->getColumnType($this->string()) . " GENERATED ALWAYS AS (" .
                 $qb->jsonExtract('data', [$col]) . ") STORED;");
         }
 
@@ -45,7 +44,7 @@ class m250212_134453_create_virtual_columns extends Migration
 
         foreach ($textColumns as $col => $alias) {
             $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
-                $db->quoteColumnName($alias) .  ' ' . $qb->getColumnType($this->text()) . " GENERATED ALWAYS AS (" .
+                $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->text()) . " GENERATED ALWAYS AS (" .
                 $qb->jsonExtract('data', [$col]) . ") STORED;");
         }
 

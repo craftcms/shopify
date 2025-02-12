@@ -44,8 +44,8 @@ class WebhooksController extends Controller
 
         // If we don't have all webhooks needed for the current environment show the create button
         $containsAllWebhooks = $webhooks->filter(function($item) use ($api) {
-                return in_array($item['topic'], $api::WEBHOOK_TOPICS) && $item['endpoint']['callbackUrl'] == Plugin::getInstance()->getSettings()->getWebhookUrl();
-            })->count() === count($api::WEBHOOK_TOPICS);
+            return in_array($item['topic'], $api::WEBHOOK_TOPICS) && $item['endpoint']['callbackUrl'] == Plugin::getInstance()->getSettings()->getWebhookUrl();
+        })->count() === count($api::WEBHOOK_TOPICS);
 
         return $this->renderTemplate('shopify/webhooks/index', compact('webhooks', 'containsAllWebhooks'));
     }
@@ -101,8 +101,8 @@ class WebhooksController extends Controller
                                     (new InlineFragment('WebhookHttpEndpoint'))
                                         ->setSelectionSet([
                                             'callbackUrl',
-                                        ])
-                                ])
+                                        ]),
+                                ]),
                         ]),
                     (new Query('userErrors'))
                         ->setSelectionSet([

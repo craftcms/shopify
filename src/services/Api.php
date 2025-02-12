@@ -154,7 +154,7 @@ class Api extends Component
                     ],
                     'vendor',
                 ],
-            ]
+            ],
         ]);
 
         $builder = (new QueryBuilder('products'));
@@ -499,10 +499,10 @@ class Api extends Component
                             ->setSelectionSet([
                                 (new InlineFragment('WebhookHttpEndpoint'))
                                     ->setSelectionSet([
-                                        'callbackUrl'
+                                        'callbackUrl',
                                     ]),
                             ]),
-                    ])
+                    ]),
             ]);
 
         return $this->getAll($query);
