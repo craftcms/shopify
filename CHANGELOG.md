@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 5.4.1 - 2025-02-12
 
 - Fixed a PHP error that could occur when updating. ([#133](https://github.com/craftcms/shopify/issues/133))
 
