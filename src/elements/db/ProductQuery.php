@@ -12,6 +12,7 @@ use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
+use craft\shopify\Plugin;
 use yii\db\Expression;
 
 /**
@@ -29,14 +30,72 @@ class ProductQuery extends ElementQuery
      */
     public mixed $shopifyId = null;
 
+    /**
+     * @var mixed|null
+     */
     public mixed $shopifyStatus = null;
+
+    /**
+     * @var mixed|null
+     */
     public mixed $handle = null;
+
+
+    /**
+     * @var mixed|null
+     */
     public mixed $productType = null;
+
+    /**
+     * @var mixed|null
+     */
     public mixed $publishedScope = null;
+
+    /**
+     * @var mixed|null
+     */
     public mixed $tags = null;
+
+    /**
+     * @var mixed|null
+     */
     public mixed $vendor = null;
+
+    /**
+     * @var mixed|null
+     */
     public mixed $images = null;
+
+    /**
+     * @var mixed|null
+     */
     public mixed $options = null;
+
+    /**
+     * @var bool Eager loads the metafields on the resulting products.
+     */
+    public bool $withMetafields = false;
+
+    /**
+     * Eager loads the metafields on the resulting products.
+     *
+     * Possible values include:
+     *
+     * | Value | Fetches line items
+     * | - | -
+     * | bool | `true` to eager-load, `false` to not eager load.
+     *
+     * @param bool $value The property value
+     * @return static self reference
+     *
+     * @used-by withMetafields()
+     */
+    public function withMetafields(bool $value = true): static
+    {
+        $this->withMetafields = $value;
+
+        return $this;
+    }
 
     /**
      * @inheritdoc
@@ -183,6 +242,28 @@ class ProductQuery extends ElementQuery
 
     /**
      * @inheritdoc
+     */
+    public function populate($rows): array
+    {
+        /** @var Product[] $products */
+        $products = parent::populate($rows);
+
+        // Eager-load anything?
+        if (!empty($products) && !$this->asArray) {
+
+            // Eager-load line items?
+            if ($this->withMetafields === true
+                // || $this->withAll
+            ) {
+                $products = Plugin::getInstance()->getApi()->eagerLoadMetafieldsForProducts($products);
+            }
+        }
+
+        return $products;
+    }
+
+    /**
+     * @inheritdoc
      * @throws QueryAbortedException
      */
     protected function beforePrepare(): bool
@@ -201,6 +282,7 @@ class ProductQuery extends ElementQuery
 
         $this->query->select([
             'shopify_products.shopifyId',
+            'shopify_products.shopifyGid',
             'data.shopifyStatus',
             'data.handle',
             'data.productType',
@@ -211,7 +293,6 @@ class ProductQuery extends ElementQuery
             'data.templateSuffix',
             'data.updatedAt',
             'data.vendor',
-            'shopify_productdata.metaFields',
             'shopify_productdata.images',
             'data.options',
             'shopify_productdata.variants',
