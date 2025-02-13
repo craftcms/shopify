@@ -20,6 +20,7 @@ use yii\db\ActiveQueryInterface;
  *
  * @property int $id
  * @property int $shopifyId
+ * @property string $shopifyGid
  *
  */
 class Product extends ActiveRecord

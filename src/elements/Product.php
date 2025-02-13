@@ -669,6 +669,7 @@ class Product extends Element
         }
 
         $record->shopifyId = $this->shopifyId;
+        $record->shopifyGid = $this->shopifyGid;
 
         // We want to always have the same date as the element table, based on the logic for updating these in the element service i.e re-saving
         $record->dateUpdated = $this->dateUpdated;
