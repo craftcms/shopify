@@ -446,7 +446,7 @@ class Api extends Component
             return $data;
         }
 
-        return array_map(fn($record) => Json::decodeIfJson($record->data), $data);
+        return array_map(fn($record) => $record->data, $data);
     }
 
     /**
