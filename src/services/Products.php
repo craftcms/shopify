@@ -6,7 +6,6 @@ use Craft;
 use craft\base\Component;
 use craft\errors\ElementNotFoundException;
 use craft\events\ConfigEvent;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\ProjectConfig;
 use craft\helpers\StringHelper;
@@ -17,6 +16,7 @@ use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\helpers\Metafields as MetafieldsHelper;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
+use craft\shopify\records\ShopifyData;
 use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
 use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
 use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
@@ -25,6 +25,7 @@ use Shopify\Rest\Admin2024_10\Product as ShopifyProduct2410;
 use Shopify\Rest\Admin2024_10\Variant as ShopifyVariant2410;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
+use yii\db\StaleObjectException;
 
 /**
  * Shopify Products service.
@@ -222,6 +223,8 @@ class Products extends Component
      *
      * @param $id
      * @return void
+     * @throws \Throwable
+     * @throws StaleObjectException
      */
     public function deleteProductByShopifyId($id): void
     {
@@ -232,6 +235,33 @@ class Products extends Component
             }
             if ($productData = ProductDataRecord::find()->where(['shopifyId' => $id])->one()) {
                 $productData->delete();
+            }
+
+            // Delete data in shopify data table
+            // Delete the product data
+            $shopifyId = str_starts_with($id, 'gid://shopify/Product/') ? $id : 'gid://shopify/Product/' . $id;
+            /** @var ShopifyData|null $shopifyData */
+            $shopifyData = ShopifyData::find()->where(['shopifyId' => $shopifyId])->one();
+            $shopifyData?->delete();
+
+            // Delete any child data of the product
+            /** @var ShopifyData[] $shopifyData */
+            $shopifyData = ShopifyData::find()->where(['parentId' => $shopifyId])->all();
+            $childIds = [];
+            foreach ($shopifyData as $data) {
+                $childIds[] = $data->shopifyId;
+                $data->delete();
+            }
+
+            // Loop through any child data and remove that too
+            while (!empty($childIds)) {
+                $childId = array_shift($childIds);
+                /** @var ShopifyData[] $shopifyData */
+                $shopifyData = ShopifyData::find()->where(['parentId' => $childId])->all();
+                foreach ($shopifyData as $data) {
+                    $childIds = $data->shopifyId;
+                    $data->delete();
+                }
             }
         }
     }

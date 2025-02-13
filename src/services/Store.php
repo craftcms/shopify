@@ -2,14 +2,10 @@
 
 namespace craft\shopify\services;
 
-use Craft;
 use craft\base\Component;
 use craft\helpers\App;
-use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\shopify\Plugin;
-use craft\shopify\records\ShopifyData;
-use GraphQL\Query;
 use yii\base\InvalidConfigException;
 
 /**

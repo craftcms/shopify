@@ -27,7 +27,6 @@ use craft\services\Utilities;
 use craft\shopify\elements\Product;
 use craft\shopify\feedme\fields\Products as FeedMeProductsField;
 use craft\shopify\fields\Products as ProductsField;
-use craft\shopify\handlers\Product as ProductHandler;
 use craft\shopify\handlers\Webhook;
 use craft\shopify\linktypes\Product as ProductLinkType;
 use craft\shopify\models\Settings;
@@ -40,7 +39,6 @@ use craft\shopify\web\twig\CraftVariableBehavior;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use Shopify\Webhooks\Registry;
-use Shopify\Webhooks\Topics;
 use yii\base\Event;
 use yii\base\InvalidConfigException;
 
