@@ -72,6 +72,32 @@ class ProductQuery extends ElementQuery
     public mixed $options = null;
 
     /**
+     * @var bool Eager loads all relational data for the resulting products.
+     */
+    public bool $withAll = false;
+
+    /**
+     * Eager loads all relational data for the resulting products.
+     *
+     * Possible values include:
+     *
+     * | Value | Fetches all relational data
+     * | - | -
+     * | bool | `true` to eager-load, `false` to not eager load.
+     *
+     * @param bool $value The property value
+     * @return static self reference
+     *
+     * @used-by withAll()
+     */
+    public function withAll(bool $value = true): static
+    {
+        $this->withAll = $value;
+
+        return $this;
+    }
+
+    /**
      * @var bool Eager loads the metafields on the resulting products.
      */
     public bool $withMetafields = false;
@@ -81,7 +107,7 @@ class ProductQuery extends ElementQuery
      *
      * Possible values include:
      *
-     * | Value | Fetches line items
+     * | Value | Fetches metafields
      * | - | -
      * | bool | `true` to eager-load, `false` to not eager load.
      *
@@ -93,6 +119,32 @@ class ProductQuery extends ElementQuery
     public function withMetafields(bool $value = true): static
     {
         $this->withMetafields = $value;
+
+        return $this;
+    }
+
+    /**
+     * @var bool Eager loads the images on the resulting products.
+     */
+    public bool $withImages = false;
+
+    /**
+     * Eager loads the images on the resulting products.
+     *
+     * Possible values include:
+     *
+     * | Value | Fetches images
+     * | - | -
+     * | bool | `true` to eager-load, `false` to not eager load.
+     *
+     * @param bool $value The property value
+     * @return static self reference
+     *
+     * @used-by withImages()
+     */
+    public function withImages(bool $value = true): static
+    {
+        $this->withImages = $value;
 
         return $this;
     }
@@ -251,11 +303,14 @@ class ProductQuery extends ElementQuery
         // Eager-load anything?
         if (!empty($products) && !$this->asArray) {
 
-            // Eager-load line items?
-            if ($this->withMetafields === true
-                // || $this->withAll
-            ) {
+            // Eager-load metafields?
+            if ($this->withMetafields === true || $this->withAll) {
                 $products = Plugin::getInstance()->getApi()->eagerLoadMetafieldsForProducts($products);
+            }
+
+            // Eager-load images?
+            if ($this->withImages === true || $this->withAll) {
+                $products = Plugin::getInstance()->getApi()->eagerLoadImagesForProducts($products);
             }
         }
 
@@ -293,7 +348,6 @@ class ProductQuery extends ElementQuery
             'data.templateSuffix',
             'data.updatedAt',
             'data.vendor',
-            'shopify_productdata.images',
             'data.options',
             'shopify_productdata.variants',
             'data.data',
