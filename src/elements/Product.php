@@ -115,7 +115,7 @@ class Product extends Element
     /**
      * @var array
      */
-    private array $_metaFields = [];
+    private ?array $_metaFields = null;
 
     /**
      * @var string
@@ -339,9 +339,31 @@ class Product extends Element
 
     /**
      * @return array
+     * @throws InvalidConfigException
      */
     public function getMetaFields(): array
     {
+        if (!$this->shopifyGid) {
+            return [];
+        }
+
+        if ($this->_metaFields !== null) {
+            return $this->_metaFields;
+        }
+
+        $metafields = Plugin::getInstance()->getApi()->getShopifyDataByType('Metafield', $this->shopifyGid);
+
+        if (empty($metafields)) {
+            return [];
+        }
+
+        $data = [];
+        foreach ($metafields as $metafield) {
+            $data[$metafield['key']] = $metafield['value'];
+        }
+
+        $this->setMetaFields($data);
+
         return $this->_metaFields ?? [];
     }
 

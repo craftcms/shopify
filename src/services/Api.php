@@ -13,6 +13,7 @@ use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\log\MonologTarget;
+use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
 use craft\shopify\records\ShopifyData;
 use GraphQL\InlineFragment;
@@ -219,6 +220,15 @@ class Api extends Component
                             ],
                         ],
                     ],
+                    'metafields' => [
+                        'edges' => [
+                            'node' => [
+                                'id',
+                                'key',
+                                'value',
+                            ],
+                        ],
+                    ],
                     'options' => [
                         'id',
                         'name',
@@ -246,8 +256,26 @@ class Api extends Component
                                 'updatedAt',
                                 'inventoryItem' => [
                                     'id',
+                                    'countryCodeOfOrigin',
+                                    'createdAt',
+                                    'updatedAt',
+                                    'sku',
+                                    'tracked',
+                                    'unitCost' => [
+                                        'amount',
+                                        'currencyCode',
+                                    ]
                                 ],
                                 'inventoryQuantity',
+                                'metafields' => [
+                                    'edges' => [
+                                        'node' => [
+                                            'id',
+                                            'key',
+                                            'value',
+                                        ],
+                                    ],
+                                ],
                             ],
                         ],
                     ],
@@ -392,6 +420,60 @@ class Api extends Component
     public function getProductByShopifyId($id): ShopifyProduct|ShopifyProduct2410
     {
         return $this->getProductClass()::find($this->getSession(), $id);
+    }
+
+    /**
+     * @param string $type
+     * @param string|false|null $parentId
+     * @param bool $returnRecords
+     * @return array|null
+     * @since 6.0.0
+     */
+    public function getShopifyDataByType(string $type, array|string|null|false $parentId = null, bool $returnRecords = false): ?array
+    {
+        $criteria = ['type' => $type];
+        if ($parentId !== null) {
+            $criteria['parentId'] = $parentId ?: null;
+        }
+
+        $data = ShopifyData::findAll($criteria);
+
+        if (empty($data)) {
+            return null;
+        }
+
+        if ($returnRecords) {
+            return $data;
+        }
+
+        return array_map(fn($record) => Json::decodeIfJson($record->data), $data);
+    }
+
+    /**
+     * @param array|Product[] $products
+     * @return array
+     */
+    public function eagerLoadMetafieldsForProducts(array $products): array
+    {
+        $productIds = ArrayHelper::getColumn($products, 'shopifyGid');
+        $metafields = $this->getShopifyDataByType('Metafield', $productIds);
+
+        if (empty($metafields)) {
+            foreach ($products as $product) {
+                $product->setMetaFields([]);
+            }
+        }
+
+        // Group metafields by product ID
+        $metafields = collect($metafields)->groupBy('parentId');
+
+        foreach ($products as $product) {
+            $fields = array_map(fn($field) => Json::decodeIfJson($field->data), $metafields[$product->shopifyGid] ?? []);
+
+            // convert to key/value array
+            $fields = array_combine(ArrayHelper::getColumn($fields, 'key'), ArrayHelper::getColumn($fields, 'value'));
+            $product->setMetaFields($fields);
+        }
     }
 
     /**
