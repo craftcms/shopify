@@ -195,9 +195,9 @@ class ProductQuery extends ElementQuery
         $this->joinElementTable('shopify_products');
 
         $this->query->innerJoin(Table::PRODUCTDATA . ' shopify_productdata', "[[shopify_productdata.shopifyId]] = [[shopify_products.shopifyId]]");
-        $this->query->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyId]] = CONCAT("gid://shopify/Product/", [[shopify_productdata.shopifyId]])'));
+        $this->query->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyId]] = [[shopify_products.shopifyGid]]'));
         $this->subQuery->innerJoin(Table::PRODUCTDATA . ' shopify_productdata', "[[shopify_productdata.shopifyId]] = [[shopify_products.shopifyId]]");
-        $this->subQuery->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyId]] = CONCAT("gid://shopify/Product/", [[shopify_productdata.shopifyId]])'));
+        $this->subQuery->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyId]] = [[shopify_products.shopifyGid]]'));
 
         $this->query->select([
             'shopify_products.shopifyId',
