@@ -150,9 +150,35 @@ class ProductQuery extends ElementQuery
     }
 
     /**
+     * @var bool Eager loads the variants on the resulting products.
+     */
+    public bool $withVariants = false;
+
+    /**
+     * Eager loads the variants on the resulting products.
+     *
+     * Possible values include:
+     *
+     * | Value | Fetches variants
+     * | - | -
+     * | bool | `true` to eager-load, `false` to not eager load.
+     *
+     * @param bool $value The property value
+     * @return static self reference
+     *
+     * @used-by withVariants()
+     */
+    public function withVariants(bool $value = true): static
+    {
+        $this->withVariants = $value;
+
+        return $this;
+    }
+
+    /**
      * @inheritdoc
      */
-    protected array $defaultOrderBy = ['shopify_productdata.shopifyId' => SORT_ASC];
+    protected array $defaultOrderBy = ['shopify_products.shopifyId' => SORT_ASC];
 
     /**
      * @inheritdoc
@@ -312,6 +338,11 @@ class ProductQuery extends ElementQuery
             if ($this->withImages === true || $this->withAll) {
                 $products = Plugin::getInstance()->getApi()->eagerLoadImagesForProducts($products);
             }
+
+            // Eager-load variants?
+            if ($this->withVariants === true || $this->withAll) {
+                $products = Plugin::getInstance()->getApi()->eagerLoadVariantsForProducts($products);
+            }
         }
 
         return $products;
@@ -349,7 +380,6 @@ class ProductQuery extends ElementQuery
             'data.updatedAt',
             'data.vendor',
             'data.options',
-            'shopify_productdata.variants',
             'data.data',
         ]);
 

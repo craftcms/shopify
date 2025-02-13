@@ -165,9 +165,9 @@ class Product extends Element
     public ?DateTime $updatedAt = null;
 
     /**
-     * @var array
+     * @var array|null
      */
-    private array $_variants;
+    private ?array $_variants = null;
 
     /**
      * @var string
@@ -398,9 +398,26 @@ class Product extends Element
 
     /**
      * @return array
+     * @throws InvalidConfigException
      */
     public function getVariants(): array
     {
+        if (!$this->shopifyGid) {
+            return [];
+        }
+
+        if ($this->_variants !== null) {
+            return $this->_variants;
+        }
+
+        $variants = Plugin::getInstance()->getApi()->getShopifyDataByType('ProductVariant', $this->shopifyGid);
+
+        if (empty($variants)) {
+            return [];
+        }
+
+        $this->setVariants($variants);
+
         return $this->_variants ?? [];
     }
 

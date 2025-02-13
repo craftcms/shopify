@@ -478,11 +478,23 @@ class Api extends Component
 
     /**
      * @param array $products
+     * @return array
+     * @since 6.0.0
+     */
+    public function eagerLoadVariantsForProducts(array $products): array
+    {
+        return $this->_eagerLoadTypeOnProducts($products, 'ProductVariant', function($product, $variants) {
+            $product->setVariants($variants);
+        });
+    }
+
+    /**
+     * @param array $products
      * @param string $type
-     * @param mixed $callback
+     * @param callable $callback
      * @return array
      */
-    private function _eagerLoadTypeOnProducts(array $products, string $type, mixed $callback): array
+    private function _eagerLoadTypeOnProducts(array $products, string $type, callable $callback): array
     {
         $productIds = ArrayHelper::getColumn($products, 'shopifyGid');
         $data = $this->getShopifyDataByType($type, $productIds);
