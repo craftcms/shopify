@@ -455,24 +455,55 @@ class Api extends Component
      */
     public function eagerLoadMetafieldsForProducts(array $products): array
     {
-        $productIds = ArrayHelper::getColumn($products, 'shopifyGid');
-        $metafields = $this->getShopifyDataByType('Metafield', $productIds);
+        return $this->_eagerLoadTypeOnProducts($products, 'Metafield', function($product, $metafields) {
+            if (!empty($metafields)) {
+                // Squash to key/value array
+                $metafields = array_combine(ArrayHelper::getColumn($metafields, 'key'), ArrayHelper::getColumn($metafields, 'value'));
+            }
+            $product->setMetafields($metafields);
+        });
+    }
 
-        if (empty($metafields)) {
+    /**
+     * @param array|Product[] $products
+     * @return array
+     * @since 6.0.0
+     */
+    public function eagerLoadImagesForProducts(array $products): array
+    {
+        return $this->_eagerLoadTypeOnProducts($products, 'MediaImage', function($product, $images) {
+            $product->setImages($images);
+        });
+    }
+
+    /**
+     * @param array $products
+     * @param string $type
+     * @param mixed $callback
+     * @return array
+     */
+    private function _eagerLoadTypeOnProducts(array $products, string $type, mixed $callback): array
+    {
+        $productIds = ArrayHelper::getColumn($products, 'shopifyGid');
+        $data = $this->getShopifyDataByType($type, $productIds);
+
+        if (empty($data)) {
             foreach ($products as $product) {
-                $product->setMetaFields([]);
+                $callback($product, []);
             }
         }
 
-        // Group metafields by product ID
-        $metafields = collect($metafields)->groupBy('parentId');
+        // Group images by product ID
+        $data = collect($data)->groupBy('__parentId');
 
         foreach ($products as $product) {
-            $fields = array_map(fn($field) => Json::decodeIfJson($field->data), $metafields[$product->shopifyGid] ?? []);
+            $productData = $data->get($product->shopifyGid, []);
+            if (empty($productData)) {
+                $callback($product, []);
+                continue;
+            }
 
-            // convert to key/value array
-            $fields = array_combine(ArrayHelper::getColumn($fields, 'key'), ArrayHelper::getColumn($fields, 'value'));
-            $product->setMetaFields($fields);
+            $callback($product, $productData->all());
         }
 
         return $products;

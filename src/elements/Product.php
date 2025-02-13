@@ -105,7 +105,7 @@ class Product extends Element
     /**
      * @var array
      */
-    private array $_images;
+    private ?array $_images = null;
 
     /**
      * @var array
@@ -300,6 +300,22 @@ class Product extends Element
      */
     public function getImages(): array
     {
+        if (!$this->shopifyGid) {
+            return [];
+        }
+
+        if ($this->_images !== null) {
+            return $this->_images;
+        }
+
+        $images = Plugin::getInstance()->getApi()->getShopifyDataByType('MediaImage', $this->shopifyGid);
+
+        if (empty($images)) {
+            return [];
+        }
+
+        $this->setImages($images);
+
         return $this->_images ?? [];
     }
 
