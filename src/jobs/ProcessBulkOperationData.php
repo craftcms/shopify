@@ -91,9 +91,9 @@ class ProcessBulkOperationData extends BaseBatchedJob
         $record->parentId = $item['__parentId'] ?? null;
         $record->save();
 
-        // Proccess the data based on the type
-        if ($record->type !== 'Product') {
-            return;
+        // Process the data based on the type
+        if ($record->type === 'Product') {
+            Plugin::getInstance()->getProducts()->createOrUpdateProduct($item);
         }
     }
 

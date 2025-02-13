@@ -31,6 +31,11 @@ class ProductQuery extends ElementQuery
     public mixed $shopifyId = null;
 
     /**
+     * @var mixed The Shopify product GID(s) that the resulting products must have.
+     */
+    public mixed $shopifyGid = null;
+
+    /**
      * @var mixed|null
      */
     public mixed $shopifyStatus = null;
@@ -257,6 +262,15 @@ class ProductQuery extends ElementQuery
     }
 
     /**
+     * Narrows the query results based on the Shopify product GID
+     */
+    public function shopifyGid(mixed $value): ProductQuery
+    {
+        $this->shopifyGid = $value;
+        return $this;
+    }
+
+    /**
      * Narrows the query results based on the {elements}’ statuses.
      *
      * Possible values include:
@@ -361,9 +375,9 @@ class ProductQuery extends ElementQuery
         // join standard product element table that only contains the shopifyId
         $this->joinElementTable('shopify_products');
 
-        $this->query->innerJoin(Table::PRODUCTDATA . ' shopify_productdata', "[[shopify_productdata.shopifyId]] = [[shopify_products.shopifyId]]");
+        // $this->query->innerJoin(Table::PRODUCTDATA . ' shopify_productdata', "[[shopify_productdata.shopifyId]] = [[shopify_products.shopifyId]]");
         $this->query->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyId]] = [[shopify_products.shopifyGid]]'));
-        $this->subQuery->innerJoin(Table::PRODUCTDATA . ' shopify_productdata', "[[shopify_productdata.shopifyId]] = [[shopify_products.shopifyId]]");
+        // $this->subQuery->innerJoin(Table::PRODUCTDATA . ' shopify_productdata', "[[shopify_productdata.shopifyId]] = [[shopify_products.shopifyId]]");
         $this->subQuery->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyId]] = [[shopify_products.shopifyGid]]'));
 
         $this->query->select([
@@ -374,7 +388,7 @@ class ProductQuery extends ElementQuery
             'data.productType',
             'data.createdAt',
             'data.publishedAt',
-            'shopify_productdata.publishedScope',
+            // 'shopify_productdata.publishedScope',
             'data.tags',
             'data.templateSuffix',
             'data.updatedAt',
@@ -382,6 +396,10 @@ class ProductQuery extends ElementQuery
             'data.options',
             'data.data',
         ]);
+
+        if (isset($this->shopifyGid)) {
+            $this->subQuery->andWhere(Db::parseParam('shopify_products.shopifyGid', $this->shopifyGid));
+        }
 
         if (isset($this->shopifyId)) {
             $this->subQuery->andWhere(Db::parseParam('shopify_products.shopifyId', $this->shopifyId));

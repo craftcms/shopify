@@ -25,7 +25,7 @@ class ShopifyProductSyncEvent extends CancelableEvent
     public ProductElement $element;
 
     /**
-     * @var ShopifyProduct|ShopifyProduct2410 Source Shopify API resource.
+     * @var array Source Shopify API resource.
      */
-    public ShopifyProduct|ShopifyProduct2410 $source;
+    public array $source;
 }

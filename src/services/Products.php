@@ -149,44 +149,34 @@ class Products extends Component
      * @throws Exception
      * @throws \yii\db\Exception
      */
-    public function createOrUpdateProduct(ShopifyProduct|ShopifyProduct2410 $product, array $metafields = [], ?array $variants = null): bool
+    public function createOrUpdateProduct(array $product, array $metafields = [], ?array $variants = null): bool
     {
-        // Expand any JSON-like properties:
-        $metaFields = MetafieldsHelper::unpack($metafields);
-
         // Build our attribute set from the Shopify product data:
         $attributes = [
-            'shopifyId' => $product->id,
-            'title' => $product->title ? StringHelper::emojiToShortcodes($product->title) : null,
-            'bodyHtml' => $product->body_html ? StringHelper::emojiToShortcodes($product->body_html) : null,
-            'createdAt' => Db::prepareDateForDb($product->created_at),
-            'handle' => $product->handle,
-            'images' => $product->images,
-            'options' => $product->options,
-            'productType' => $product->product_type,
-            'publishedAt' => Db::prepareDateForDb($product->published_at),
-            'publishedScope' => $product->published_scope,
-            'shopifyStatus' => $product->status,
-            'tags' => $product->tags,
-            'templateSuffix' => $product->template_suffix,
-            'updatedAt' => Db::prepareDateForDb($product->updated_at),
-            'variants' => $variants ?? $product->variants,
-            'vendor' => $product->vendor,
-            'metaFields' => $metaFields,
+            'shopifyId' => str_replace('gid://shopify/Product/', '', $product['id']),
+            'shopifyGid' => $product['id'],
+            'title' => $product['title'] ? StringHelper::emojiToShortcodes($product['title']) : null,
+            'descriptionHtml' => $product['descriptionHtml'] ? StringHelper::emojiToShortcodes($product['descriptionHtml']) : null,
+            'createdAt' => Db::prepareDateForDb($product['createdAt']),
+            'handle' => $product['handle'],
+            'options' => $product['options'],
+            'productType' => $product['productType'],
+            'publishedAt' => Db::prepareDateForDb($product['publishedAt']),
+            // 'publishedScope' => $product->published_scope,
+            'shopifyStatus' => $product['status'],
+            'tags' => $product['tags'],
+            'templateSuffix' => $product['templateSuffix'],
+            'updatedAt' => Db::prepareDateForDb($product['updatedAt']),
+            'vendor' => $product['vendor'],
         ];
 
         // Find the product data or create one
-        /** @var ProductDataRecord $productDataRecord */
-        $productDataRecord = ProductDataRecord::find()->where(['shopifyId' => $product->id])->one() ?: new ProductDataRecord();
-
-        // Set attributes and save:
-        $productDataRecord->setAttributes($attributes, false);
-        $productDataRecord->save();
+        $shopifyData = ShopifyData::findOne(['shopifyId' => $product['id']]);
 
         // Find the product element or create one
         /** @var ProductElement|null $productElement */
         $productElement = ProductElement::find()
-            ->shopifyId($product->id)
+            ->shopifyGid($product['id'])
             ->status(null)
             ->one();
 
@@ -204,13 +194,13 @@ class Products extends Component
         $this->trigger(self::EVENT_BEFORE_SYNCHRONIZE_PRODUCT, $event);
 
         if (!$event->isValid) {
-            Craft::warning("Synchronization of Shopify product ID #{$product->id} was stopped by a plugin.", 'shopify');
+            Craft::warning("Synchronization of Shopify product ID #{$product['id']} was stopped by a plugin.", 'shopify');
 
             return false;
         }
 
         if (!Craft::$app->getElements()->saveElement($productElement)) {
-            Craft::error("Failed to synchronize Shopify product ID #{$product->id}.", 'shopify');
+            Craft::error("Failed to synchronize Shopify product ID #{$product['id']}.", 'shopify');
 
             return false;
         }

@@ -15,6 +15,7 @@ use craft\helpers\UrlHelper;
 use craft\i18n\Formatter;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\records\ProductData;
+use craft\shopify\records\ShopifyData;
 
 /**
  * Shopify Product Helper.
@@ -117,8 +118,8 @@ class Product
         ]);
 
         // This is the date updated in the database which represents the last time it was updated from a Shopify webhook or sync.
-        /** @var ProductData $productData */
-        $productData = ProductData::find()->where(['shopifyId' => $product->shopifyId])->one();
+        /** @var ShopifyData $productData */
+        $productData = ShopifyData::find()->where(['shopifyId' => $product->shopifyGid])->one();
         $dateUpdated = DateTimeHelper::toDateTime($productData->dateUpdated);
         $now = new \DateTime();
         $diff = $now->diff($dateUpdated);
