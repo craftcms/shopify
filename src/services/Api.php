@@ -474,6 +474,8 @@ class Api extends Component
             $fields = array_combine(ArrayHelper::getColumn($fields, 'key'), ArrayHelper::getColumn($fields, 'value'));
             $product->setMetaFields($fields);
         }
+
+        return $products;
     }
 
     /**
