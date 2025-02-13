@@ -28,6 +28,7 @@ use craft\shopify\elements\Product;
 use craft\shopify\feedme\fields\Products as FeedMeProductsField;
 use craft\shopify\fields\Products as ProductsField;
 use craft\shopify\handlers\Product as ProductHandler;
+use craft\shopify\handlers\Webhook;
 use craft\shopify\linktypes\Product as ProductLinkType;
 use craft\shopify\models\Settings;
 use craft\shopify\services\Api;
@@ -140,11 +141,9 @@ class Plugin extends BasePlugin
             ->onRemove(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, [$productsService, 'handleDeletedFieldLayout']);
 
         // Globally register shopify webhooks registry event handlers
-        Registry::addHandler(Topics::PRODUCTS_CREATE, new ProductHandler());
-        Registry::addHandler(Topics::PRODUCTS_DELETE, new ProductHandler());
-        Registry::addHandler(Topics::PRODUCTS_UPDATE, new ProductHandler());
-        Registry::addHandler(Topics::INVENTORY_LEVELS_UPDATE, new ProductHandler());
-        Registry::addHandler(Topics::BULK_OPERATIONS_FINISH, new ProductHandler());
+        foreach ($this->getApi()::WEBHOOK_TOPICS as $topic) {
+            Registry::addHandler($topic, new Webhook());
+        }
     }
 
     /**
