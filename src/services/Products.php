@@ -102,23 +102,12 @@ class Products extends Component
      * @return void
      * @throws \Throwable
      * @throws \yii\base\InvalidConfigException
+     * @deprecated in 6.0.0. Use [[BulkOperations::createProductsBulkOperation()]] instead.
      */
     public function syncAllProducts(): void
     {
-        $api = Plugin::getInstance()->getApi();
-        $products = $api->getAllProducts();
-        //
-        // foreach ($products as $product) {
-        //     $this->_updateProduct($product);
-        // }
-        //
-        // // Remove any products that are no longer in Shopify just in case.
-        // $shopifyIds = ArrayHelper::getColumn($products, 'id');
-        // $deletableProductElements = ProductElement::find()->shopifyId(['not', $shopifyIds])->all();
-        //
-        // foreach ($deletableProductElements as $element) {
-        //     Craft::$app->elements->deleteElement($element);
-        // }
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Products::syncAllProducts() has been deprecated. Use BulkOperations::createProductsBulkOperation() instead.');
+        Plugin::getInstance()->getBulkOperations()->createProductsBulkOperation();
     }
 
     /**

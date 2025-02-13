@@ -11,15 +11,17 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 use craft\log\MonologTarget;
 use craft\shopify\Plugin;
+use craft\shopify\records\ShopifyData;
 use GraphQL\InlineFragment;
 use GraphQL\Mutation;
+use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
 use GraphQL\Variable;
 use GuzzleHttp\Client;
 use Illuminate\Support\Collection;
-use MaxGraphQL\Types\Query;
 use Psr\Http\Client\ClientInterface;
 use Shopify\ApiVersion;
 use Shopify\Auth\FileSessionStorage;
@@ -64,6 +66,7 @@ class Api extends Component
         Topics::PRODUCTS_DELETE,
         Topics::INVENTORY_LEVELS_UPDATE,
         Topics::BULK_OPERATIONS_FINISH,
+        Topics::SHOP_UPDATE,
     ];
 
     /**
@@ -89,11 +92,107 @@ class Api extends Component
     }
 
     /**
-     * @param string|null $id
-     * @return \GraphQL\Query
+     * @return Query
      * @since 6.0.0
      */
-    public function getProductGql(?string $id = null): \GraphQL\Query
+    public function getShopGql(): Query
+    {
+        $fields = collect([
+            'id',
+            'billingAddress' => [
+                'address1',
+                'address2',
+                'city',
+                'company',
+                'country',
+                'countryCodeV2',
+                'formatted',
+                'formattedArea',
+                'id',
+                'latitude',
+                'longitude',
+                'phone',
+                'province',
+                'provinceCode',
+                'zip',
+            ],
+            'contactEmail',
+            'createdAt',
+            'currencyCode',
+            'description',
+            'email',
+            'ianaTimezone',
+            'marketingSmsConsentEnabledAtCheckout',
+            'myshopifyDomain',
+            'name',
+            'orderNumberFormatPrefix',
+            'orderNumberFormatSuffix',
+            'taxesIncluded',
+            'taxShipping',
+            'timezoneAbbreviation',
+            'updatedAt',
+            'url',
+            'weightUnit',
+        ]);
+
+        $builder = (new QueryBuilder('shop'));
+
+        foreach ($fields as $key => $value) {
+            $this->_getBuilderValue($key, $value, $builder);
+        }
+
+        return $builder->getQuery();
+    }
+
+    /**
+     * @param bool $update
+     * @return array|null
+     * @since 6.0.0
+     */
+    public function getShop(bool $update = false): ?array
+    {
+        $shop = null;
+
+        // Check if the data is synced into the DB
+        $shopRecord = ShopifyData::findOne(['type' => 'Shop']);
+        if ($shopRecord && !$update) {
+            return Json::decodeIfJson($shopRecord->data);
+        }
+
+        // Sync the data from the API
+        try {
+            $response = $this->query($this->getShopGql());
+
+            if (empty($response)) {
+                throw new \Exception('Shop data not found in the response.');
+            }
+
+            if (!$shopRecord) {
+                $shopRecord = new ShopifyData();
+            }
+
+            $shopRecord->shopifyId = $response['id'];
+            $shopRecord->type = 'Shop';
+            $shopRecord->data = $response;
+
+            if (!$shopRecord->save()) {
+                throw new \Exception('Failed to save shop data: ' . $shopRecord->getErrors()[0]);
+            }
+
+            $shop = $shopRecord->data;
+        } catch (\Exception $e) {
+            Craft::error('Failed to sync Shopify shop data: ' . $e->getMessage(), __METHOD__);
+        }
+
+        return $shop;
+    }
+
+    /**
+     * @param string|null $id
+     * @return Query
+     * @since 6.0.0
+     */
+    public function getProductGql(?string $id = null): Query
     {
         $fields = collect([
             'edges' => [
@@ -196,11 +295,11 @@ class Api extends Component
     /**
      * Run a Shopify GraphQL query.
      *
-     * @param \GraphQL\Query $query
+     * @param Query $query
      * @param array|null $variables
      * @return mixed
      */
-    public function query(\GraphQL\Query $query, ?array $variables = null): mixed
+    public function query(Query $query, ?array $variables = null): mixed
     {
         $data = ['query' => (string)$query];
         if ($variables) {
@@ -235,7 +334,7 @@ class Api extends Component
      * @param Query $query
      * @return Collection
      */
-    public function getAll(\GraphQL\Query $query, ?array $variables = null): Collection
+    public function getAll(Query $query, ?array $variables = null): Collection
     {
         $return = [];
         $hasNextPage = true;
@@ -278,7 +377,7 @@ class Api extends Component
             if ($hasNextPage) {
                 $arguments = $query->getArguments();
                 $arguments['after'] = $data['pageInfo']['endCursor'];
-                $query->addArguments($arguments);
+                $query->setArguments($arguments);
             }
         } while ($hasNextPage);
 
@@ -488,14 +587,14 @@ class Api extends Component
      */
     public function getWebhooks(): Collection
     {
-        $query = (new \GraphQL\Query('webhookSubscriptions'))
+        $query = (new Query('webhookSubscriptions'))
             ->setArguments(['first' => 100])
             ->setSelectionSet([
-                (new \GraphQL\Query('nodes'))
+                (new Query('nodes'))
                     ->setSelectionSet([
                         'id',
                         'topic',
-                        (new \GraphQL\Query('endpoint'))
+                        (new Query('endpoint'))
                             ->setSelectionSet([
                                 (new InlineFragment('WebhookHttpEndpoint'))
                                     ->setSelectionSet([
@@ -531,7 +630,7 @@ class Api extends Component
                 'id' => '$id',
             ])
             ->setSelectionSet([
-                (new \GraphQL\Query('userErrors'))
+                (new Query('userErrors'))
                     ->setSelectionSet([
                         'field',
                         'message',

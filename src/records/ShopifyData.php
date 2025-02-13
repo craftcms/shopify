@@ -34,9 +34,4 @@ class ShopifyData extends ActiveRecord
     {
         return Table::DATA;
     }
-
-    // public function getData(): ActiveQueryInterface
-    // {
-    //     return $this->hasOne(Product::class, ['id' => 'shopifyId']);
-    // }
 }

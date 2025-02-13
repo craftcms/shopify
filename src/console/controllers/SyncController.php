@@ -61,7 +61,7 @@ class SyncController extends Controller
     {
         $this->stdout('Syncing Shopify products…' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
 
-        $result = Plugin::getInstance()->getApi()->createProductsBulkOperation();
+        $result = Plugin::getInstance()->getBulkOperations()->createProductsBulkOperation();
 
         if ($result === false) {
             $this->stderr('Failed to create a bulk operation.' . PHP_EOL, Console::FG_RED);
