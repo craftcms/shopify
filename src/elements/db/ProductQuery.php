@@ -32,6 +32,7 @@ class ProductQuery extends ElementQuery
 
     /**
      * @var mixed The Shopify product GID(s) that the resulting products must have.
+     * @since 6.0.0
      */
     public mixed $shopifyGid = null;
 
@@ -78,6 +79,7 @@ class ProductQuery extends ElementQuery
 
     /**
      * @var bool Eager loads all relational data for the resulting products.
+     * @since 6.0.0
      */
     public bool $withAll = false;
 
@@ -92,6 +94,7 @@ class ProductQuery extends ElementQuery
      *
      * @param bool $value The property value
      * @return static self reference
+     * @since 6.0.0
      *
      * @used-by withAll()
      */
@@ -104,6 +107,7 @@ class ProductQuery extends ElementQuery
 
     /**
      * @var bool Eager loads the metafields on the resulting products.
+     * @since 6.0.0
      */
     public bool $withMetafields = false;
 
@@ -118,6 +122,7 @@ class ProductQuery extends ElementQuery
      *
      * @param bool $value The property value
      * @return static self reference
+     * @since 6.0.0
      *
      * @used-by withMetafields()
      */
@@ -130,6 +135,7 @@ class ProductQuery extends ElementQuery
 
     /**
      * @var bool Eager loads the images on the resulting products.
+     * @since 6.0.0
      */
     public bool $withImages = false;
 
@@ -144,6 +150,7 @@ class ProductQuery extends ElementQuery
      *
      * @param bool $value The property value
      * @return static self reference
+     * @since 6.0.0
      *
      * @used-by withImages()
      */
@@ -156,6 +163,7 @@ class ProductQuery extends ElementQuery
 
     /**
      * @var bool Eager loads the variants on the resulting products.
+     * @since 6.0.0
      */
     public bool $withVariants = false;
 
@@ -170,6 +178,7 @@ class ProductQuery extends ElementQuery
      *
      * @param bool $value The property value
      * @return static self reference
+     * @since 6.0.0
      *
      * @used-by withVariants()
      */
@@ -263,6 +272,7 @@ class ProductQuery extends ElementQuery
 
     /**
      * Narrows the query results based on the Shopify product GID
+     * @since 6.0.0
      */
     public function shopifyGid(mixed $value): ProductQuery
     {
