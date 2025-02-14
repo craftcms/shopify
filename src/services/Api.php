@@ -98,7 +98,7 @@ class Api extends Component
      */
     public function getShopGql(): Query
     {
-        $fields = collect([
+        $fields = [
             'id',
             'billingAddress' => [
                 'address1',
@@ -134,15 +134,9 @@ class Api extends Component
             'updatedAt',
             'url',
             'weightUnit',
-        ]);
+        ];
 
-        $builder = (new QueryBuilder('shop'));
-
-        foreach ($fields as $key => $value) {
-            $this->_getBuilderValue($key, $value, $builder);
-        }
-
-        return $builder->getQuery();
+        return $this->createQuery('shop', $fields);
     }
 
     /**
@@ -195,7 +189,7 @@ class Api extends Component
      */
     public function getProductGql(?string $id = null): Query
     {
-        $fields = collect([
+        $fields = [
             'edges' => [
                 'node' => [
                     'descriptionHtml',
@@ -282,22 +276,16 @@ class Api extends Component
                     'vendor',
                 ],
             ],
-        ]);
+        ];
 
-        $builder = (new QueryBuilder('products'));
+        return $this->createQuery('products', $fields, function(QueryBuilder $builder) use ($id) {
+            if ($id) {
+                // Strip Shopify prefix if it exists
+                $id = str_replace('gid://shopify/Product/', '', $id);
 
-        if ($id) {
-            // Strip Shopify prefix if it exists
-            $id = str_replace('gid://shopify/Product/', '', $id);
-
-            $builder->setArgument('query', sprintf('id:%s', $id));
-        }
-
-        foreach ($fields as $key => $value) {
-            $this->_getBuilderValue($key, $value, $builder);
-        }
-
-        return $builder->getQuery();
+                $builder->setArgument('query', sprintf('id:%s', $id));
+            }
+        });
     }
 
     /**
@@ -306,18 +294,40 @@ class Api extends Component
      * @param QueryBuilder $builderQuery
      * @return void
      */
-    private function _getBuilderValue($key, $value, QueryBuilder $builderQuery)
+    private function _prepQueryBuilder($key, $value, QueryBuilder $builderQuery): void
     {
         if (is_array($value)) {
             $subQueryBuilder = (new QueryBuilder($key));
             foreach ($value as $k => $v) {
-                $this->_getBuilderValue($k, $v, $subQueryBuilder);
+                $this->_prepQueryBuilder($k, $v, $subQueryBuilder);
             }
 
             $value = $subQueryBuilder->getQuery();
         }
 
         $builderQuery->selectField($value);
+    }
+
+    /**
+     * @param string $name
+     * @param array $fields
+     * @param callable|null $beforeFields
+     * @return Query
+     * @since 6.0.0
+     */
+    public function createQuery(string $name, array $fields, callable $beforeFields = null): Query
+    {
+        $builder = new QueryBuilder($name);
+
+        if ($beforeFields !== null) {
+            $beforeFields($builder);
+        }
+
+        foreach ($fields as $key => $value) {
+            $this->_prepQueryBuilder($key, $value, $builder);
+        }
+
+        return $builder->getQuery();
     }
 
     /**
@@ -452,6 +462,7 @@ class Api extends Component
     /**
      * @param array|Product[] $products
      * @return array
+     * @since 6.0.0
      */
     public function eagerLoadMetafieldsForProducts(array $products): array
     {
@@ -714,24 +725,27 @@ class Api extends Component
      */
     public function getWebhooks(): Collection
     {
-        $query = (new Query('webhookSubscriptions'))
-            ->setArguments(['first' => 100])
-            ->setSelectionSet([
-                (new Query('nodes'))
-                    ->setSelectionSet([
-                        'id',
-                        'topic',
-                        (new Query('endpoint'))
-                            ->setSelectionSet([
-                                (new InlineFragment('WebhookHttpEndpoint'))
-                                    ->setSelectionSet([
-                                        'callbackUrl',
-                                    ]),
-                            ]),
-                    ]),
-            ]);
+        $query = $this->createQuery('webhookSubscriptions', [
+            'nodes' => [
+                'id',
+                'topic',
+                'endpoint' => [
+                    '... on WebhookHttpEndpoint' => [
+                        'callbackUrl',
+                    ],
+                ],
+            ],
+        ], function(QueryBuilder $builder) {
+            $builder->setArgument('first', 100);
+        });
 
-        return $this->getAll($query);
+        $response = $this->query($query);
+
+        if (empty($response) || !isset($response['nodes'])) {
+            return collect();
+        }
+
+        return collect($response['nodes']);
     }
 
     /**

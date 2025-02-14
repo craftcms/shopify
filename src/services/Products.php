@@ -17,12 +17,9 @@ use craft\shopify\helpers\Metafields as MetafieldsHelper;
 use craft\shopify\Plugin;
 use craft\shopify\records\ProductData as ProductDataRecord;
 use craft\shopify\records\ShopifyData;
-use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
+use GraphQL\QueryBuilder\QueryBuilder;
 use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
-use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
-use Shopify\Rest\Admin2024_10\Metafield as ShopifyMetafield2410;
 use Shopify\Rest\Admin2024_10\Product as ShopifyProduct2410;
-use Shopify\Rest\Admin2024_10\Variant as ShopifyVariant2410;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\db\StaleObjectException;
@@ -112,9 +109,10 @@ class Products extends Component
     }
 
     /**
+     * @param string $id
      * @return void
-     * @throws \Throwable
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
+     * @throws \yii\db\Exception
      */
     public function syncProductByShopifyId(string $id): void
     {
@@ -128,28 +126,42 @@ class Products extends Component
      */
     public function syncProductByInventoryItemId($id): void
     {
-        $api = Plugin::getInstance()->getApi();
+        // Make sure the ID has the gql prefix
+        $id = str_starts_with($id, 'gid://shopify/InventoryItem/') ? $id : 'gid://shopify/InventoryItem/' . $id;
 
-        if ($productId = $api->getProductIdByInventoryItemId($id)) {
-            $product = $api->getProductByShopifyId($productId);
+        $query = Plugin::getInstance()->getApi()->createQuery('inventoryItem', [
+            'id',
+            'variant' => [
+                'id',
+                'product' => [
+                    'id',
+                ],
+            ],
+        ], function(QueryBuilder $builder) use ($id) {
+            $builder->setArgument('id', $id);
+        });
 
-            $this->_updateProduct($product);
+        $response = Plugin::getInstance()->getApi()->query($query);
+
+        if (empty($response) || empty($response['data']['inventoryItem']['variant']['product']['id'])) {
+            return;
         }
+
+        $productId = $response['data']['inventoryItem']['variant']['product']['id'];
+
+        $this->syncProductByShopifyId($productId);
     }
 
     /**
      * This takes the shopify data from the REST API and creates or updates a product element.
      *
-     * @param ShopifyProduct|ShopifyProduct2410 $product
-     * @param ShopifyMetafield[]|ShopifyMetafield2410[] $metafields
-     * @param ShopifyVariant[]|ShopifyVariant2410[] $variants
+     * @param array $product
      * @return bool Whether the synchronization succeeded.
-     * @throws \Throwable
      * @throws ElementNotFoundException
      * @throws Exception
-     * @throws \yii\db\Exception
+     * @throws \Throwable
      */
-    public function createOrUpdateProduct(array $product, array $metafields = [], ?array $variants = null): bool
+    public function createOrUpdateProduct(array $product): bool
     {
         // Build our attribute set from the Shopify product data:
         $attributes = [
@@ -169,9 +181,6 @@ class Products extends Component
             'updatedAt' => Db::prepareDateForDb($product['updatedAt']),
             'vendor' => $product['vendor'],
         ];
-
-        // Find the product data or create one
-        $shopifyData = ShopifyData::findOne(['shopifyId' => $product['id']]);
 
         // Find the product element or create one
         /** @var ProductElement|null $productElement */
