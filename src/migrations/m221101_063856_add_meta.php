@@ -15,8 +15,8 @@ class m221101_063856_add_meta extends Migration
      */
     public function safeUp(): bool
     {
-        if (!$this->db->columnExists(Table::PRODUCTDATA, 'metaFields')) {
-            $this->addColumn(Table::PRODUCTDATA, 'metaFields', $this->text()->after('vendor'));
+        if (!$this->db->columnExists('{{%shopify_productdata}}', 'metaFields')) {
+            $this->addColumn('{{%shopify_productdata}}', 'metaFields', $this->text()->after('vendor'));
         }
 
         return true;

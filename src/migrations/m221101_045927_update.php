@@ -29,8 +29,8 @@ class m221101_045927_update extends Migration
             ]);
         }
 
-        if (!$this->db->tableExists(Table::PRODUCTDATA)) {
-            $this->createTable(Table::PRODUCTDATA, [
+        if (!$this->db->tableExists('{{%shopify_productdata}}')) {
+            $this->createTable('{{%shopify_productdata}}', [
                 'shopifyId' => $this->string(),
                 'title' => $this->text(),
                 'bodyHtml' => $this->text(),
@@ -54,8 +54,8 @@ class m221101_045927_update extends Migration
                 'PRIMARY KEY(shopifyId)',
             ]);
 
-            $this->createIndex(null, Table::PRODUCTDATA, ['shopifyId'], true);
-            $this->addForeignKey(null, Table::PRODUCTS, ['shopifyId'], Table::PRODUCTDATA, ['shopifyId'], 'CASCADE', 'CASCADE');
+            $this->createIndex(null, '{{%shopify_productdata}}', ['shopifyId'], true);
+            $this->addForeignKey(null, Table::PRODUCTS, ['shopifyId'], '{{%shopify_productdata}}', ['shopifyId'], 'CASCADE', 'CASCADE');
             $this->addForeignKey(null, Table::PRODUCTS, ['id'], CraftTable::ELEMENTS, ['id'], 'CASCADE', 'CASCADE');
         }
 
