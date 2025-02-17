@@ -1,1 +1,40 @@
 # Release Notes for Shopify (WIP)
+
+### Extensibility
+- Added `craft\shopify\Plugin::getBulkOperation()`.
+- Added `craft\shopify\api\BulkDataBatcher`.
+- Added `craft\shopify\controllers\Sync`.
+- Added `craft\shopify\db\Table::DATA`.
+- Added `craft\shopify\db\ProductQuery::$shopifyGid`.
+- Added `craft\shopify\db\ProductQuery::shopifyGid()`.
+- Added `craft\shopify\db\ProductQuery::$publishedOnCurrentPublication`.
+- Added `craft\shopify\db\ProductQuery::publishedOnCurrentPublication()`.
+- Added `craft\shopify\db\ProductQuery::$withAll`.
+- Added `craft\shopify\db\ProductQuery::$withMetafields`.
+- Added `craft\shopify\db\ProductQuery::$withImages`.
+- Added `craft\shopify\db\ProductQuery::$withVariants`.
+- Added `craft\shopify\db\ProductQuery::withAll()`.
+- Added `craft\shopify\db\ProductQuery::withMetafields()`.
+- Added `craft\shopify\db\ProductQuery::withImages()`.
+- Added `craft\shopify\db\ProductQuery::withVariants()`.
+- Added `craft\shopify\elements\Product::$publishedOnCurrentPublication`.
+- Added `craft\shopify\elements\Product::$shopifyGid`.
+- Added `craft\shopify\elements\Product::getData()`.
+- Added `craft\shopify\elements\Product::setData()`.
+- Added `craft\shopify\elements\Product::getDescriptionHtml()`.
+- Added `craft\shopify\elements\Product::setDescriptionHtml()`.
+- Added `craft\shopify\jobs\ProcessBulkOperationData`.
+- Added `craft\shopify\models\BulkOperation`.
+- Added `craft\shopify\records\BulkOperation`.
+- Added `craft\shopify\records\ShopifyData`.
+- Added `craft\shopify\services\BulkOperations`.
+- `craft\shopify\events\ShopifyProductSyncEvent::$source` now has a type of `array`.
+- `craft\shopify\services\Products::createOrUpdateProduct()`’s `$product` argument now has a type of `array`.
+- `craft\shopify\services\Products::createOrUpdateProduct()` no longer has `$metafields` and `$variants` arguments.
+- Renamed `craft\shopify\handlers\Product` to `Webhook`.
+- Deprecated `craft\shopify\elements\Product::getBodyHtml()`. `getDescriptionHtml()` should be used instead.
+- Deprecated `craft\shopify\elements\Product::setBodyHtml()`. `setDescriptionHtml()` should be used instead.
+- Removed `craft\shopify\db\Table::PRODUCTDATA`.
+- Removed `craft\shopify\elements\Product::$publishedScope`.
+- Removed `craft\shopify\jobs\UpdateProductMetadata`.
+- Removed `craft\shopify\records\ProductData`.
