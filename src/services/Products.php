@@ -174,7 +174,7 @@ class Products extends Component
             'options' => $product['options'],
             'productType' => $product['productType'],
             'publishedAt' => Db::prepareDateForDb($product['publishedAt']),
-            // 'publishedScope' => $product->published_scope,
+            'publishedOnCurrentPublication' => (bool)$product['publishedOnCurrentPublication'],
             'shopifyStatus' => $product['status'],
             'tags' => $product['tags'],
             'templateSuffix' => $product['templateSuffix'],
