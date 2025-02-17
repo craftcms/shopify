@@ -37,6 +37,7 @@ use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
 use Shopify\Rest\Admin2024_10\Metafield as ShopifyMetafield2410;
 use Shopify\Rest\Admin2024_10\Product as ShopifyProduct2410;
 use Shopify\Rest\Admin2024_10\Variant as ShopifyVariant2410;
+use Shopify\Rest\Base as ShopifyBaseResource;
 use Shopify\Webhooks\Topics;
 
 /**
