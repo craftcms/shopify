@@ -10,18 +10,22 @@ namespace craft\shopify\services;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
+use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use craft\helpers\Queue;
 use craft\shopify\db\Table;
 use craft\shopify\jobs\ProcessBulkOperationData;
 use craft\shopify\models\BulkOperation;
 use craft\shopify\Plugin;
 use craft\shopify\records\BulkOperation as BulkOperationRecord;
+use DateTime;
 use GraphQL\InlineFragment;
 use GraphQL\Mutation;
 use GraphQL\Variable;
 use Illuminate\Support\Collection;
 use yii\base\InvalidConfigException;
 use yii\db\Exception;
+use yii\db\StaleObjectException;
 
 /**
  *
@@ -337,6 +341,54 @@ class BulkOperations extends Component
     }
 
     /**
+     * @param int $id
+     * @return bool
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
+    public function deleteBulkOperationById(int $id): bool
+    {
+        $bulkOperation = BulkOperationRecord::findOne(['id' => $id]);
+        if (!$bulkOperation) {
+            return true;
+        }
+
+        // Cannot delete a bulk operation that is currently processing
+        if ($bulkOperation->status === BulkOperationRecord::STATUS_PROCESSING) {
+            return false;
+        }
+
+        if (!$bulkOperation->delete()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return void
+     * @throws \DateInvalidOperationException
+     * @throws \Throwable
+     * @throws StaleObjectException
+     */
+    public function purgeBulkOperations(): void
+    {
+        $edge = DateTimeHelper::now();
+        $interval = DateTimeHelper::toDateInterval('P7D');
+        $edge->sub($interval);
+
+        // Delete all bulk operations completed and older than 7 days
+        $completedBulkOps = $this->_createBulkOperationQuery()
+            ->andWhere(['status' => BulkOperationRecord::STATUS_COMPLETED])
+            ->andWhere(['<', 'dateUpdated', Db::prepareDateForDb($edge)])
+            ->all();
+
+        foreach ($completedBulkOps as $completedBulkOp) {
+            $this->deleteBulkOperationById($completedBulkOp['id']);
+        }
+    }
+
+    /**
      * Returns a Query object prepped for retrieving shipping methods.
      */
     private function _createBulkOperationQuery(): Query
@@ -354,6 +406,6 @@ class BulkOperations extends Component
                 'url',
             ])
             ->from([Table::BULK_OPERATIONS])
-            ->orderBy(['id' => SORT_ASC]);
+            ->orderBy(['id' => SORT_DESC]);
     }
 }

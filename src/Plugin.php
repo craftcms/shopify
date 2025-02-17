@@ -13,6 +13,7 @@ namespace craft\shopify;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
+use craft\console\Application as ConsoleApplication;
 use craft\console\Controller;
 use craft\console\controllers\ResaveController;
 use craft\events\DefineConsoleActionsEvent;
@@ -20,9 +21,11 @@ use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\feedme\events\RegisterFeedMeFieldsEvent;
 use craft\fields\Link;
+use craft\helpers\Console;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\services\Fields;
+use craft\services\Gc;
 use craft\services\Utilities;
 use craft\shopify\elements\Product;
 use craft\shopify\feedme\fields\Products as FeedMeProductsField;
@@ -121,6 +124,7 @@ class Plugin extends BasePlugin
         $this->_registerLinkTypes();
         $this->_registerVariables();
         $this->_registerResaveCommands();
+        $this->_registerGarbageCollection();
         $this->_registerFeedMeEvents();
 
         if (!$request->getIsConsoleRequest()) {
@@ -315,6 +319,27 @@ class Plugin extends BasePlugin
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $event->rules['shopify/webhook/handle'] = 'shopify/webhook/handle';
+        });
+    }
+
+    /**
+     * Register the things that need to be garbage collected
+     *
+     * @since 6.0.0
+     */
+    private function _registerGarbageCollection(): void
+    {
+        Event::on(Gc::class, Gc::EVENT_RUN, function(Event $event) {
+            // Deletes carts that meet the purge settings
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout('    > purging syncs ... ');
+            }
+
+            Plugin::getInstance()->getBulkOperations()->purgeBulkOperations();
+
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout("done\n", Console::FG_GREEN);
+            }
         });
     }
 
