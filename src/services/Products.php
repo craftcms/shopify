@@ -15,7 +15,6 @@ use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\helpers\Metafields as MetafieldsHelper;
 use craft\shopify\Plugin;
-use craft\shopify\records\ProductData as ProductDataRecord;
 use craft\shopify\records\ShopifyData;
 use GraphQL\QueryBuilder\QueryBuilder;
 use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
@@ -231,9 +230,6 @@ class Products extends Component
             if ($product = ProductElement::find()->shopifyId($id)->one()) {
                 // We hard delete because it will have been hard deleted in Shopify
                 Craft::$app->getElements()->deleteElement($product, true);
-            }
-            if ($productData = ProductDataRecord::find()->where(['shopifyId' => $id])->one()) {
-                $productData->delete();
             }
 
             // Delete data in shopify data table

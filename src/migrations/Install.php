@@ -44,31 +44,6 @@ class Install extends Migration
             'PRIMARY KEY([[id]])',
         ]);
 
-        $this->archiveTableIfExists(Table::PRODUCTDATA);
-        $this->createTable(Table::PRODUCTDATA, [
-            'shopifyId' => $this->string(),
-            'title' => $this->text(),
-            'bodyHtml' => $this->text(),
-            'createdAt' => $this->dateTime(),
-            'handle' => $this->string(),
-            'images' => $this->text(),
-            'options' => $this->text(),
-            'productType' => $this->string(),
-            'publishedAt' => $this->dateTime(),
-            'publishedScope' => $this->string(),
-            'shopifyStatus' => $this->string(),
-            'tags' => $this->text(),
-            'templateSuffix' => $this->string(),
-            'updatedAt' => $this->string(),
-            'variants' => $this->mediumText(),
-            'vendor' => $this->string(),
-            'metaFields' => $this->text(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->string(),
-            'PRIMARY KEY([[shopifyId]])',
-        ]);
-
         $this->archiveTableIfExists(Table::DATA);
         $this->createTable(Table::DATA, [
             'shopifyId' => $this->string(),
@@ -159,7 +134,6 @@ class Install extends Migration
     {
         $this->createIndex(null, Table::PRODUCTS, ['shopifyId'], true);
         $this->createIndex(null, Table::PRODUCTS, ['shopifyGid'], true);
-        $this->createIndex(null, Table::PRODUCTDATA, ['shopifyId'], true);
         $this->createIndex(null, Table::DATA, ['shopifyId'], true);
         $this->createIndex(null, Table::DATA, ['parentId'], false);
     }
