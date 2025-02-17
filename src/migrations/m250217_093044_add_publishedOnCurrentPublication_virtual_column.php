@@ -4,7 +4,6 @@ namespace craft\shopify\migrations;
 
 use craft\db\Migration;
 use craft\shopify\db\Table;
-use yii\db\Expression;
 
 /**
  * m250217_093044_add_publishedOnCurrentPublication_virtual_column migration.

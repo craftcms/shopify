@@ -9,6 +9,10 @@ namespace craft\shopify\utilities;
 
 use Craft;
 use craft\base\Utility;
+use craft\shopify\models\BulkOperation;
+use craft\shopify\Plugin;
+use craft\shopify\records\BulkOperation as BulkOperationRecord;
+use craft\web\assets\admintable\AdminTableAsset;
 
 /**
  * Sync class offers the Shopify Sync utilities.
@@ -57,7 +61,33 @@ class Sync extends Utility
     public static function contentHtml(): string
     {
         $view = Craft::$app->getView();
+        $view->registerAssetBundle(AdminTableAsset::class);
 
-        return $view->renderTemplate('shopify/utilities/_sync.twig');
+        $bulkOps = Plugin::getInstance()->getBulkOperations()->getAllBulkOperations();
+
+        $canCreateSync = true;
+
+        $formatter = Craft::$app->getFormatter();
+
+        $tableData = $bulkOps->map(function(BulkOperation $bo) use (&$canCreateSync, $formatter) {
+            if (in_array($bo->status, [BulkOperationRecord::STATUS_PROCESSING, BulkOperationRecord::STATUS_CREATED])) {
+                $canCreateSync = false;
+            }
+
+            return [
+                'id' => $bo->id,
+                'status' => $bo->status,
+                'shopifyStatus' => $bo->shopifyStatus,
+                'objects' => $bo->objectCount ? $formatter->asInteger($bo->objectCount) : '',
+                'dateCreated' => $formatter->asDatetime($bo->dateCreated),
+                'dateUpdated' => $formatter->asDatetime($bo->dateUpdated),
+                '_showDelete' => $bo->status !== BulkOperationRecord::STATUS_PROCESSING,
+            ];
+        })->all();
+
+        return $view->renderTemplate('shopify/utilities/_sync.twig', [
+            'canCreateSync' => $canCreateSync,
+            'tableData' => $tableData,
+        ]);
     }
 }
