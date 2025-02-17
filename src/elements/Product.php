@@ -128,9 +128,9 @@ class Product extends Element
     public ?DateTime $publishedAt = null;
 
     /**
-     * @var string
+     * @var bool
      */
-    public ?string $publishedScope = null;
+    public ?bool $publishedOnCurrentPublication = null;
 
     /**
      * The product ID in the Shopify store
@@ -344,7 +344,7 @@ class Product extends Element
      * @param string|array $value
      * @return void
      */
-    public function setMetaFields(string|array $value): void
+    public function setMetafields(string|array $value): void
     {
         if (is_string($value)) {
             $value = Json::decodeIfJson($value);
@@ -357,7 +357,7 @@ class Product extends Element
      * @return array
      * @throws InvalidConfigException
      */
-    public function getMetaFields(): array
+    public function getMetafields(): array
     {
         if (!$this->shopifyGid) {
             return [];
@@ -378,7 +378,7 @@ class Product extends Element
             $data[$metafield['key']] = $metafield['value'];
         }
 
-        $this->setMetaFields($data);
+        $this->setMetafields($data);
 
         return $this->_metaFields ?? [];
     }
@@ -422,6 +422,20 @@ class Product extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function attributes(): array
+    {
+        $attributes = parent::attributes();
+        $attributes[] = 'images';
+        $attributes[] = 'metafields';
+        $attributes[] = 'variants';
+        $attributes[] = 'publishedOnCurrentPublication';
+
+        return $attributes;
+    }
+
+    /**
      * Gets the cheapest variant.
      *
      * @return array
@@ -446,7 +460,7 @@ class Product extends Element
      */
     public static function displayName(): string
     {
-        return Craft::t('app', 'Product');
+        return Craft::t('shopify', 'Product');
     }
 
     /**
@@ -454,7 +468,7 @@ class Product extends Element
      */
     public static function lowerDisplayName(): string
     {
-        return Craft::t('app', 'Shopify product');
+        return Craft::t('shopify', 'Shopify product');
     }
 
     /**
@@ -462,7 +476,7 @@ class Product extends Element
      */
     public static function pluralDisplayName(): string
     {
-        return Craft::t('app', 'Shopify Products');
+        return Craft::t('shopify', 'Shopify Products');
     }
 
     /**
@@ -470,7 +484,7 @@ class Product extends Element
      */
     public static function pluralLowerDisplayName(): string
     {
-        return Craft::t('app', 'Shopify products');
+        return Craft::t('shopify', 'Shopify products');
     }
 
     /**

@@ -133,9 +133,9 @@ class WebhooksController extends Controller
         }
 
         if (!empty($errors)) {
-            $this->setFailFlash(Craft::t('app', 'Webhooks could not be registered.'));
+            $this->setFailFlash(Craft::t('shopify', 'Webhooks could not be registered.'));
         } else {
-            $this->setSuccessFlash(Craft::t('app', 'Webhooks registered.'));
+            $this->setSuccessFlash(Craft::t('shopify', 'Webhooks registered.'));
         }
 
         return $this->redirectToPostedUrl();

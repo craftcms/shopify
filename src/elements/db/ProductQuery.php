@@ -55,11 +55,6 @@ class ProductQuery extends ElementQuery
     /**
      * @var mixed|null
      */
-    public mixed $publishedScope = null;
-
-    /**
-     * @var mixed|null
-     */
     public mixed $tags = null;
 
     /**
@@ -76,6 +71,26 @@ class ProductQuery extends ElementQuery
      * @var mixed|null
      */
     public mixed $options = null;
+
+    /**
+     * @var bool|null
+     * @since 6.0.0
+     */
+    public ?bool $publishedOnCurrentPublication = null;
+
+    /**
+     * Narrows the query to those products that are published on the current publication.
+     *
+     * @param bool|null $publishedOnCurrentPublication
+     * @return static self reference
+     * @since 6.0.0
+     */
+    public function publishedOnCurrentPublication(?bool $publishedOnCurrentPublication = true): static
+    {
+        $this->publishedOnCurrentPublication = $publishedOnCurrentPublication;
+
+        return $this;
+    }
 
     /**
      * @var bool Eager loads all relational data for the resulting products.
@@ -217,15 +232,6 @@ class ProductQuery extends ElementQuery
     }
 
     /**
-     * Narrows the query results based on the Shopify product type
-     */
-    public function publishedScope(mixed $value): self
-    {
-        $this->publishedScope = $value;
-        return $this;
-    }
-
-    /**
      * Narrows the query results based on the Shopify status
      */
     public function shopifyStatus(mixed $value): self
@@ -324,17 +330,17 @@ class ProductQuery extends ElementQuery
             strtolower(Product::STATUS_LIVE) => [
                 'elements.enabled' => true,
                 'elements_sites.enabled' => true,
-                'shopify_productdata.shopifyStatus' => 'active',
+                'data.shopifyStatus' => 'active',
             ],
             strtolower(Product::STATUS_SHOPIFY_DRAFT) => [
                 'elements.enabled' => true,
                 'elements_sites.enabled' => true,
-                'shopify_productdata.shopifyStatus' => 'draft',
+                'data.shopifyStatus' => 'draft',
             ],
             strtolower(Product::STATUS_SHOPIFY_ARCHIVED) => [
                 'elements.enabled' => true,
                 'elements_sites.enabled' => true,
-                'shopify_productdata.shopifyStatus' => 'archived',
+                'data.shopifyStatus' => 'archived',
             ],
             default => parent::statusCondition($status),
         };
@@ -398,7 +404,7 @@ class ProductQuery extends ElementQuery
             'data.productType',
             'data.createdAt',
             'data.publishedAt',
-            // 'shopify_productdata.publishedScope',
+            'data.publishedOnCurrentPublication',
             'data.tags',
             'data.templateSuffix',
             'data.updatedAt',
@@ -419,12 +425,12 @@ class ProductQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseParam('data.productType', $this->productType));
         }
 
-        if (isset($this->publishedScope)) {
-            $this->subQuery->andWhere(Db::parseParam('data.publishedScope', $this->publishedScope));
-        }
-
         if (isset($this->shopifyStatus)) {
             $this->subQuery->andWhere(Db::parseParam('data.shopifyStatus', $this->shopifyStatus));
+        }
+
+        if (isset($this->publishedOnCurrentPublication)) {
+            $this->subQuery->andWhere(Db::parseBooleanParam('data.publishedOnCurrentPublication', $this->publishedOnCurrentPublication));
         }
 
         if (isset($this->handle)) {

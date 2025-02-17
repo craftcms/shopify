@@ -111,7 +111,6 @@ class Install extends Migration
             'createdAt' => 'createdAt',
             'handle' => 'handle',
             'productType' => 'productType',
-            'publishedScope' => 'publishedScope',
             'publishedAt' => 'publishedAt',
             'status' => 'shopifyStatus',
             'templateSuffix' => 'templateSuffix',
@@ -135,6 +134,21 @@ class Install extends Migration
             $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
                 $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->text()) . " GENERATED ALWAYS AS (" .
                 $qb->jsonExtract('data', [$col]) . ") STORED;");
+        }
+
+        $boolColumns = [
+            'publishedOnCurrentPublication' => 'publishedOnCurrentPublication',
+        ];
+
+        foreach ($boolColumns as $col => $alias) {
+            $as = $qb->jsonExtract('data', [$col]);
+            if (!$db->getIsPgsql()) {
+                $as = 'CAST(JSON_EXTRACT(`data`, \'$."' . $col . '"\') as signed)';
+            }
+
+            $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
+                $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->boolean()) . " GENERATED ALWAYS AS (" .
+                $as . ") STORED;");
         }
     }
 

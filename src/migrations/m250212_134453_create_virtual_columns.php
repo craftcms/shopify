@@ -23,7 +23,6 @@ class m250212_134453_create_virtual_columns extends Migration
             'handle' => 'handle',
             'productType' => 'productType',
             'publishedAt' => 'publishedAt',
-            'publishedScope' => 'publishedScope',
             'status' => 'shopifyStatus',
             'templateSuffix' => 'templateSuffix',
             'title' => 'title',
