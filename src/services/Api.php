@@ -16,7 +16,6 @@ use craft\log\MonologTarget;
 use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
 use craft\shopify\records\ShopifyData;
-use GraphQL\InlineFragment;
 use GraphQL\Mutation;
 use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
@@ -258,7 +257,7 @@ class Api extends Component
                                     'unitCost' => [
                                         'amount',
                                         'currencyCode',
-                                    ]
+                                    ],
                                 ],
                                 'inventoryQuantity',
                                 'metafields' => [

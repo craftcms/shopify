@@ -9,8 +9,6 @@ namespace craft\shopify\events;
 
 use craft\events\CancelableEvent;
 use craft\shopify\elements\Product as ProductElement;
-use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
-use Shopify\Rest\Admin2024_10\Product as ShopifyProduct2410;
 
 /**
  * Event triggered just before a synchronized product element is going to be saved.
