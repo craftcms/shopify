@@ -120,7 +120,7 @@ class WebhooksController extends Controller
             ];
 
             try {
-                $response = $api->getClient()->query(['query' => $query->__toString(), 'variables' => $variables]);
+                $response = $api->getGqlClient()->query(['query' => $query->__toString(), 'variables' => $variables]);
                 $body = $response->getDecodedBody();
 
                 if (array_key_exists('errors', $body)) {

@@ -77,7 +77,12 @@ class Api extends Component
     /**
      * @var Graphql|null
      */
-    private ?Graphql $_client = null;
+    private ?Graphql $_gqlClient = null;
+
+    /**
+     * @var Rest|null
+     */
+    private ?Rest $_client = null;
 
     /**
      * @return array
@@ -350,7 +355,7 @@ class Api extends Component
         }
 
         try {
-            $response = $this->getClient()->query($data);
+            $response = $this->getGqlClient()->query($data);
             $body = $response->getDecodedBody();
 
             if (!isset($body['data'])) {
@@ -369,72 +374,6 @@ class Api extends Component
 
             return false;
         }
-    }
-
-    /**
-     * Iteratively retrieves a paginated collection of API resources.
-     *
-     * @param Query $query
-     * @return Collection
-     */
-    public function getAll(Query $query, ?array $variables = null): Collection
-    {
-        $return = [];
-        $hasNextPage = true;
-
-        do {
-            $data = ['query' => $query->__toString()];
-            if ($variables) {
-                $data['variables'] = $variables;
-            }
-
-            $response = $this->getClient()->query($data);
-            $body = $response->getDecodedBody();
-
-            if (!$body || !isset($body['data'])) {
-                if (isset($body['errors'])) {
-                    throw new \Exception($body['errors'][0]['message']);
-                }
-
-                $hasNextPage = false;
-                continue;
-            }
-
-            $data = $body['data'];
-            $data = ArrayHelper::firstValue($data);
-
-            if (in_array('edges', array_keys($data))) {
-                $data = $data['edges'];
-            } elseif (in_array('nodes', array_keys($data))) {
-                $data = $data['nodes'];
-            }
-
-            $return = array_merge($return, $data);
-
-            if (!isset($data['pageInfo']) || !isset($data['pageInfo']['hasNextPage'])) {
-                $hasNextPage = false;
-                continue;
-            }
-
-            $hasNextPage = $data['pageInfo']['hasNextPage'];
-            if ($hasNextPage) {
-                $arguments = $query->getArguments();
-                $arguments['after'] = $data['pageInfo']['endCursor'];
-                $query->setArguments($arguments);
-            }
-        } while ($hasNextPage);
-
-        return collect($return);
-    }
-
-    /**
-     * Retrieve a single product by its Shopify ID.
-     *
-     * @return ShopifyProduct|ShopifyProduct2410
-     */
-    public function getProductByShopifyId($id): ShopifyProduct|ShopifyProduct2410
-    {
-        return $this->getProductClass()::find($this->getSession(), $id);
     }
 
     /**
@@ -538,134 +477,20 @@ class Api extends Component
     }
 
     /**
-     * Retrieve a product ID by a variant's inventory item ID.
-     *
-     * @return ?int The product Shopify ID
-     */
-    public function getProductIdByInventoryItemId($id): ?int
-    {
-        $variant = Plugin::getInstance()->getApi()->get('variants', [
-            'inventory_item_id' => $id,
-        ]);
-
-        if (isset($variant['variants'])) {
-            return $variant['variants'][0]['product_id'];
-        }
-
-        return null;
-    }
-
-    /**
-     * Retrieves "metafields" for the provided Shopify product ID.
-     *
-     * @param int $id Shopify Product ID
-     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
-     */
-    public function getMetafieldsByProductId(int $id): array
-    {
-        if (!Plugin::getInstance()->getSettings()->syncProductMetafields) {
-            return [];
-        }
-
-        return $this->getMetafieldsByIdAndOwnerResource($id, 'products');
-    }
-
-    /**
-     * @param int $id
-     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
-     * @since 4.1.0
-     */
-    public function getMetafieldsByVariantId(int $id): array
-    {
-        if (!Plugin::getInstance()->getSettings()->syncVariantMetafields) {
-            return [];
-        }
-
-        return $this->getMetafieldsByIdAndOwnerResource($id, 'variants');
-    }
-
-    /**
-     * @param int $id
-     * @param string $ownerResource
-     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
-     * @since 4.1.0
-     */
-    public function getMetafieldsByIdAndOwnerResource(int $id, string $ownerResource): array
-    {
-        /** @var array $metafields */
-        $metafields = $this->get("{$ownerResource}/{$id}/metafields", [
-            'metafield' => [
-                'owner_id' => $id,
-                'owner_resource' => $ownerResource,
-            ],
-        ]);
-
-        if (empty($metafields) || !isset($metafields['metafields'])) {
-            return [];
-        }
-
-        $return = [];
-
-        foreach ($metafields['metafields'] as $metafield) {
-            $metafieldClass = $this->getMetaFieldClass();
-            $return[] = new $metafieldClass($this->getSession(), $metafield);
-        }
-
-        return $return;
-    }
-
-    /**
-     * Retrieves "variants" for the provided Shopify product ID.
-     *
-     * @param int $id Shopify Product ID
-     */
-    public function getVariantsByProductId(int $id): array
-    {
-        $resources = [];
-        $params = ['limit' => 250];
-
-        do {
-            $resources = array_merge($resources, $this->getVariantClass()::all(
-                $this->getSession(),
-                ['product_id' => $id],
-                $this->getVariantClass()::$NEXT_PAGE_QUERY ?: $params,
-            ));
-        } while ($this->getVariantClass()::$NEXT_PAGE_QUERY);
-
-        $variants = [];
-        foreach ($resources as $resource) {
-            $variants[] = $resource->toArray();
-        }
-
-        return $variants;
-    }
-
-    /**
-     * Shortcut for retrieving arbitrary API resources. A plain (parsed) response body is returned, so it’s the caller’s responsibility for unpacking it properly.
-     *
-     * @see Rest::get();
-     */
-    public function get($path, array $query = [])
-    {
-        $response = $this->getClient()->get($path, [], $query, 5);
-
-        return $response->getDecodedBody();
-    }
-
-    /**
      * Returns or sets up a Rest API client.
      *
      * @return Graphql
      * @throws MissingArgumentException
+     * @since 6.0.0
      */
-    public function getClient(): Graphql
+    public function getGqlClient(): Graphql
     {
-        if ($this->_client === null) {
+        if ($this->_gqlClient === null) {
             $session = $this->getSession();
-            $this->_client = new Graphql($session->getShop(), $session->getAccessToken());
+            $this->_gqlClient = new Graphql($session->getShop(), $session->getAccessToken());
         }
 
-        return $this->_client;
+        return $this->_gqlClient;
     }
 
     /**
@@ -785,7 +610,7 @@ class Api extends Component
             ]);
 
         try {
-            Plugin::getInstance()->getApi()->getClient()->query([
+            Plugin::getInstance()->getApi()->getGqlClient()->query([
                 'query' => (string)$mutation,
                 'variables' => [
                     'id' => $id,
@@ -799,6 +624,188 @@ class Api extends Component
             $error = Craft::t('shopify', 'Webhook could not be deleted');
             return false;
         }
+    }
+
+    // Old REST methods
+    // =========================================================================
+
+    /**
+     * Retrieve all a shop’s products.
+     *
+     * @return ShopifyProduct[]|ShopifyProduct2410[]
+     */
+    public function getAllProducts(): array
+    {
+        /** @var ShopifyProduct[]|ShopifyProduct2410[] $all */
+        $all = $this->getAll($this->getProductClass());
+
+        return $all;
+    }
+
+    /**
+     * Retrieve a single product by its Shopify ID.
+     *
+     * @return ShopifyProduct|ShopifyProduct2410
+     */
+    public function getProductByShopifyId($id): ShopifyProduct|ShopifyProduct2410
+    {
+        return $this->getProductClass()::find($this->getSession(), $id);
+    }
+
+    /**
+     * Retrieve a product ID by a variant's inventory item ID.
+     *
+     * @return ?int The product Shopify ID
+     */
+    public function getProductIdByInventoryItemId($id): ?int
+    {
+        $variant = Plugin::getInstance()->getApi()->get('variants', [
+            'inventory_item_id' => $id,
+        ]);
+
+        if (isset($variant['variants'])) {
+            return $variant['variants'][0]['product_id'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Retrieves "metafields" for the provided Shopify product ID.
+     *
+     * @param int $id Shopify Product ID
+     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
+     */
+    public function getMetafieldsByProductId(int $id): array
+    {
+        if (!Plugin::getInstance()->getSettings()->syncProductMetafields) {
+            return [];
+        }
+
+        return $this->getMetafieldsByIdAndOwnerResource($id, 'products');
+    }
+
+    /**
+     * @param int $id
+     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
+     * @since 4.1.0
+     */
+    public function getMetafieldsByVariantId(int $id): array
+    {
+        if (!Plugin::getInstance()->getSettings()->syncVariantMetafields) {
+            return [];
+        }
+
+        return $this->getMetafieldsByIdAndOwnerResource($id, 'variants');
+    }
+
+    /**
+     * @param int $id
+     * @param string $ownerResource
+     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
+     * @since 4.1.0
+     */
+    public function getMetafieldsByIdAndOwnerResource(int $id, string $ownerResource): array
+    {
+        /** @var array $metafields */
+        $metafields = $this->get("{$ownerResource}/{$id}/metafields", [
+            'metafield' => [
+                'owner_id' => $id,
+                'owner_resource' => $ownerResource,
+            ],
+        ]);
+
+        if (empty($metafields) || !isset($metafields['metafields'])) {
+            return [];
+        }
+
+        $return = [];
+
+        foreach ($metafields['metafields'] as $metafield) {
+            $metafieldClass = $this->getMetaFieldClass();
+            $return[] = new $metafieldClass($this->getSession(), $metafield);
+        }
+
+        return $return;
+    }
+
+    /**
+     * Retrieves "variants" for the provided Shopify product ID.
+     *
+     * @param int $id Shopify Product ID
+     */
+    public function getVariantsByProductId(int $id): array
+    {
+        $resources = [];
+        $params = ['limit' => 250];
+
+        do {
+            $resources = array_merge($resources, $this->getVariantClass()::all(
+                $this->getSession(),
+                ['product_id' => $id],
+                $this->getVariantClass()::$NEXT_PAGE_QUERY ?: $params,
+            ));
+        } while ($this->getVariantClass()::$NEXT_PAGE_QUERY);
+
+        $variants = [];
+        foreach ($resources as $resource) {
+            $variants[] = $resource->toArray();
+        }
+
+        return $variants;
+    }
+
+    /**
+     * Shortcut for retrieving arbitrary API resources. A plain (parsed) response body is returned, so it’s the caller’s responsibility for unpacking it properly.
+     *
+     * @see Rest::get();
+     */
+    public function get($path, array $query = [])
+    {
+        $response = $this->getClient()->get($path, [], $query, 5);
+
+        return $response->getDecodedBody();
+    }
+
+    /**
+     * Iteratively retrieves a paginated collection of API resources.
+     *
+     * @param string $type Stripe API resource class
+     * @param array $params
+     * @return ShopifyBaseResource[]
+     */
+    public function getAll(string $type, array $params = []): array
+    {
+        $resources = [];
+
+        // Force maximum page size:
+        $params['limit'] = 250;
+
+        do {
+            $resources = array_merge($resources, $type::all(
+                $this->getSession(),
+                [],
+                $type::$NEXT_PAGE_QUERY ?: $params,
+            ));
+        } while ($type::$NEXT_PAGE_QUERY);
+
+        return $resources;
+    }
+
+    /**
+     * Returns or sets up a Rest API client.
+     *
+     * @return Rest
+     * @throws MissingArgumentException
+     */
+    public function getClient(): Rest
+    {
+        if ($this->_client === null) {
+            $session = $this->getSession();
+            $this->_client = new Rest($session->getShop(), $session->getAccessToken());
+        }
+
+        return $this->_client;
     }
 
     /**

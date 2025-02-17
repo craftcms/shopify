@@ -223,7 +223,7 @@ class BulkOperations extends Component
             ]);
 
         try {
-            $response = Plugin::getInstance()->getApi()->getClient()->query(['query' => (string)$query]);
+            $response = Plugin::getInstance()->getApi()->getGqlClient()->query(['query' => (string)$query]);
             $body = $response->getDecodedBody();
 
             if (!isset($body['data']['node'])) {
