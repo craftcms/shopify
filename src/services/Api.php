@@ -52,12 +52,6 @@ use Shopify\Webhooks\Topics;
 class Api extends Component
 {
     /**
-     * @var string
-     * @deprecated in 5.3.0. Use `Settings::getApiVersion()` instead.
-     */
-    public const SHOPIFY_API_VERSION = '2023-10';
-
-    /**
      * @var string[]
      * @since 6.0.0
      */
