@@ -628,6 +628,7 @@ class Api extends Component
      * Retrieve all a shop’s products.
      *
      * @return ShopifyProduct[]|ShopifyProduct2410[]
+     * @deprecated in 6.0.0
      */
     public function getAllProducts(): array
     {
@@ -641,6 +642,7 @@ class Api extends Component
      * Retrieve a single product by its Shopify ID.
      *
      * @return ShopifyProduct|ShopifyProduct2410
+     * @deprecated in 6.0.0
      */
     public function getProductByShopifyId($id): ShopifyProduct|ShopifyProduct2410
     {
@@ -651,6 +653,7 @@ class Api extends Component
      * Retrieve a product ID by a variant's inventory item ID.
      *
      * @return ?int The product Shopify ID
+     * @deprecated in 6.0.0
      */
     public function getProductIdByInventoryItemId($id): ?int
     {
@@ -670,6 +673,7 @@ class Api extends Component
      *
      * @param int $id Shopify Product ID
      * @return ShopifyMetafield[]|ShopifyMetafield2410[]
+     * @deprecated in 6.0.0
      */
     public function getMetafieldsByProductId(int $id): array
     {
@@ -684,6 +688,7 @@ class Api extends Component
      * @param int $id
      * @return ShopifyMetafield[]|ShopifyMetafield2410[]
      * @since 4.1.0
+     * @deprecated in 6.0.0
      */
     public function getMetafieldsByVariantId(int $id): array
     {
@@ -699,6 +704,7 @@ class Api extends Component
      * @param string $ownerResource
      * @return ShopifyMetafield[]|ShopifyMetafield2410[]
      * @since 4.1.0
+     * @deprecated in 6.0.0
      */
     public function getMetafieldsByIdAndOwnerResource(int $id, string $ownerResource): array
     {
@@ -728,6 +734,7 @@ class Api extends Component
      * Retrieves "variants" for the provided Shopify product ID.
      *
      * @param int $id Shopify Product ID
+     * @deprecated in 6.0.0
      */
     public function getVariantsByProductId(int $id): array
     {
@@ -754,6 +761,7 @@ class Api extends Component
      * Shortcut for retrieving arbitrary API resources. A plain (parsed) response body is returned, so it’s the caller’s responsibility for unpacking it properly.
      *
      * @see Rest::get();
+     * @deprecated in 6.0.0. Use [[query()]] instead.
      */
     public function get($path, array $query = [])
     {
@@ -768,6 +776,7 @@ class Api extends Component
      * @param string $type Stripe API resource class
      * @param array $params
      * @return ShopifyBaseResource[]
+     * @deprecated in 6.0.0. Use [[query()]] instead.
      */
     public function getAll(string $type, array $params = []): array
     {
@@ -792,6 +801,7 @@ class Api extends Component
      *
      * @return Rest
      * @throws MissingArgumentException
+     * @deprecated in 6.0.0. Use [[getGqlClient()]] instead.
      */
     public function getClient(): Rest
     {
