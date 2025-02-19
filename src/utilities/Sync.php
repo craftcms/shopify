@@ -9,9 +9,9 @@ namespace craft\shopify\utilities;
 
 use Craft;
 use craft\base\Utility;
+use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\models\BulkOperation;
 use craft\shopify\Plugin;
-use craft\shopify\records\BulkOperation as BulkOperationRecord;
 use craft\web\assets\admintable\AdminTableAsset;
 
 /**
@@ -70,18 +70,18 @@ class Sync extends Utility
         $formatter = Craft::$app->getFormatter();
 
         $tableData = $bulkOps->map(function(BulkOperation $bo) use (&$canCreateSync, $formatter) {
-            if (in_array($bo->status, [BulkOperationRecord::STATUS_PROCESSING, BulkOperationRecord::STATUS_CREATED])) {
+            if (in_array($bo->getStatus(), [BulkOperationStatus::Processing, BulkOperationStatus::Created])) {
                 $canCreateSync = false;
             }
 
             return [
                 'id' => $bo->id,
-                'status' => $bo->status,
+                'status' => $bo->statusLabelHtml(),
                 'shopifyStatus' => $bo->shopifyStatus,
                 'objects' => $bo->objectCount ? $formatter->asInteger($bo->objectCount) : '',
                 'dateCreated' => $formatter->asDatetime($bo->dateCreated),
                 'dateUpdated' => $formatter->asDatetime($bo->dateUpdated),
-                '_showDelete' => $bo->status !== BulkOperationRecord::STATUS_PROCESSING,
+                '_showDelete' => $bo->getStatus() !== BulkOperationStatus::Processing,
             ];
         })->all();
 

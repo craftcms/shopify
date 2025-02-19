@@ -8,6 +8,7 @@
 namespace craft\shopify\models;
 
 use craft\base\Model;
+use craft\shopify\enums\BulkOperationStatus;
 use DateTime;
 
 /**
@@ -40,8 +41,10 @@ class BulkOperation extends Model
 
     /**
      * @var string
+     * @see getStatus()
+     * @see setStatus()
      */
-    public string $status = \craft\shopify\records\BulkOperation::STATUS_QUEUED;
+    private string $_status = BulkOperationStatus::Queued->value;
 
     /**
      * @var string|null
@@ -72,5 +75,41 @@ class BulkOperation extends Model
         $rules[] = [['id', 'shopifyId', 'url', 'objectCount', 'status', 'shopifyStatus', 'query', 'dateCreated', 'dateUpdated'], 'safe'];
 
         return $rules;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributes()
+    {
+        $names = parent::attributes();
+        $names[] = 'status';
+
+        return $names;
+    }
+
+    /**
+     * @param BulkOperationStatus|string $status
+     * @return void
+     */
+    public function setStatus(BulkOperationStatus|string $status): void
+    {
+        $this->_status = $status instanceof BulkOperationStatus ? $status->value : $status;
+    }
+
+    /**
+     * @return BulkOperationStatus|null
+     */
+    public function getStatus(): ?BulkOperationStatus
+    {
+        return BulkOperationStatus::tryFrom($this->_status);
+    }
+
+    /**
+     * @return string
+     */
+    public function statusLabelHtml(): string
+    {
+        return $this->getStatus()?->statusLabelHtml() ?? '';
     }
 }

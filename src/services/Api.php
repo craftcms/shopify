@@ -9,7 +9,6 @@ namespace craft\shopify\services;
 
 use Craft;
 use craft\base\Component;
-use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\log\MonologTarget;
@@ -187,7 +186,7 @@ class Api extends Component
      */
     public function getProductGql(?string $id = null): Query
     {
-        $contextualPricingCountries  = Plugin::getInstance()->getSettings()->getContextualPricingCountries();
+        $contextualPricingCountries = Plugin::getInstance()->getSettings()->getContextualPricingCountries();
         $contextualPricing = [];
 
         if ($contextualPricingCountries) {
@@ -306,7 +305,7 @@ class Api extends Component
                                 'selectedOptions' => [
                                     'name',
                                     'value',
-                                ]
+                                ],
                             ]),
                         ],
                     ],

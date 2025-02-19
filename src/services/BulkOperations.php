@@ -14,6 +14,7 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Queue;
 use craft\shopify\db\Table;
+use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\jobs\ProcessBulkOperationData;
 use craft\shopify\models\BulkOperation;
 use craft\shopify\Plugin;
@@ -71,7 +72,7 @@ class BulkOperations extends Component
     {
         $bulkOperation = Craft::createObject([
             'class' => BulkOperation::class,
-            'status' => BulkOperationRecord::STATUS_QUEUED,
+            'status' => BulkOperationStatus::Queued,
             'query' => $query,
         ]);
 
@@ -103,7 +104,7 @@ class BulkOperations extends Component
         // If we are processing the data of a bulk op or a bulk op query has been sent to Shopify, we can't start another one
         $hasBulkOpsInProgress = $this->_createBulkOperationQuery()
             ->andWhere([
-                'status' => [BulkOperationRecord::STATUS_PROCESSING, BulkOperationRecord::STATUS_CREATED],
+                'status' => [BulkOperationStatus::Processing->value, BulkOperationStatus::Created->value],
             ])
             ->exists();
 
@@ -113,7 +114,7 @@ class BulkOperations extends Component
 
         // Retrieve the next queued bulk operation
         $result = $this->_createBulkOperationQuery()
-            ->andWhere(['status' => BulkOperationRecord::STATUS_QUEUED])
+            ->andWhere(['status' => BulkOperationStatus::Queued->value])
             ->one();
 
         if (!$result) {
@@ -160,7 +161,7 @@ class BulkOperations extends Component
         $response = Plugin::getInstance()->getApi()->query($mutation, ['query' => $bulkOperation->query]);
 
         if (!$response) {
-            $bulkOperation->status = BulkOperationRecord::STATUS_COMPLETED;
+            $bulkOperation->setStatus(BulkOperationStatus::Completed);
             $this->saveBulkOperation($bulkOperation, false);
             return false;
         }
@@ -171,7 +172,7 @@ class BulkOperations extends Component
         }
 
         if ($response['bulkOperation']['status'] === 'CREATED') {
-            $bulkOperation->status = BulkOperationRecord::STATUS_CREATED;
+            $bulkOperation->setStatus(BulkOperationStatus::Created);
         }
 
         $bulkOperation->shopifyStatus = $response['bulkOperation']['status'];
@@ -205,7 +206,7 @@ class BulkOperations extends Component
                 'FAILED',
             ];
             if (in_array($data['status'], $deletableStatuses)) {
-                $bulkOperation->status = BulkOperationRecord::STATUS_COMPLETED;
+                $bulkOperation->setStatus(BulkOperationStatus::Completed);
             }
 
             $bulkOperation->shopifyStatus = $data['status'];
@@ -258,7 +259,7 @@ class BulkOperations extends Component
     {
         $hasBulkOpsInProgress = $this->_createBulkOperationQuery()
             ->andWhere([
-                'status' => [BulkOperationRecord::STATUS_PROCESSING],
+                'status' => [BulkOperationStatus::Processing->value],
             ])
             ->exists();
 
@@ -267,7 +268,7 @@ class BulkOperations extends Component
         }
 
         $nextToProcess = $this->_createBulkOperationQuery()
-            ->andWhere(['status' => BulkOperationRecord::STATUS_CREATED])
+            ->andWhere(['status' => BulkOperationStatus::Created->value])
             ->andWhere(['not', ['url' => null]])
             ->one();
 
@@ -285,7 +286,7 @@ class BulkOperations extends Component
             return false;
         }
 
-        $bulkOperation->status = BulkOperationRecord::STATUS_PROCESSING;
+        $bulkOperation->setStatus(BulkOperationStatus::Processing);
 
         if (!$this->saveBulkOperation($bulkOperation)) {
             Craft::error('Could not save bulk operation data.', __METHOD__);
@@ -324,7 +325,7 @@ class BulkOperations extends Component
         $record->url = $bulkOperation->url;
         $record->objectCount = $bulkOperation->objectCount;
         $record->query = $bulkOperation->query;
-        $record->status = $bulkOperation->status;
+        $record->status = $bulkOperation->getStatus()?->value;
         $record->shopifyStatus = $bulkOperation->shopifyStatus;
 
         $record->validate();
@@ -353,7 +354,7 @@ class BulkOperations extends Component
         }
 
         // Cannot delete a bulk operation that is currently processing
-        if ($bulkOperation->status === BulkOperationRecord::STATUS_PROCESSING) {
+        if ($bulkOperation->status === BulkOperationStatus::Processing->value) {
             return false;
         }
 
@@ -378,7 +379,7 @@ class BulkOperations extends Component
 
         // Delete all bulk operations completed and older than 7 days
         $completedBulkOps = $this->_createBulkOperationQuery()
-            ->andWhere(['status' => BulkOperationRecord::STATUS_COMPLETED])
+            ->andWhere(['status' => BulkOperationStatus::Completed->value])
             ->andWhere(['<', 'dateUpdated', Db::prepareDateForDb($edge)])
             ->all();
 

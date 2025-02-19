@@ -4,7 +4,7 @@ namespace craft\shopify\migrations;
 
 use craft\db\Migration;
 use craft\shopify\db\Table;
-use craft\shopify\records\BulkOperation;
+use craft\shopify\enums\BulkOperationStatus;
 
 /**
  * m250212_085216_create_bulk_ops_table migration.
@@ -23,7 +23,7 @@ class m250212_085216_create_bulk_ops_table extends Migration
             'url' => $this->text(),
             'objectCount' => $this->integer(),
             'query' => $this->text(),
-            'status' => $this->enum('status', [BulkOperation::STATUS_QUEUED, BulkOperation::STATUS_CREATED, BulkOperation::STATUS_PROCESSING, BulkOperation::STATUS_COMPLETED])->notNull()->defaultValue(BulkOperation::STATUS_QUEUED),
+            'status' => $this->enum('status', [BulkOperationStatus::Queued, BulkOperationStatus::Created, BulkOperationStatus::Processing, BulkOperationStatus::Completed])->notNull()->defaultValue(BulkOperationStatus::Queued),
             'shopifyStatus' => $this->string(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),

@@ -29,11 +29,6 @@ use craft\shopify\db\Table;
  */
 class BulkOperation extends ActiveRecord
 {
-    public const STATUS_QUEUED = 'queued';
-    public const STATUS_CREATED = 'created';
-    public const STATUS_PROCESSING = 'processing';
-    public const STATUS_COMPLETED = 'completed';
-
     /**
      * @inheritdoc
      */

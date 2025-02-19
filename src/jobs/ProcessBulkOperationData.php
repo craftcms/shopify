@@ -8,8 +8,8 @@ use craft\helpers\Assets;
 use craft\helpers\FileHelper;
 use craft\queue\BaseBatchedJob;
 use craft\shopify\api\BulkDataBatcher;
+use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\Plugin;
-use craft\shopify\records\BulkOperation;
 use craft\shopify\records\ShopifyData;
 
 /**
@@ -111,7 +111,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
             return;
         }
 
-        $bulkOperation->status = BulkOperation::STATUS_PROCESSING;
+        $bulkOperation->setStatus(BulkOperationStatus::Processing);
 
         Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
     }
@@ -130,7 +130,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
             return;
         }
 
-        $bulkOperation->status = BulkOperation::STATUS_COMPLETED;
+        $bulkOperation->setStatus(BulkOperationStatus::Completed);
 
         Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
 

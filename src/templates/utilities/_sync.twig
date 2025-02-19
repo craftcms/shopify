@@ -21,7 +21,7 @@
 {% js %}
 var columns = [
   { name: 'objects', title: Craft.t('shopify', 'Objects') },
-  { name: 'status', title: Craft.t('shopify', 'Status') },
+  { name: 'status', title: Craft.t('shopify', 'Status'), callback: function(value) { return value; } },
   { name: 'shopifyStatus', title: Craft.t('shopify', 'Shopify Status') },
   { name: 'dateCreated', title: Craft.t('shopify', 'Date Created') },
   { name: 'dateUpdated', title: Craft.t('shopify', 'Date Updated') },

@@ -3,7 +3,6 @@
 namespace craft\shopify\services;
 
 use craft\base\Component;
-use craft\helpers\App;
 use craft\helpers\UrlHelper;
 use craft\shopify\Plugin;
 use yii\base\InvalidConfigException;

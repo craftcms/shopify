@@ -7,7 +7,7 @@ use craft\db\Table as CraftTable;
 use craft\helpers\MigrationHelper;
 use craft\shopify\db\Table;
 use craft\shopify\elements\Product as ProductElement;
-use craft\shopify\records\BulkOperation;
+use craft\shopify\enums\BulkOperationStatus;
 use ReflectionClass;
 use yii\base\NotSupportedException;
 
@@ -63,7 +63,7 @@ class Install extends Migration
             'url' => $this->text(),
             'objectCount' => $this->integer(),
             'query' => $this->text(),
-            'status' => $this->enum('status', [BulkOperation::STATUS_QUEUED, BulkOperation::STATUS_CREATED, BulkOperation::STATUS_PROCESSING, BulkOperation::STATUS_COMPLETED])->notNull()->defaultValue(BulkOperation::STATUS_QUEUED),
+            'status' => $this->enum('status', [BulkOperationStatus::Queued, BulkOperationStatus::Created, BulkOperationStatus::Processing, BulkOperationStatus::Completed])->notNull()->defaultValue(BulkOperationStatus::Queued),
             'shopifyStatus' => $this->string(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
