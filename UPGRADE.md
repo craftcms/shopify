@@ -84,7 +84,7 @@ after
 ```
 
 **product.variants**
-
+Contextual pricing https://shopify.dev/docs/api/admin-graphql/2025-01/enums/CountryCode
 before
 ```json
 [

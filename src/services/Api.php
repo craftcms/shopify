@@ -281,6 +281,10 @@ class Api extends Component
                                 'product' => [
                                     'id',
                                 ],
+                                'selectedOptions' => [
+                                    'name',
+                                    'value',
+                                ]
                             ],
                         ],
                     ],

@@ -32,6 +32,11 @@ class Settings extends Model
     private mixed $_productFieldLayout;
 
     /**
+     * @var string|null Comma separated list of country codes to use for contextual pricing.
+     */
+    private ?string $_contextualPricingCountries = null;
+
+    /**
      * @var string The Shopify API version to use.
      * @see setApiVersion()
      * @see getApiVersion()
@@ -43,6 +48,7 @@ class Settings extends Model
      *
      * @var bool
      * @since 4.1.0
+     * @deprecated in 6.0.0. This data is now automatically included when syncing products.
      */
     public bool $syncProductMetafields = true;
 
@@ -51,6 +57,7 @@ class Settings extends Model
      *
      * @var bool
      * @since 4.1.0
+     * @deprecated in 6.0.0. This data is now automatically included when syncing products.
      */
     public bool $syncVariantMetafields = false;
 
@@ -59,6 +66,7 @@ class Settings extends Model
         return [
             [['apiSecretKey', 'apiKey', 'accessToken', 'hostName', 'apiVersion'], 'required'],
             [['apiVersion'], 'in', 'range' => Plugin::getInstance()->getApi()->getSupportedApiVersions()],
+            [['contextualPricingCountries'], 'safe'],
         ];
     }
 
@@ -66,6 +74,7 @@ class Settings extends Model
     {
         $names = parent::attributes();
         $names[] = 'apiVersion';
+        $names[] = 'contextualPricingCountries';
 
         return $names;
     }
@@ -80,6 +89,7 @@ class Settings extends Model
             'apiSecretKey' => Craft::t('shopify', 'Shopify API Secret Key'),
             'apiVersion' => Craft::t('shopify', 'Shopify API Version'),
             'accessToken' => Craft::t('shopify', 'Shopify Access Token'),
+            'contextualPricingCountries' => Craft::t('shopify', 'Context Pricing Countries'),
             'hostName' => Craft::t('shopify', 'Shopify Host Name'),
             'uriFormat' => Craft::t('shopify', 'Product URI format'),
             'template' => Craft::t('shopify', 'Product Template'),
@@ -104,6 +114,26 @@ class Settings extends Model
     public function getApiVersion(bool $parse = true): string
     {
         return $parse ? App::parseEnv($this->_apiVersion) : $this->_apiVersion;
+    }
+
+    /**
+     * @param string $contextualPricingCountries
+     * @return void
+     * @since 6.0.0
+     */
+    public function setContextualPricingCountries(string $contextualPricingCountries): void
+    {
+        $this->_contextualPricingCountries = $contextualPricingCountries;
+    }
+
+    /**
+     * @param bool $parse
+     * @return string
+     * @since 6.0.0
+     */
+    public function getContextualPricingCountries(bool $parse = true): string
+    {
+        return ($parse ? App::parseEnv($this->_contextualPricingCountries) : $this->_contextualPricingCountries) ?? '';
     }
 
     /**

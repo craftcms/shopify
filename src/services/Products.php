@@ -59,43 +59,6 @@ class Products extends Component
     public const EVENT_BEFORE_SYNCHRONIZE_PRODUCT = 'beforeSynchronizeProduct';
 
     /**
-     * @var bool Whether to slow down API requests to avoid rate limiting.
-     * @since 5.2.0
-     */
-    public bool $throttle = false;
-
-    /**
-     * @var int The number of seconds to sleep between requests when `$throttle` is enabled.
-     * @since 5.2.0
-     */
-    public int $sleepSeconds = 1;
-
-    /**
-     * @param ShopifyProduct|ShopifyProduct2410 $product
-     * @return void
-     * @throws InvalidConfigException
-     * @since 4.1.0
-     */
-    private function _updateProduct(ShopifyProduct|ShopifyProduct2410 $product): void
-    {
-        $api = Plugin::getInstance()->getApi();
-
-        $variants = $api->getVariantsByProductId($product->id);
-
-        if ($this->throttle) {
-            usleep((int) (1E6 * $this->sleepSeconds));
-        }
-        $productMetafields = $api->getMetafieldsByProductId($product->id);
-
-        foreach ($variants as &$variant) {
-            $variantMetafields = $api->getMetafieldsByVariantId($variant['id']);
-            $variant['metafields'] = MetafieldsHelper::unpack($variantMetafields);
-        }
-
-        $this->createOrUpdateProduct($product, $productMetafields, $variants);
-    }
-
-    /**
      * @return void
      * @throws \Throwable
      * @throws \yii\base\InvalidConfigException

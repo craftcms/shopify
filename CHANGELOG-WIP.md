@@ -65,6 +65,8 @@
 - Removed `craft\shopify\jobs\UpdateProductMetadata`.
 - Removed `craft\shopify\records\ProductData`.
 - Removed `craft\shopify\services\Api::SHOPIFY_API_VERSION`.
+- Removed `craft\shopify\services\Products::$throttle`.
+- Removed `craft\shopify\services\Products::$sleepSeconds`.
 
 ### System
 - Shopify for Craft now uses the GraphQL Admin API to interact with Shopify.
