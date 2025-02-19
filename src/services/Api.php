@@ -13,7 +13,6 @@ use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\log\MonologTarget;
-use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
 use craft\shopify\records\ShopifyData;
 use GraphQL\Mutation;
