@@ -187,6 +187,26 @@ class Api extends Component
      */
     public function getProductGql(?string $id = null): Query
     {
+        $contextualPricingCountries  = Plugin::getInstance()->getSettings()->getContextualPricingCountries();
+        $contextualPricing = [];
+
+        if ($contextualPricingCountries) {
+            $contextualPricingCountries = explode(',', $contextualPricingCountries);
+            foreach ($contextualPricingCountries as $country) {
+                $key = strtolower($country);
+                $contextualPricing[$key . 'ContextualPricing:contextualPricing(context:{country:' . $country . '})'] = [
+                    'price' => [
+                        'amount',
+                        'currencyCode',
+                    ],
+                    'compareAtPrice' => [
+                        'amount',
+                        'currencyCode',
+                    ],
+                ];
+            }
+        }
+
         $fields = [
             'edges' => [
                 'node' => [
@@ -244,7 +264,9 @@ class Api extends Component
                     'updatedAt',
                     'variants' => [
                         'edges' => [
-                            'node' => [
+                            'node' => array_merge(
+                                $contextualPricing,
+                                [
                                 'id',
                                 'barcode',
                                 'compareAtPrice',
@@ -285,7 +307,7 @@ class Api extends Component
                                     'name',
                                     'value',
                                 ]
-                            ],
+                            ]),
                         ],
                     ],
                     'vendor',
