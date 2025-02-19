@@ -139,21 +139,21 @@ after
 ```json
 [
   {
-    "id": "gid:\/\/shopify\/ProductVariant\/39895248437299",
+    "id": "gid://shopify/ProductVariant/39895248437299",
     "sku": "",
     "price": "15.00",
-    "title": "XX Small \/ Black \/ Long Sleeve",
+    "title": "XX Small / Black / Long Sleeve",
     "barcode": "",
     "product": {
-      "id": "gid:\/\/shopify\/Product\/6656149192755"
+      "id": "gid://shopify/Product/6656149192755"
     },
     "taxable": true,
     "createdAt": "2022-01-05T14:56:08Z",
     "updatedAt": "2024-03-28T15:26:13Z",
-    "__parentId": "gid:\/\/shopify\/Product\/6656149192755",
-    "displayName": "Short Sleeve T-shirt - XX Small \/ Black \/ Long Sleeve",
+    "__parentId": "gid://shopify/Product/6656149192755",
+    "displayName": "Short Sleeve T-shirt! - XX Small / Black / Long Sleeve",
     "inventoryItem": {
-      "id": "gid:\/\/shopify\/InventoryItem\/41993671016499",
+      "id": "gid://shopify/InventoryItem/41993671016499",
       "sku": "",
       "tracked": true,
       "unitCost": null,
@@ -163,7 +163,41 @@ after
     },
     "compareAtPrice": "21.00",
     "inventoryPolicy": "DENY",
-    "inventoryQuantity": 6
+    "selectedOptions": [
+      {
+        "name": "Size",
+        "value": "XX Small"
+      },
+      {
+        "name": "Colour",
+        "value": "Black"
+      },
+      {
+        "name": "Style",
+        "value": "Long Sleeve"
+      }
+    ],
+    "inventoryQuantity": 6,
+    "gbContextualPricing": {
+      "price": {
+        "amount": "14.0",
+        "currencyCode": "GBP"
+      },
+      "compareAtPrice": {
+        "amount": "20.0",
+        "currencyCode": "GBP"
+      }
+    },
+    "usContextualPricing": {
+      "price": {
+        "amount": "15.0",
+        "currencyCode": "EUR"
+      },
+      "compareAtPrice": {
+        "amount": "21.0",
+        "currencyCode": "EUR"
+      }
+    }
   },
   ...
 ]
@@ -237,7 +271,12 @@ Product element changes:
 
 product.publishedScope removed
 product.tags now returns an array of tags instead of a string of comma seperated tags
+product.variants is now a relationship
+product.images is now a relationship
+product.metafields is now a relationship
 
+Settings
+Contextual Pricing countries from this list: https://shopify.dev/docs/api/admin-graphql/2025-01/enums/CountryCode
 
 1. upgrade to 6.x (change composer version to 6.0.0)
 2. run migrations 'php craft up'
