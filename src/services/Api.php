@@ -373,6 +373,7 @@ class Api extends Component
      * @param Query $query
      * @param array|null $variables
      * @return mixed
+     * @since 6.0.0
      */
     public function query(Query $query, ?array $variables = null): mixed
     {
