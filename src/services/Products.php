@@ -6,11 +6,11 @@ use Craft;
 use craft\base\Component;
 use craft\errors\ElementNotFoundException;
 use craft\events\ConfigEvent;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\ProjectConfig;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
-use craft\shopify\elements\Product;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\helpers\Metafields as MetafieldsHelper;
@@ -260,6 +260,79 @@ class Products extends Component
             }
         }
     }
+    /**
+     * @param array|ProductElement[] $products
+     * @return array
+     * @since 6.0.0
+     */
+    public function eagerLoadMetafieldsForProducts(array $products): array
+    {
+        return $this->_eagerLoadTypeOnProducts($products, 'Metafield', function($product, $metafields) {
+            if (!empty($metafields)) {
+                // Squash to key/value array
+                $metafields = array_combine(ArrayHelper::getColumn($metafields, 'key'), ArrayHelper::getColumn($metafields, 'value'));
+            }
+            $product->setMetafields($metafields);
+        });
+    }
+
+    /**
+     * @param array|ProductElement[] $products
+     * @return array
+     * @since 6.0.0
+     */
+    public function eagerLoadImagesForProducts(array $products): array
+    {
+        return $this->_eagerLoadTypeOnProducts($products, 'MediaImage', function($product, $images) {
+            $product->setImages($images);
+        });
+    }
+
+    /**
+     * @param array|ProductElement[] $products
+     * @return array
+     * @since 6.0.0
+     */
+    public function eagerLoadVariantsForProducts(array $products): array
+    {
+        return $this->_eagerLoadTypeOnProducts($products, 'ProductVariant', function($product, $variants) {
+            $product->setVariants($variants);
+        });
+    }
+
+    /**
+     * @param array|ProductElement[] $products
+     * @param string $type
+     * @param callable $callback
+     * @return array
+     */
+    private function _eagerLoadTypeOnProducts(array $products, string $type, callable $callback): array
+    {
+        $productIds = ArrayHelper::getColumn($products, 'shopifyGid');
+        $data = $this->getShopifyDataByType($type, $productIds);
+
+        if (empty($data)) {
+            foreach ($products as $product) {
+                $callback($product, []);
+            }
+        }
+
+        // Group images by product ID
+        $data = collect($data)->groupBy('__parentId');
+
+        foreach ($products as $product) {
+            $productData = $data->get($product->shopifyGid, []);
+            if (empty($productData)) {
+                $callback($product, []);
+                continue;
+            }
+
+            $callback($product, $productData->all());
+        }
+
+        return $products;
+    }
+
 
     /**
      * Gets a Product element ID from a shopify ID.

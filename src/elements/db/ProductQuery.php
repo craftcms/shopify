@@ -361,17 +361,17 @@ class ProductQuery extends ElementQuery
 
             // Eager-load metafields?
             if ($this->withMetafields === true || $this->withAll) {
-                $products = Plugin::getInstance()->getApi()->eagerLoadMetafieldsForProducts($products);
+                $products = Plugin::getInstance()->getProducts()->eagerLoadMetafieldsForProducts($products);
             }
 
             // Eager-load images?
             if ($this->withImages === true || $this->withAll) {
-                $products = Plugin::getInstance()->getApi()->eagerLoadImagesForProducts($products);
+                $products = Plugin::getInstance()->getProducts()->eagerLoadImagesForProducts($products);
             }
 
             // Eager-load variants?
             if ($this->withVariants === true || $this->withAll) {
-                $products = Plugin::getInstance()->getApi()->eagerLoadVariantsForProducts($products);
+                $products = Plugin::getInstance()->getProducts()->eagerLoadVariantsForProducts($products);
             }
         }
 

@@ -41,6 +41,9 @@
 - Added `craft\shopify\services\Api::getShopifyDataByType()`.
 - Added `craft\shopify\services\Api::getWebhooks()`.
 - Added `craft\shopify\services\Api::query()`.
+- Added `craft\shopify\services\Products::eagerLoadImagesForProducts()`.
+- Added `craft\shopify\services\Products::eagerLoadMetafieldsForProducts()`.
+- Added `craft\shopify\services\Products::eagerLoadVariantsForProducts()`.
 - `craft\shopify\events\ShopifyProductSyncEvent::$source` now has a type of `array`.
 - `craft\shopify\services\Products::createOrUpdateProduct()`’s `$product` argument now has a type of `array`.
 - `craft\shopify\services\Products::createOrUpdateProduct()` no longer has `$metafields` and `$variants` arguments.
