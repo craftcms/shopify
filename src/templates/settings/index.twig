@@ -107,6 +107,16 @@
             suggestEnvVars: true,
         }) }}
 
+        {{ forms.autosuggestField({
+            label: 'Contextual Pricing Countries'|t('shopify'),
+            instructions: 'A comma separated list of country codes used to return contextual pricing.'|t('shopify'),
+            id: 'contextualPricingCountries',
+            name: 'settings[contextualPricingCountries]',
+            value: settings.getContextualPricingCountries(false),
+            errors: settings.getErrors('hostName'),
+            suggestEnvVars: true,
+        }) }}
+
     </div>
 
 
