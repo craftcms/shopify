@@ -34,12 +34,12 @@ class m250212_130001_migrate_product_data_to_data_table extends Migration
         }
 
         foreach ($productData as $productDatum) {
-            $id = 'gid:://shopify/Product/' . $productDatum['shopifyId'];
+            $id = 'gid://shopify/Product/' . $productDatum['shopifyId'];
             $batchInserts[] = [
                 'shopifyId' => $id,
-                'data' => [
+                'data' => Json::encode([
                     "id" => $id,
-                    "tags" => Json::encode(explode(', ', $productDatum['tags'] ?? '')),
+                    "tags" => explode(', ', $productDatum['tags'] ?? ''),
                     "title" => $productDatum['title'],
                     "handle" => $productDatum['handle'],
                     "status" => $productDatum['shopifyStatus'],
@@ -51,7 +51,7 @@ class m250212_130001_migrate_product_data_to_data_table extends Migration
                     "templateSuffix" => $productDatum['templateSuffix'],
                     "descriptionHtml" => $productDatum['bodyHtml'],
                     "options" => $productDatum['options'],
-                ],
+                ]),
                 'type' => 'Product',
                 'dateCreated' => $productDatum['dateCreated'],
                 'uid' => $productDatum['uid'],
@@ -59,7 +59,13 @@ class m250212_130001_migrate_product_data_to_data_table extends Migration
         }
 
         foreach (array_chunk($batchInserts, 1000) as $inserts) {
-            $this->batchInsert(Table::DATA, [], $inserts);
+            $this->batchInsert(Table::DATA, [
+                'shopifyId',
+                'data',
+                'type',
+                'dateCreated',
+                'uid',
+            ], $inserts);
         }
 
         return true;

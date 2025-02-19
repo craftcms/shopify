@@ -21,7 +21,7 @@ use yii\console\ExitCode;
 class SyncController extends Controller
 {
     /** @var string $defaultAction */
-    public $defaultAction = 'products';
+    public $defaultAction = 'all';
 
     /**
      * @var bool Whether to slow down API requests to avoid rate limiting.
@@ -49,7 +49,7 @@ class SyncController extends Controller
     }
 
     /**
-     * Reset Commerce data.
+     * Sync Products only.
      */
     public function actionProducts(): int
     {

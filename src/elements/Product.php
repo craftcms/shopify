@@ -268,10 +268,10 @@ class Product extends Element
     public function setTags(array|string $tags): void
     {
         if (is_string($tags)) {
-            $tags = StringHelper::split($tags);
+            $tags = Json::decodeIfJson($tags);
         }
 
-        $this->tags = $tags;
+        $this->_tags = $tags;
     }
 
     /**
@@ -763,7 +763,6 @@ class Product extends Element
             'options' => Craft::t('shopify', 'Options'),
             'productType' => Craft::t('shopify', 'Product Type'),
             'publishedAt' => Craft::t('shopify', 'Published At'),
-            'publishedScope' => Craft::t('shopify', 'Published Scope'),
             'shopifyStatus' => Craft::t('shopify', 'Shopify Status'),
             'tags' => Craft::t('shopify', 'Tags'),
             'updatedAt' => Craft::t('shopify', 'Updated At'),
@@ -961,7 +960,6 @@ class Product extends Element
         $labels['options'] = Craft::t('shopify', 'Options');
         $labels['productType'] = Craft::t('shopify', 'Product Type');
         $labels['publishedAt'] = Craft::t('shopify', 'Published at');
-        $labels['publishedScope'] = Craft::t('shopify', 'Published Scope');
         $labels['tags'] = Craft::t('shopify', 'Tags');
         $labels['shopifyStatus'] = Craft::t('shopify', 'Status');
         $labels['templateSuffix'] = Craft::t('shopify', 'Template Suffix');

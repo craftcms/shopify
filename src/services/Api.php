@@ -199,6 +199,7 @@ class Api extends Component
                         'edges' => [
                             'node' => [
                                 'mediaContentType',
+                                'alt',
                                 'id',
                                 '... on MediaImage' => [
                                     'createdAt',
@@ -252,6 +253,7 @@ class Api extends Component
                                 'price',
                                 'sku',
                                 'taxable',
+                                'title',
                                 'updatedAt',
                                 'inventoryItem' => [
                                     'id',
