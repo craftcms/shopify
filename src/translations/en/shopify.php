@@ -61,6 +61,7 @@ return [
     'Shopify plugin loaded' => 'Shopify plugin loaded',
     'Shopify' => 'Shopify',
     'Supported API versions: {versions}' => 'Supported API versions: {versions}',
+    'Sync all' => 'Sync all',
     'Sync all Products' => 'Sync all Products',
     'Sync could not be deleted' => 'Sync could not be deleted',
     'Sync deleted' => 'Sync deleted',
