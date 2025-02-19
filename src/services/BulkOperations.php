@@ -18,7 +18,6 @@ use craft\shopify\jobs\ProcessBulkOperationData;
 use craft\shopify\models\BulkOperation;
 use craft\shopify\Plugin;
 use craft\shopify\records\BulkOperation as BulkOperationRecord;
-use DateTime;
 use GraphQL\InlineFragment;
 use GraphQL\Mutation;
 use GraphQL\Variable;
@@ -136,7 +135,7 @@ class BulkOperations extends Component
             ]);
         $bulkOpStatusResponse = Plugin::getInstance()->getApi()->query($bulkOpsStatusQuery);
 
-        if (!$bulkOpStatusResponse || in_array($bulkOpStatusResponse['status'], ['RUNNING', 'CREATED'])) {
+        if ($bulkOpStatusResponse === false || ($bulkOpStatusResponse !== null && in_array($bulkOpStatusResponse['status'], ['RUNNING', 'CREATED']))) {
             return false;
         }
 

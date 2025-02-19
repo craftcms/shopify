@@ -8,10 +8,6 @@
 namespace craft\shopify\controllers;
 
 use Craft;
-use craft\helpers\App;
-use craft\helpers\UrlHelper;
-use craft\shopify\elements\Product;
-use craft\shopify\helpers\Product as ProductHelper;
 use craft\shopify\Plugin;
 use craft\web\Controller;
 use yii\base\InvalidConfigException;
@@ -27,7 +23,6 @@ use yii\web\Response;
  */
 class SyncController extends Controller
 {
-
     /**
      * @return Response
      * @throws \Throwable
