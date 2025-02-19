@@ -433,8 +433,8 @@ class Api extends Component
 
         if (
             $this->_session === null &&
-            ($apiKey = App::parseEnv($pluginSettings->apiKey)) &&
-            ($apiSecretKey = App::parseEnv($pluginSettings->apiSecretKey))
+            ($apiKey = $pluginSettings->getApiKey(true)) &&
+            ($apiSecretKey = $pluginSettings->getApiSecretKey(true))
         ) {
             /** @var MonologTarget $webLogTarget */
             $webLogTarget = Craft::$app->getLog()->targets['web'];
@@ -460,8 +460,8 @@ class Api extends Component
                 }
             };
 
-            $hostName = App::parseEnv($pluginSettings->hostName);
-            $accessToken = App::parseEnv($pluginSettings->accessToken);
+            $hostName = $pluginSettings->getHostName(true);
+            $accessToken = $pluginSettings->getAccessToken(true);
 
             $this->_session = new Session(
                 id: 'NA',

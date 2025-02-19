@@ -23,10 +23,10 @@ use Shopify\ApiVersion;
  */
 class Settings extends Model
 {
-    public string $apiKey = '';
-    public string $apiSecretKey = '';
-    public string $accessToken = '';
-    public string $hostName = '';
+    private string $_apiKey = '';
+    private string $_apiSecretKey = '';
+    private string $_accessToken = '';
+    private string $_hostName = '';
     public string $uriFormat = '';
     public string $template = '';
     private mixed $_productFieldLayout;
@@ -66,8 +66,27 @@ class Settings extends Model
     {
         $names = parent::attributes();
         $names[] = 'apiVersion';
+        $names[] = 'apiKey';
+        $names[] = 'apiSecretKey';
+        $names[] = 'accessToken';
+        $names[] = 'hostName';
+        $names[] = 'uriFormat';
+        $names[] = 'template';
 
         return $names;
+    }
+
+    public function fields(): array
+    {
+        return [
+            'apiVersion' => fn() => $this->getApiVersion(false),
+            'apiKey' => fn() => $this->getApiKey(false),
+            'apiSecretKey' => fn() => $this->getApiSecretKey(false),
+            'accessToken' => fn() => $this->getAccessToken(false),
+            'hostName' => fn() => $this->getHostName(false),
+            'uriFormat' => 'uriFormat',
+            'template' => 'template',
+        ];
     }
 
     /**
@@ -104,6 +123,86 @@ class Settings extends Model
     public function getApiVersion(bool $parse = true): string
     {
         return $parse ? App::parseEnv($this->_apiVersion) : $this->_apiVersion;
+    }
+
+    /**
+     * @param string apiKey
+     * @return void
+     * @since 6.0.0
+     */
+    public function setApiKey(string $apiKey): void
+    {
+        $this->_apiKey = $apiKey;
+    }
+
+    /**
+     * @param bool $parse
+     * @return string
+     * @since 6.0.0
+     */
+    public function getApiKey(bool $parse = true): string
+    {
+        return $parse ? App::parseEnv($this->_apiKey) : $this->_apiKey;
+    }
+
+    /**
+     * @param string $apiSecretKey
+     * @return void
+     * @since 6.0.0
+     */
+    public function setApiSecretKey(string $apiSecretKey): void
+    {
+        $this->_apiSecretKey = $apiSecretKey;
+    }
+
+    /**
+     * @param bool $parse
+     * @return string
+     * @since 6.0.0
+     */
+    public function getApiSecretKey(bool $parse = true): string
+    {
+        return $parse ? App::parseEnv($this->_apiSecretKey) : $this->_apiSecretKey;
+    }
+
+    /**
+     * @param string $hostName
+     * @return void
+     * @since 6.0.0
+     */
+    public function setHostName(string $hostName): void
+    {
+        $this->_hostName = $hostName;
+    }
+
+    /**
+     * @param bool $parse
+     * @return string
+     * @since 6.0.0
+     */
+    public function getHostName(bool $parse = true): string
+    {
+        return $parse ? App::parseEnv($this->_hostName) : $this->_hostName;
+    }
+
+    /**
+     * @param string $accessToken
+     * @return void
+     * @since 6.0.0
+     */
+    public function setAccessToken(string $accessToken): void
+    {
+        $this->_accessToken = $accessToken;
+    }
+
+    /**
+     * @param bool $parse
+     * @return string
+     * @since 6.0.0
+     */
+    public function getAccessToken(bool $parse = true): string
+    {
+        return $parse ? App::parseEnv($this->_accessToken) : $this->_accessToken;
     }
 
     /**
