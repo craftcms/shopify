@@ -23,7 +23,7 @@ class m250212_085216_create_bulk_ops_table extends Migration
             'url' => $this->text(),
             'objectCount' => $this->integer(),
             'query' => $this->text(),
-            'status' => $this->enum('status', [BulkOperationStatus::Queued, BulkOperationStatus::Created, BulkOperationStatus::Processing, BulkOperationStatus::Completed])->notNull()->defaultValue(BulkOperationStatus::Queued),
+            'status' => $this->enum('status', [BulkOperationStatus::Queued->value, BulkOperationStatus::Created->value, BulkOperationStatus::Processing->value, BulkOperationStatus::Completed->value])->notNull()->defaultValue(BulkOperationStatus::Queued),
             'shopifyStatus' => $this->string(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),

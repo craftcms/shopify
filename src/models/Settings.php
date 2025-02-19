@@ -134,7 +134,7 @@ class Settings extends Model
     }
 
     /**
-     * @param string apiKey
+     * @param string $apiKey
      * @return void
      * @since 6.0.0
      */

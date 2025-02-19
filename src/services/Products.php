@@ -11,7 +11,7 @@ use craft\helpers\Db;
 use craft\helpers\ProjectConfig;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
-use craft\shopify\elements\Product as ProductElement;
+use craft\shopify\elements\Product;
 use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\Plugin;
 use craft\shopify\records\ShopifyData;
@@ -142,14 +142,14 @@ class Products extends Component
         ];
 
         // Find the product element or create one
-        /** @var ProductElement|null $productElement */
-        $productElement = ProductElement::find()
+        /** @var Product|null $productElement */
+        $productElement = Product::find()
             ->shopifyGid($product['id'])
             ->status(null)
             ->one();
 
         if ($productElement === null) {
-            $productElement = new ProductElement();
+            $productElement = new Product();
         }
 
         // Set attributes on the element to emulate it having been loaded with JOINed data:
@@ -187,7 +187,7 @@ class Products extends Component
     public function deleteProductByShopifyId($id): void
     {
         if ($id) {
-            if ($product = ProductElement::find()->shopifyId($id)->one()) {
+            if ($product = Product::find()->shopifyId($id)->one()) {
                 // We hard delete because it will have been hard deleted in Shopify
                 Craft::$app->getElements()->deleteElement($product, true);
             }
@@ -221,7 +221,7 @@ class Products extends Component
         }
     }
     /**
-     * @param array|ProductElement[] $products
+     * @param array|Product[] $products
      * @return array
      * @since 6.0.0
      */
@@ -237,7 +237,7 @@ class Products extends Component
     }
 
     /**
-     * @param array|ProductElement[] $products
+     * @param array|Product[] $products
      * @return array
      * @since 6.0.0
      */
@@ -249,7 +249,7 @@ class Products extends Component
     }
 
     /**
-     * @param array|ProductElement[] $products
+     * @param array|Product[] $products
      * @return array
      * @since 6.0.0
      */
@@ -261,7 +261,7 @@ class Products extends Component
     }
 
     /**
-     * @param array|ProductElement[] $products
+     * @param array|Product[] $products
      * @param string $type
      * @param callable $callback
      * @return array
@@ -269,7 +269,7 @@ class Products extends Component
     private function _eagerLoadTypeOnProducts(array $products, string $type, callable $callback): array
     {
         $productIds = ArrayHelper::getColumn($products, 'shopifyGid');
-        $data = $this->getShopifyDataByType($type, $productIds);
+        $data = Plugin::getInstance()->getApi()->getShopifyDataByType($type, $productIds);
 
         if (empty($data)) {
             foreach ($products as $product) {
@@ -302,7 +302,7 @@ class Products extends Component
      */
     public function getProductIdByShopifyId($id): int
     {
-        return ProductElement::find()->shopifyId($id)->one()->id;
+        return Product::find()->shopifyId($id)->one()->id;
     }
 
     /**
