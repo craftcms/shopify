@@ -31,7 +31,7 @@ class ProductsController extends \craft\web\Controller
     public function actionProductIndex(): Response
     {
         $newProductUrl = '';
-        if ($baseUrl = Plugin::getInstance()->getSettings()->hostName) {
+        if ($baseUrl = Plugin::getInstance()->getSettings()->getHostName(true)) {
             $newProductUrl = UrlHelper::url('https://' . App::parseEnv($baseUrl) . '/admin/products/new');
         }
 

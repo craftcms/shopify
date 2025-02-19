@@ -32,7 +32,7 @@ class Store extends Component
     public function getUrl(string $path = '', array $params = []): string
     {
         $settings = Plugin::getInstance()->getSettings();
-        $host = App::parseEnv($settings->hostName);
+        $host = $settings->getHostName(true);
 
         if (!$host) {
             throw new InvalidConfigException('Shopify URLs cannot be generated without a hostname configured.');

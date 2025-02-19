@@ -238,7 +238,6 @@ Product element changes:
 product.publishedScope removed
 product.tags now returns an array of tags instead of a string of comma seperated tags
 
-TODO: add before and after json objects
 
 1. upgrade to 6.x (change composer version to 6.0.0)
 2. run migrations 'php craft up'
