@@ -249,6 +249,7 @@ class Api extends Component
                                 'barcode',
                                 'compareAtPrice',
                                 'createdAt',
+                                'displayName',
                                 'price',
                                 'sku',
                                 'taxable',
@@ -266,6 +267,7 @@ class Api extends Component
                                         'currencyCode',
                                     ],
                                 ],
+                                'inventoryPolicy',
                                 'inventoryQuantity',
                                 'metafields' => [
                                     'edges' => [
@@ -275,6 +277,9 @@ class Api extends Component
                                             'value',
                                         ],
                                     ],
+                                ],
+                                'product' => [
+                                    'id',
                                 ],
                             ],
                         ],
