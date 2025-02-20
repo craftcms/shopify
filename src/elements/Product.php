@@ -537,15 +537,13 @@ class Product extends Element
 
     /**
      * @return string
+     * @deprecated in 6.0.0. Use [[craft\shopify\helpers\Product::shopifyStatusHtml()]] instead.
      */
     public function getShopifyStatusHtml(): string
     {
-        $color = match ($this->shopifyStatus) {
-            'active' => 'green',
-            'archived' => 'red',
-            default => 'orange', // takes care of draft
-        };
-        return "<span class='status $color'></span>" . StringHelper::titleize($this->shopifyStatus);
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Product::getShopifyStatusHtml() has been deprecated. Use \craft\shopify\helpers\Product::shopifyStatusHtml() instead.');
+
+        return ProductHelper::shopifyStatusHtml($this);
     }
 
     /**
@@ -847,7 +845,7 @@ class Product extends Element
             case 'shopifyEdit':
                 return HtmlHelper::a('', $this->getShopifyEditUrl(), ['target' => '_blank', 'data' => ['icon' => 'external']]);
             case 'shopifyStatus':
-                return $this->getShopifyStatusHtml();
+                return ProductHelper::shopifyStatusHtml($this);
             case 'shopifyId':
                 return $this->$attribute;
             case 'options':

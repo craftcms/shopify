@@ -26,6 +26,8 @@
 - Added `craft\shopify\elements\Product::setData()`.
 - Added `craft\shopify\elements\Product::getDescriptionHtml()`.
 - Added `craft\shopify\elements\Product::setDescriptionHtml()`.
+- Added `craft\shopify\helpers\Product::shopifyStatusHtml()`.
+- Added `craft\shopify\helpers\Product::shopifyPublishedHtml()`.
 - Added `craft\shopify\jobs\ProcessBulkOperationData`.
 - Added `craft\shopify\models\BulkOperation`.
 - Added `craft\shopify\records\BulkOperation`.
@@ -50,6 +52,7 @@
 - Renamed `craft\shopify\handlers\Product` to `Webhook`.
 - Deprecated `craft\shopify\elements\Product::getBodyHtml()`. `getDescriptionHtml()` should be used instead.
 - Deprecated `craft\shopify\elements\Product::setBodyHtml()`. `setDescriptionHtml()` should be used instead.
+- Deprecated `craft\shopify\elements\Product::getShopifyStatusHtml()`.  `craft\shopify\helpers\Product::shopifyStatusHtml()` should be used instead.
 - Deprecated `craft\shopify\services\Api::get()`. `query()` should be used instead.
 - Deprecated `craft\shopify\services\Api::getAll()`. `query()` should be used instead.
 - Deprecated `craft\shopify\services\Api::getAllProducts()`.

@@ -11,6 +11,7 @@ use Craft;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
+use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\i18n\Formatter;
 use craft\shopify\elements\Product as ProductElement;
@@ -58,7 +59,8 @@ class Product
         $meta = [];
 
         $meta[Craft::t('shopify', 'Handle')] = $product->handle;
-        $meta[Craft::t('shopify', 'Status')] = $product->getShopifyStatusHtml();
+        $meta[Craft::t('shopify', 'Status')] = Product::shopifyStatusHtml($product);
+        $meta[Craft::t('shopify', 'Channel')] = Product::shopifyPublishedHtml($product);
 
         // Options
         if (count($product->getOptions()) > 0) {
@@ -138,5 +140,30 @@ class Product
                 'trigger' => 'every 15s',
             ],
         ]);
+    }
+
+    /**
+     * @return string
+     * @since 6.0.0
+     */
+    public static function shopifyStatusHtml(ProductElement $product): string
+    {
+        $color = match ($product->shopifyStatus) {
+            'active' => 'green',
+            'archived' => 'red',
+            default => 'orange', // takes care of draft
+        };
+        return "<span class='status $color'></span>" . StringHelper::titleize($product->shopifyStatus);
+    }
+
+    /**
+     * @return string
+     * @since 6.0.0
+     */
+    public static function shopifyPublishedHtml(ProductElement $product): string
+    {
+        $color = $product->publishedOnCurrentPublication ? 'green' : 'red';
+        $status = $product->publishedOnCurrentPublication ? Craft::t('shopify', 'Published') : Craft::t('shopify', 'Unpublished');
+        return "<span class='status $color'></span>" . $status;
     }
 }
