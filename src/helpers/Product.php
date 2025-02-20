@@ -148,7 +148,7 @@ class Product
      */
     public static function shopifyStatusHtml(ProductElement $product): string
     {
-        $color = match ($product->shopifyStatus) {
+        $color = match (StringHelper::toLowerCase($product->shopifyStatus)) {
             'active' => 'green',
             'archived' => 'red',
             default => 'orange', // takes care of draft
