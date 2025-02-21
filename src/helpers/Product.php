@@ -8,6 +8,7 @@
 namespace craft\shopify\helpers;
 
 use Craft;
+use craft\enums\Color;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
@@ -143,27 +144,37 @@ class Product
     }
 
     /**
+     * @param ProductElement $product
      * @return string
      * @since 6.0.0
      */
     public static function shopifyStatusHtml(ProductElement $product): string
     {
         $color = match (StringHelper::toLowerCase($product->shopifyStatus)) {
-            'active' => 'green',
-            'archived' => 'red',
-            default => 'orange', // takes care of draft
+            'active' => Color::Green->value,
+            'archived' => Color::Red->value,
+            default => Color::Orange->value, // takes care of draft
         };
-        return "<span class='status $color'></span>" . StringHelper::titleize($product->shopifyStatus);
+
+        return Cp::statusLabelHtml([
+            'color' => $color,
+            'label' => StringHelper::titleize($product->shopifyStatus),
+        ]);
     }
 
     /**
+     * @param ProductElement $product
      * @return string
      * @since 6.0.0
      */
     public static function shopifyPublishedHtml(ProductElement $product): string
     {
-        $color = $product->publishedOnCurrentPublication ? 'green' : 'red';
+        $color = $product->publishedOnCurrentPublication ? Color::Green->value : Color::Red->value;
         $status = $product->publishedOnCurrentPublication ? Craft::t('shopify', 'Published') : Craft::t('shopify', 'Unpublished');
-        return "<span class='status $color'></span>" . $status;
+
+        return Cp::statusLabelHtml([
+            'color' => $color,
+            'label' => $status,
+        ]);
     }
 }
