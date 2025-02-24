@@ -91,8 +91,11 @@ class Product
         }
 
         // Variants
-        if (count($product->getVariants()) > 0) {
-            $meta[Craft::t('shopify', 'Variants')] = collect($product->getVariants())
+        $variants = $product->getVariants();
+        if (count($variants) > 0) {
+            $meta[Craft::t('shopify', 'Total variants')] = Craft::$app->getFormatter()->asInteger(count($variants));
+
+            $meta[Craft::t('shopify', 'Variants')] = collect($variants)
                 ->pluck('title')
                 ->join(', ');
         }

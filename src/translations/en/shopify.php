@@ -74,6 +74,7 @@ return [
     'Sync deleted' => 'Sync deleted',
     'Tags' => 'Tags',
     'Template Suffix' => 'Template Suffix',
+    'Total variants' => 'Total variants',
     'Unpublished' => 'Unpublished',
     'Untitled product' => 'Untitled product',
     'Updated At' => 'Updated At',
