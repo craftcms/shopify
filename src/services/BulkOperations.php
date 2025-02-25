@@ -68,12 +68,13 @@ class BulkOperations extends Component
      * @throws Exception
      * @throws InvalidConfigException
      */
-    public function createBulkOperation(string $query): bool
+    public function createBulkOperation(string $query, string $clearData = BulkOperationRecord::CLEAR_DATA_NONE): bool
     {
         $bulkOperation = Craft::createObject([
             'class' => BulkOperation::class,
             'status' => BulkOperationStatus::Queued,
             'query' => $query,
+            'clearData' => $clearData,
         ]);
 
         if (!$this->saveBulkOperation($bulkOperation)) {
@@ -89,10 +90,12 @@ class BulkOperations extends Component
      * Retrieve all a shop’s products.
      *
      * @return bool
+     * @throws Exception
+     * @throws InvalidConfigException
      */
     public function createProductsBulkOperation(): bool
     {
-        return $this->createBulkOperation((string)Plugin::getInstance()->getApi()->getProductGql());
+        return $this->createBulkOperation((string)Plugin::getInstance()->getApi()->getProductGql(), BulkOperationRecord::CLEAR_DATA_ALL);
     }
 
     /**
@@ -282,6 +285,7 @@ class BulkOperations extends Component
             'bulkOperationShopifyId' => $bulkOperation->shopifyId,
             'dataUrl' => $bulkOperation->url,
             'objectCount' => $bulkOperation->objectCount,
+            'clearData' => $bulkOperation->clearData,
         ]))) {
             return false;
         }
@@ -321,6 +325,7 @@ class BulkOperations extends Component
             return false;
         }
 
+        $record->clearData = $bulkOperation->clearData;
         $record->shopifyId = $bulkOperation->shopifyId;
         $record->url = $bulkOperation->url;
         $record->objectCount = $bulkOperation->objectCount;
@@ -395,6 +400,7 @@ class BulkOperations extends Component
     {
         return (new Query())
             ->select([
+                'clearData',
                 'dateCreated',
                 'dateUpdated',
                 'id',

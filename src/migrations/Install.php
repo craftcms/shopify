@@ -8,6 +8,7 @@ use craft\helpers\MigrationHelper;
 use craft\shopify\db\Table;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\enums\BulkOperationStatus;
+use craft\shopify\records\BulkOperation as BulkOperationRecord;
 use ReflectionClass;
 use yii\base\NotSupportedException;
 
@@ -50,6 +51,7 @@ class Install extends Migration
             'type' => $this->string(),
             'data' => $this->json(),
             'parentId' => $this->string(),
+            'stale' => $this->boolean()->notNull()->defaultValue(false),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -65,6 +67,7 @@ class Install extends Migration
             'query' => $this->text(),
             'status' => $this->enum('status', [BulkOperationStatus::Queued->value, BulkOperationStatus::Created->value, BulkOperationStatus::Processing->value, BulkOperationStatus::Completed->value])->notNull()->defaultValue(BulkOperationStatus::Queued->value),
             'shopifyStatus' => $this->string(),
+            'clearData' => $this->string()->notNull()->defaultValue(BulkOperationRecord::CLEAR_DATA_NONE),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),

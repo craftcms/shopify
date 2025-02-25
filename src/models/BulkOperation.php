@@ -9,6 +9,7 @@ namespace craft\shopify\models;
 
 use craft\base\Model;
 use craft\shopify\enums\BulkOperationStatus;
+use craft\shopify\records\BulkOperation as BulkOperationRecord;
 use DateTime;
 
 /**
@@ -55,6 +56,14 @@ class BulkOperation extends Model
      * @var string|null
      */
     public ?string $query = null;
+
+    /**
+     * Signal which data should be cleared before processing the bulk operation.
+     * This is either `none`, `all` or a gid string.
+     *
+     * @var string
+     */
+    public string $clearData = BulkOperationRecord::CLEAR_DATA_NONE;
 
     /**
      * @var DateTime|null

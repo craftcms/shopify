@@ -4,6 +4,7 @@ namespace craft\shopify\services;
 
 use Craft;
 use craft\base\Component;
+use craft\db\Query;
 use craft\errors\ElementNotFoundException;
 use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;
@@ -11,6 +12,7 @@ use craft\helpers\Db;
 use craft\helpers\ProjectConfig;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
+use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
 use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\Plugin;
@@ -75,7 +77,8 @@ class Products extends Component
      */
     public function syncProductByShopifyId(string $id): void
     {
-        Plugin::getInstance()->getBulkOperations()->createBulkOperation((string)Plugin::getInstance()->getApi()->getProductGql($id));
+        $shopifyId = str_starts_with($id, 'gid://shopify/Product/') ? $id : 'gid://shopify/Product/' . $id;
+        Plugin::getInstance()->getBulkOperations()->createBulkOperation((string)Plugin::getInstance()->getApi()->getProductGql($id), $shopifyId);
     }
 
     /**
@@ -195,31 +198,84 @@ class Products extends Component
             // Delete data in shopify data table
             // Delete the product data
             $shopifyId = str_starts_with($id, 'gid://shopify/Product/') ? $id : 'gid://shopify/Product/' . $id;
-            /** @var ShopifyData|null $shopifyData */
-            $shopifyData = ShopifyData::find()->where(['shopifyId' => $shopifyId])->one();
-            $shopifyData?->delete();
+            $this->deleteShopifyDataByShopifyId($shopifyId);
+        }
+    }
 
-            // Delete any child data of the product
+    /**
+     * @param string $shopifyId
+     * @return void
+     * @throws StaleObjectException
+     * @throws \Throwable
+     * @since 6.0.0
+     */
+    public function deleteShopifyDataByShopifyId(string $shopifyId): void
+    {
+        /** @var ShopifyData|null $shopifyData */
+        $shopifyData = ShopifyData::find()->where(['shopifyId' => $shopifyId])->one();
+
+        if (!$shopifyData) {
+            return;
+        }
+
+        $shopifyData->delete();
+
+        // Delete any child data of the product
+        /** @var ShopifyData[] $shopifyData */
+        $shopifyData = ShopifyData::find()->where(['parentId' => $shopifyId])->all();
+        $childIds = [];
+        foreach ($shopifyData as $data) {
+            $childIds[] = $data->shopifyId;
+            $data->delete();
+        }
+
+        // Loop through any child data and remove that too
+        while (!empty($childIds)) {
+            $childId = array_shift($childIds);
             /** @var ShopifyData[] $shopifyData */
-            $shopifyData = ShopifyData::find()->where(['parentId' => $shopifyId])->all();
-            $childIds = [];
+            $shopifyData = ShopifyData::find()->where(['parentId' => $childId])->all();
             foreach ($shopifyData as $data) {
                 $childIds[] = $data->shopifyId;
                 $data->delete();
             }
+        }
+    }
 
-            // Loop through any child data and remove that too
-            while (!empty($childIds)) {
-                $childId = array_shift($childIds);
-                /** @var ShopifyData[] $shopifyData */
-                $shopifyData = ShopifyData::find()->where(['parentId' => $childId])->all();
-                foreach ($shopifyData as $data) {
-                    $childIds = $data->shopifyId;
-                    $data->delete();
-                }
+    /**
+     * @param string $shopifyId
+     * @return void
+     * @since 6.0.0
+     */
+    public function markShopifyDataStaleByShopifyId(string $shopifyId): void
+    {
+        ShopifyData::updateAll(['stale' => true], ['shopifyId' => $shopifyId]);
+
+        ShopifyData::updateAll(['stale' => true], ['parentId' => $shopifyId]);
+
+        $childIds = (new Query())
+            ->select('shopifyId')
+            ->from(Table::DATA)
+            ->where(['parentId' => $shopifyId])
+            ->column();
+
+        while (!empty($childIds)) {
+            $childId = array_shift($childIds);
+
+            ShopifyData::updateAll(['stale' => true], ['shopifyId' => $childId]);
+
+            ShopifyData::updateAll(['stale' => true], ['parentId' => $childId]);
+
+            $shopifyData = (new Query())
+                ->select('shopifyId')
+                ->from(Table::DATA)
+                ->where(['parentId' => $childId])
+                ->column();
+            foreach ($shopifyData as $id) {
+                $childIds[] = $id;
             }
         }
     }
+
     /**
      * @param array|Product[] $products
      * @return array

@@ -23,12 +23,16 @@ use craft\shopify\db\Table;
  * @property string $shopifyStatus
  * @property string $query
  * @property int $objectCount
+ * @property string $clearData
  * @property string $dateCreated
  * @property string $dateUpdated
  *
  */
 class BulkOperation extends ActiveRecord
 {
+    public const CLEAR_DATA_NONE = 'none';
+    public const CLEAR_DATA_ALL = 'all';
+
     /**
      * @inheritdoc
      */

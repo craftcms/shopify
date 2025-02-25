@@ -10,6 +10,7 @@ use craft\queue\BaseBatchedJob;
 use craft\shopify\api\BulkDataBatcher;
 use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\Plugin;
+use craft\shopify\records\BulkOperation as BulkOperationRecord;
 use craft\shopify\records\ShopifyData;
 
 /**
@@ -33,6 +34,15 @@ class ProcessBulkOperationData extends BaseBatchedJob
      * @var int
      */
     public int $objectCount = 0;
+
+
+    /**
+     * Signal which data should be cleared before processing the bulk operation.
+     * This is either `none`, `all` or a gid string.
+     *
+     * @var string
+     */
+    public string $clearData = BulkOperationRecord::CLEAR_DATA_NONE;
 
     /**
      * @inheritdoc
@@ -89,6 +99,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
         $record->type = $type;
         $record->data = $item;
         $record->parentId = $item['__parentId'] ?? null;
+        $record->stale = false;
         $record->save();
 
         // Process the data based on the type
@@ -114,6 +125,13 @@ class ProcessBulkOperationData extends BaseBatchedJob
         $bulkOperation->setStatus(BulkOperationStatus::Processing);
 
         Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
+
+        // Clear data if requested
+        if ($this->clearData === BulkOperationRecord::CLEAR_DATA_ALL) {
+            ShopifyData::updateAll(['stale' => true]);
+        } elseif ($this->clearData !== BulkOperationRecord::CLEAR_DATA_NONE) {
+            Plugin::getInstance()->getProducts()->markShopifyDataStaleByShopifyId($this->clearData);
+        }
     }
 
     /**
@@ -133,6 +151,10 @@ class ProcessBulkOperationData extends BaseBatchedJob
         $bulkOperation->setStatus(BulkOperationStatus::Completed);
 
         Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
+
+        // Remove all stale data that wasn't updated
+        // Due to foreign key constraints we can't remove product data. We need to leave that up to the product deletion webhook
+        ShopifyData::deleteAll(['stale' => true, 'type' => ['not', 'Product']]);
 
         // Start the next bulk op if there is one
         Plugin::getInstance()->getBulkOperations()->nextBulkOperation();
