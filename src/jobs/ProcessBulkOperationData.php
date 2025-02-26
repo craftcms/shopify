@@ -153,7 +153,8 @@ class ProcessBulkOperationData extends BaseBatchedJob
         Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
 
         // Remove all stale data that wasn't updated
-        // Due to foreign key constraints we can't remove product data. We need to leave that up to the product deletion webhook
+        // Due to foreign key constraints we can't remove product data rows.
+        // We need to leave that up to the product deletion webhook
         ShopifyData::deleteAll(['stale' => true, 'type' => ['not', 'Product']]);
 
         // Start the next bulk op if there is one
