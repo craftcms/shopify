@@ -29,7 +29,6 @@ use yii\db\StaleObjectException;
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 3.0
  *
- *
  * @property-read void $products
  */
 class Products extends Component

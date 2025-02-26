@@ -36,7 +36,6 @@ use yii\web\Response;
  * Product element.
  * @property array $tags
  * @property array $options
- *
  */
 class Product extends Element
 {

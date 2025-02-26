@@ -33,7 +33,6 @@ use yii\db\StaleObjectException;
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 6.0.0
- *
  */
 class BulkOperations extends Component
 {

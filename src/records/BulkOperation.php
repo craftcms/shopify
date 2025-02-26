@@ -26,7 +26,6 @@ use craft\shopify\db\Table;
  * @property string $clearData
  * @property string $dateCreated
  * @property string $dateUpdated
- *
  */
 class BulkOperation extends ActiveRecord
 {

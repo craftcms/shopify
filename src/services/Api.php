@@ -44,7 +44,6 @@ use Shopify\Webhooks\Topics;
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 3.0
  *
- *
  * @property-read void $products
  */
 class Api extends Component
