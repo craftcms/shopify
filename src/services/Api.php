@@ -369,12 +369,12 @@ class Api extends Component
     /**
      * Run a Shopify GraphQL query.
      *
-     * @param Query $query
+     * @param Query|string $query
      * @param array|null $variables
      * @return mixed
      * @since 6.0.0
      */
-    public function query(Query $query, ?array $variables = null): mixed
+    public function query(Query|string $query, ?array $variables = null): mixed
     {
         $data = ['query' => (string)$query];
         if ($variables) {
