@@ -3,7 +3,7 @@
 > [!IMPORTANT]
 > After updating, go to **Shopify** → **Webhooks** and create the missing webhooks.
 
-- Shopify for Craft now uses the GraphQL Admin API to interact with Shopify.
+- Shopify for Craft now uses the [GraphQL Admin API](https://shopify.dev/docs/api/admin-graphql) to interact with Shopify.
 - Data syncing is now done via the queue.
 - Added the `shopify/data/reset` command.
 - Added `craft\shopify\Plugin::getBulkOperation()`.
@@ -60,8 +60,8 @@
 - Deprecated `craft\shopify\elements\Product::getShopifyStatusHtml()`.  `craft\shopify\helpers\Product::shopifyStatusHtml()` should be used instead.
 - Deprecated `craft\shopify\elements\Product::setBodyHtml()`. `setDescriptionHtml()` should be used instead.
 - Deprecated `craft\shopify\helpers\Metafields`.
-- Deprecated `craft\shopify\models\Settings::$syncProductMetafields`.
-- Deprecated `craft\shopify\models\Settings::$syncVariantMetafields`.
+- Deprecated `craft\shopify\models\Settings::$syncProductMetafields`. Metafields are _always_ included when synchronizing product data.
+- Deprecated `craft\shopify\models\Settings::$syncVariantMetafields`. Metafields are _always_ included when synchronizing variant data.
 - Deprecated `craft\shopify\services\Api::get()`. `query()` should be used instead.
 - Deprecated `craft\shopify\services\Api::getAll()`. `query()` should be used instead.
 - Deprecated `craft\shopify\services\Api::getAllProducts()`.
@@ -74,6 +74,8 @@
 - Deprecated `craft\shopify\services\Api::getVariantsByProductId()`.
 - Removed `craft\shopify\db\Table::PRODUCTDATA`.
 - Removed `craft\shopify\elements\Product::$publishedScope`.
+- Removed `craft\shopify\elements\db\ProductQuery::$publishedScope`.
+- Removed `craft\shopify\elements\db\ProductQuery::publishedScope()`.
 - Removed `craft\shopify\jobs\UpdateProductMetadata`.
 - Removed `craft\shopify\records\ProductData`.
 - Removed `craft\shopify\services\Api::SHOPIFY_API_VERSION`.
