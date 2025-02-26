@@ -284,6 +284,7 @@ class Api extends Component
                                 'taxable',
                                 'title',
                                 'updatedAt',
+                                'position',
                                 'inventoryItem' => [
                                     'id',
                                     'countryCodeOfOrigin',
