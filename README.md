@@ -119,7 +119,7 @@ The remainder of this section applies specifically to the 5.x &rarr; 6.x upgrade
 
 ### Deprecated Settings
 
-The `syncProductMetafields` and `syncVariantMetafields` are no longer used. Meta fields are now automatically loaded alongside product and variant data.
+The `syncProductMetafields` and `syncVariantMetafields` are no longer used, and should be removed from your [configuration file](#settings). Meta fields are now automatically loaded alongside product and variant data.
 
 ### Property Names
 
