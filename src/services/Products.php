@@ -186,7 +186,7 @@ class Products extends Component
      */
     public function normalizeShopifyGid(string $shopifyId, string $type = 'Product'): string
     {
-     return str_starts_with($shopifyId, 'gid://shopify/' . $type . '/') ? $shopifyId : 'gid://shopify/' . $type . '/' . $shopifyId;
+        return str_starts_with($shopifyId, 'gid://shopify/' . $type . '/') ? $shopifyId : 'gid://shopify/' . $type . '/' . $shopifyId;
     }
 
     /**
