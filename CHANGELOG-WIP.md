@@ -3,9 +3,13 @@
 > [!IMPORTANT]
 > After updating, go to **Shopify** → **Webhooks** and create missing webhooks.
 
+### Administration
+- Added the `shopify/data/reset` command.
+
 ### Extensibility
 - Added `craft\shopify\Plugin::getBulkOperation()`.
 - Added `craft\shopify\api\BulkDataBatcher`.
+- Added `craft\shopify\console\controllers\DataController`.
 - Added `craft\shopify\controllers\Sync`.
 - Added `craft\shopify\db\Table::DATA`.
 - Added `craft\shopify\db\ProductQuery::$shopifyGid`.
