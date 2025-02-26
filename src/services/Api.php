@@ -192,8 +192,16 @@ class Api extends Component
         if ($contextualPricingCountries) {
             $contextualPricingCountries = explode(',', $contextualPricingCountries);
             foreach ($contextualPricingCountries as $country) {
-                $key = strtolower($country);
-                $contextualPricing[$key . 'ContextualPricing:contextualPricing(context:{country:' . $country . '})'] = [
+                // Keys cannot contain whitespace:
+                $key = trim($country);
+
+                // Empty key, or not the right length?
+                if (!$key || strlen($key) !== 2) {
+                    continue;
+                }
+
+                // We request prices using the proper nested GQL params, but alias it to a key like `ukContextualPricing`:
+                $contextualPricing[strtolower($key) . 'ContextualPricing:contextualPricing(context:{country:' . $key . '})'] = [
                     'price' => [
                         'amount',
                         'currencyCode',
