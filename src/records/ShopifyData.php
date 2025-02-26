@@ -24,7 +24,6 @@ use craft\shopify\db\Table;
  * @property bool $stale
  * @property string $dateCreated
  * @property string $dateUpdated
- *
  */
 class ShopifyData extends ActiveRecord
 {
