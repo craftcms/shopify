@@ -48,6 +48,7 @@ class Settings extends Model
      *
      * @var bool
      * @since 4.1.0
+     * @deprecated in 6.0.0.
      */
     public bool $syncProductMetafields = true;
 
@@ -56,6 +57,7 @@ class Settings extends Model
      *
      * @var bool
      * @since 4.1.0
+     * @deprecated in 6.0.0.
      */
     public bool $syncVariantMetafields = false;
 
