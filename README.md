@@ -4,12 +4,15 @@
 
 Build a content-driven storefront by synchronizing [Shopify](https://shopify.com) products into [Craft CMS](https://craftcms.com/).
 
+> [!IMPORTANT]
+> Version 6.x of the Shopify plugin uses the new [GraphQL Admin API](https://shopify.dev/docs/api/admin-graphql) to [set up webhooks](#set-up-webhooks) and [synchronize](#synchronization) data. Review the [Upgrading](#upgrading) section for more info about the impacts of this change.
+
 ## Topics
 
 - :package: [Installation](#installation): Set up the plugin and get connected to Shopify.
 - :card_file_box: [Working with Products](#product-element): Learn what kind of data is available and how to access it.
 - :bookmark_tabs: [Templating](#templating): Tips and tricks for using products in Twig.
-- :leaves: [Upgrading](#migrating-from-v2x): Take advantage of new features and performance improvements.
+- :leaves: [Upgrading](#upgrading): Take advantage of new features and performance improvements.
 - :telescope: [Advanced Features](#going-further): Go further with your integration.
 
 ## Installation
@@ -80,7 +83,7 @@ SHOPIFY_HOSTNAME="my-storefront.myshopify.com"
 Now that you have credentials for your custom app, it’s time to add them to Craft.
 
 1. Visit the **Shopify** → **Settings** screen in your project’s control panel.
-2. Assign the four environment variables to the corresponding settings, using the special [config syntax](https://craftcms.com/docs/5.x/config/#control-panel-settings):
+2. Assign the four environment variables to the corresponding settings, using the special [config syntax](https://craftcms.com/docs/5.x/configure.html#control-panel-settings):
    - **API Version**: `$SHOPIFY_API_VERSION`
    - **API Key**: `$SHOPIFY_API_KEY`
    - **API Secret Key**: `$SHOPIFY_API_SECRET_KEY`
@@ -89,7 +92,7 @@ Now that you have credentials for your custom app, it’s time to add them to Cr
 3. Click **Save**.
 
 > [!NOTE]
-> These settings are stored in [Project Config](https://craftcms.com/docs/5.x/project-config.html), and will be automatically applied in other environments. [Webhooks](#set-up-webhooks) will still need to be configured for each environment!
+> These settings are stored in [Project Config](https://craftcms.com/docs/5.x/system/project-config.html), and will be automatically applied in other environments. [Webhooks](#set-up-webhooks) will still need to be configured for each environment!
 
 ### Set up Webhooks
 
@@ -105,55 +108,93 @@ Click **Create** on the Webhooks screen to add the required webhooks to Shopify.
 
 ## Upgrading
 
-Before upgrading ensure that the **Admin API access scopes** match the [requirements below](#create-a-shopify-app). This ensures that all the new features of the plugin will work correctly.
+To guarantee that the plugin can access all the Shopify resources it needs, review **Admin API access scopes** in the [requirements](#create-a-shopify-app) section _before_ performing an upgrade.
 
-After upgrading, ensure that all required webhooks have been created by clicking the “Create” button on the **Shopify** → **Webhooks** screen in your project’s control panel page in the CP. If the “Create” button is not visible, all required webhooks have been created.
+_After_ upgrading, check that the required webhooks are in place by visiting **Shopify** → **Webhooks** in the Craft control panel. The plugin will retrieve all the webhooks for your storefront, and display a **Create** button if any are missing for the current environment.
+
+> [!NOTE]
+> You must create webhooks for each environment. Repeat this process in your live environment, after deploying.
+
+The remainder of this section applies specifically to the 5.x &rarr; 6.x upgrade. Review the [changelog](CHANGELOG.md) for a complete list of added, removed, and deprecated APIs.
+
+### Deprecated Settings
+
+The `syncProductMetafields` and `syncVariantMetafields` are no longer used. Meta fields are now automatically loaded alongside product and variant data.
+
+### Property Names
+
+Accessors on our [product element](#native-attributes) remain stable, but with the shift to the GraphQL Admin API, many _canonical_ property names on products and variants have changed. If you directly output properties of _variants_ in your templates, they are apt to need updates. The [`ProductVariant` model documentation](https://shopify.dev/docs/api/admin-rest/2025-01/resources/product-variant) shows how to translate old property names (teal) to the new GraphQL schema (magenta).
+
+### Contextual Pricing
+
+Shopify’s “presentment prices” are now referred to as “contextual pricing.” Variant arrays still have the default `price` and `compareAtPrice` fields (previously `price` and `compare_at_price`, respectively), but to fetch context-dependent prices, you must provide a list of [two-letter country codes](https://shopify.dev/docs/api/admin-graphql/latest/enums/CountryCode) via the **Contextual Pricing Countries** setting. _Product data must be [sychronized](#synchronization) after changing this setting._
+
+Contextual prices are stored among other variant properties, with keys corresponding to each country code. For example: `US` pricing would be available as `usContextualPricing`; `DE` pricing would be available as `deContextualPricing`. Each contextual price has this structure:
+
+```php
+[
+    'price' => [
+        'amount' => '50.0',
+        'currencyCode' => 'USD',
+    ],
+    'compareAtPrice' => null,
+]
+```
+
+You can display these prices using Craft’s [built-in currency formatter](https://craftcms.com/docs/5.x/reference/twig/filters.html#currency):
+
+```twig
+{% set usPrice = variant.usContextualPricing.price %}
+{{ usPrice.amount|currency(usPrice.currency) }}
+```
+
+### Resource IDs
+
+The GraphQL API no longer uses numeric IDs to look up objects; instead, it expects a [new `gid://`-prefixed value](https://shopify.dev/docs/api/admin-graphql/latest/scalars/ID). [Product elements](#product-element) expose this as `shopifyId` (so as to avoid conflicts with the internal, Craft-specific _element_ `id` property), but it appears at the top level of other resources, like [options](#using-options), [variants](#variants-and-pricing), and media. 
 
 ## Product Element
 
-Products from your Shopify store are represented in Craft as product [elements](https://craftcms.com/docs/5.x/elements.html), and can be found by going to **Shopify** → **Products** in the control panel.
+Products from your Shopify store are represented in Craft as product [elements](https://craftcms.com/docs/5.x/system/elements.html), and can be found by going to **Shopify** → **Products** in the control panel.
 
 ### Synchronization
 
-Once the plugin has been configured, you can perform an initial synchronization of all products via the command line.
+Once the plugin has been configured, you can perform an initial synchronization of all products via the control panel (via **Utilities** &rarr; **Shopify Sync**) or the command line:
 
 ```sh
 php craft shopify/sync/products
 ```
 
-The [`syncProductMetafields` and `syncVariantMetafields` settings](#settings) govern what data is synchronized via this process. Going forward, your products will be automatically kept in sync via [webhooks](#set-up-webhooks).
+This adds a [bulk operation](https://shopify.dev/docs/api/usage/bulk-operations/queries) to the plugin’s internal queue. Once Shopify has gathered the data, it will issue a webhook to your project, and Craft will begin processing the payload.
 
-Larger, more complex, stores may run into [rate limiting](#rate-limiting) issues during a full sync. In these cases, you can use the `--throttle` option to slow down the synchronization process.
-
-> [!NOTE]
-> Smaller stores with only a few products can perform synchronization via the **Shopify Sync** utility.
+Going forward, your products are automatically kept in sync via [webhooks](#set-up-webhooks). You can view a history of synchronization operations by visiting the **Shopify Sync** utility.
 
 ### Native Attributes
 
-In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains the following mappings to its canonical [Shopify Product resource](https://shopify.dev/api/admin-rest/2024-10/resources/product#resource-object):
+In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains direct accessors for these canonical Shopify [Product attributes](https://shopify.dev/docs/api/admin-rest/2025-01/resources/product):
 
-| Attribute        | Description                                                                                                                                                                                | Type       |
-| ---------------- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ---------- |
-| `shopifyId`      | The unique product identifier in your Shopify store.                                                                                                                                       | `String`   |
-| `shopifyStatus`  | The status of the product in your Shopify store. Values can be `active`, `draft`, or `archived`.                                                                                           | `String`   |
-| `handle`         | The product’s “URL handle” in Shopify, equivalent to a “slug” in Craft. For existing products, this is visible under the **Search engine listing** section of the edit screen.             | `String`   |
-| `productType`    | The product type of the product in your Shopify store.                                                                                                                                     | `String`   |
-| `bodyHtml`       | Product description. Use the `\|raw` filter to output it in Twig—but only if the content is trusted.                                                                                       | `String`   |
-| `publishedScope` | Published scope of the product in Shopify store. Common values are `web` (for web-only products) and `global` (for web and point-of-sale products).                                        | `String`   |
-| `tags`           | Tags associated with the product in Shopify.                                                                                                                                               | `Array`    |
-| `templateSuffix` | [Liquid template suffix](https://shopify.dev/themes/architecture/templates#name-structure) used for the product page in Shopify.                                                           | `String`   |
-| `vendor`         | Vendor of the product.                                                                                                                                                                     | `String`   |
-| `metaFields`     | [Metafields](https://shopify.dev/api/admin-rest/2024-10/resources/metafield#resource-object) associated with the product.                                                                  | `Array`    |
-| `images`         | Images attached to the product in Shopify. The complete [Product Image resources](https://shopify.dev/api/admin-rest/2024-10/resources/product-image#resource-object) are stored in Craft. | `Array`    |
-| `options`        | Product options, as configured in Shopify. Each option has a `name`, `position`, and an array of `values`.                                                                                 | `Array`    |
-| `createdAt`      | When the product was created in your Shopify store.                                                                                                                                        | `DateTime` |
-| `publishedAt`    | When the product was published in your Shopify store.                                                                                                                                      | `DateTime` |
-| `updatedAt`      | When the product was last updated in your Shopify store.                                                                                                                                   | `DateTime` |
+| Attribute         | Description                                                                                                                                                                                        | Type       |
+|-------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ---------- |
+| `shopifyId`       | The unique product [identifier](https://shopify.dev/docs/api/admin-graphql/latest/scalars/ID) in your Shopify store.                                                                               | `String`   |
+| `shopifyStatus`   | The status of the product in your Shopify store. Values can be `active`, `draft`, or `archived`.                                                                                                   | `String`   |
+| `handle`          | The product’s “URL handle” in Shopify, equivalent to a “slug” in Craft. For existing products, this is visible under the **Search engine listing** section of the edit screen.                     | `String`   |
+| `productType`     | The product type of the product in your Shopify store.                                                                                                                                             | `String`   |
+| `descriptionHtml` | Product description. Use the `\|raw` filter to output it in Twig—but only if the content is trusted. This was previously called `bodyHtml`.                                                        | `String`   |
+| `tags`            | Tags associated with the product in Shopify.                                                                                                                                                       | `Array`    |
+| `templateSuffix`  | [Liquid template suffix](https://shopify.dev/themes/architecture/templates#name-structure) used for the product page in Shopify.                                                                   | `String`   |
+| `vendor`          | Vendor of the product.                                                                                                                                                                             | `String`   |
+| `metaFields`      | [Metafields](https://shopify.dev/docs/api/admin-graphql/latest/objects/Metafield) associated with the product.                                                                                     | `Array`    |
+| `images`          | Images attached to the product in Shopify. The complete [ProductImage resources](https://shopify.dev/docs/api/admin-graphql/latest/objects/MediaImage) are stored in Craft.                        | `Array`    |
+| `options`         | [ProductOption](https://shopify.dev/docs/api/admin-graphql/latest/objects/ProductOption) objects, as configured in Shopify. Each option has a `name`, `position`, and an array of in-use `values`. | `Array`    |
+| `createdAt`       | When the product was created in your Shopify store. (This will almost always be different from the element’s native `dateCreated` property.)                                                       | `DateTime` |
+| `publishedAt`     | When the product was published in your Shopify store.                                                                                                                                              | `DateTime` |
+| `updatedAt`       | When the product was last updated in your Shopify store. (This will almost always be different from the element’s native `dateUpdated` property.)                                                  | `DateTime` |
 
 All of these properties are available when working with a product element [in your templates](#templating).
 
-> [!NOTE]  
-> See the Shopify documentation on the [product resource](https://shopify.dev/api/admin-rest/2024-10/resources/product#resource-object) for more information about what kinds of values to expect from these properties.
+> [!IMPORTANT]  
+> See the Shopify documentation on the [product resource](https://shopify.dev/docs/api/admin-graphql/latest/objects/Product) for more information about what kinds of values to expect from these properties.
+
+A complete copy of the Shopify API data used to populate a product element is available under its `data` property.
 
 ### Methods
 
@@ -161,7 +202,7 @@ The product element has a few methods you might find useful in your [templates](
 
 #### `Product::getVariants()`
 
-Returns the [variants](#variants-and-pricing) belonging to the product.
+Returns an array of [variants](#variants-and-pricing) belonging to the product. Each variant is an associative array, _not_ an element.
 
 ```twig
 {% set variants = product.getVariants() %}
@@ -173,12 +214,16 @@ Returns the [variants](#variants-and-pricing) belonging to the product.
 </select>
 ```
 
+You can eager-load variants alongside products using the [product query](#querying-products)’s `.withVariants()` method.
+
 #### `Product::getDefaultVariant()`
 
 Shortcut for getting the first/default [variant](#variants-and-pricing) belonging to the product.
 
 ```twig
-{% set products = craft.shopifyProducts.all() %}
+{% set products = craft.shopifyProducts
+   .withVariants()
+   .all() %}
 
 <ul>
   {% for product in products %}
@@ -233,7 +278,7 @@ The product field layout can be edited by going to **Shopify** → **Settings** 
 
 You can give synchronized products their own on-site URLs. To set up the URI format (and the template that will be loaded when a product URL is requested), go to **Shopify** → **Settings** → **Products**.
 
-If you would prefer your customers to view individual products on Shopify, clear out the **Product URI Format** field on the settings page, and use `product.shopifyUrl` instead of `product.url` in your templates.
+If you would prefer your customers to view individual products on Shopify, clear out the **Product URI Format** field on the settings page, and use [`product.shopifyUrl`](#productgetshopifyurl) instead of `product.url` in your templates.
 
 ### Product Status
 
@@ -242,7 +287,7 @@ A product’s `status` in Craft is a combination of its `shopifyStatus` attribut
 > **Note**  
 > Statuses in Craft are often a synthesis of multiple properties. For example, an entry with the _Pending_ status just means it is `enabled` _and_ has a `postDate` in the future.
 
-In most cases, you’ll only need to display “Live” products, or those which are _Active_ in Shopify and _Enabled_ in Craft:
+In most cases, you’ll only want to display “Live” products, or those which are _Active_ in Shopify and _Enabled_ in Craft:
 
 | Status            | Shopify  | Craft    |
 | ----------------- | -------- | -------- |
@@ -250,6 +295,8 @@ In most cases, you’ll only need to display “Live” products, or those which
 | `shopifyDraft`    | Draft    | Enabled  |
 | `shopifyArchived` | Archived | Enabled  |
 | `disabled`        | Any      | Disabled |
+
+This is the default behavior when [querying](#querying-products) for products, but you can pass one of the custom **Status** options above to the `.status()` param to override it.
 
 ## Querying Products
 
@@ -270,7 +317,7 @@ The following element query parameters are supported, in addition to [Craft’s 
 
 #### `shopifyId`
 
-Filter by Shopify product IDs.
+Filter by legacy numeric Shopify product IDs.
 
 ```twig
 {# Watch out—these aren't the same as element IDs! #}
@@ -278,6 +325,19 @@ Filter by Shopify product IDs.
   .shopifyId(123456789)
   .one() %}
 ```
+
+#### `shopifyGid`
+
+Filter by Shopify GIDs.
+
+```twig
+{# Watch out—these aren't the same as element IDs! #}
+{% set singleProduct = craft.shopifyProducts
+  .shopifyId('gid://shopify/Product/123456789')
+  .one() %}
+```
+
+This is equivalent to `.shopifyId(123456789)`, but may be simpler if you are combining data from client-side queries.
 
 #### `shopifyStatus`
 
@@ -289,7 +349,10 @@ Directly query against the product’s status in Shopify.
   .all() %}
 ```
 
-Use the regular `.status()` param if you'd prefer to query against [synthesized status values](#product-status).
+Use the regular `.status()` param if you'd prefer to query against the [synthesized product status values](#product-status).
+
+> [!WARNING]
+> Note that this _does not_ override conditions applied by the `.status()` param (including the defaults). You may need to call `.status(null)` to unset them, or use `.status('shopifyDraft')`, directly.
 
 #### `handle`
 
@@ -301,7 +364,8 @@ Query by the product’s handle, in Shopify.
   .all() %}
 ```
 
-> :rotating_light: This is not a reliable means to fetch a specific product, as the value may change during a synchronization. If you want a permanent reference to a product, consider using the Shopify [product field](#product-field).
+> [!WARNING]
+> This is _not_ a reliable means to fetch a specific product, as the value may change during a synchronization. If you want to store a permanent reference to a product, consider using the Shopify [product field](#product-field) to relate it by element ID.
 
 #### `productType`
 
@@ -310,22 +374,6 @@ Find products by their “type” in Shopify.
 ```twig
 {% set upSells = craft.shopifyProducts
   .productType(['apparel', 'accessories'])
-  .all() %}
-```
-
-#### `publishedScope`
-
-Show only products that are published to a matching sales channel.
-
-```twig
-{# Only web-ready products: #}
-{% set webProducts = craft.shopifyProducts
-  .publishedScope('web')
-  .all() %}
-
-{# Everything: #}
-{% set inStoreProducts = craft.shopifyProducts
-  .publishedScope('global')
   .all() %}
 ```
 
@@ -390,7 +438,7 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
   {# -> Root Beer #}
 
 {# Shopify HTML content: #}
-{{ product.bodyHtml|raw }}
+{{ product.descriptionHtml|raw }}
   {# -> <p>...</p> #}
 
 {# Tags, as list: #}
@@ -442,8 +490,6 @@ Once you have a reference to a variant, you can output its properties:
 
 > [!NOTE]
 > The built-in [`currency`](https://craftcms.com/docs/5.x/reference/twig/filters.html#currency) Twig filter is a great way to format money values.
-> 
-> The `metafields` property will only be populated if the `syncVariantMetafields` setting is enabled.
 
 ### Using Options
 
@@ -669,6 +715,12 @@ In addition to [product element methods](#methods), the plugin exposes its API t
 > {% endcache %}
 > ```
 
+<details>
+<summary>Legacy REST API</summary>
+
+> [!DANGER]
+> The Admin REST API has been deprecated. This information is provided only for posterity; the methods still exist in the plugin, but may stop returning data some time in 2025.
+
 Issue requests to the Shopify Admin API via `craft.shopify.api`:
 
 ```twig
@@ -677,6 +729,48 @@ Issue requests to the Shopify Admin API via `craft.shopify.api`:
 ```
 
 The schema for each API resource will differ. Consult the [Shopify API documentation](https://shopify.dev/api/admin-rest) for more information.
+
+</details>
+
+You can make arbitrary GraphQL queries against the Shopify API with `craft.shopify.api.query()`:
+
+```twig
+{% set gql %}
+  {
+    collections(first: 10) {
+      nodes {
+        id
+        title
+      }
+    }
+  }
+{% endset %}
+
+{% set response = craft.shopify.api.query(gql) %}
+{% set collections = response.nodes ?? [] %}
+
+{% if collections is not empty %}
+  <ul>
+    {% for collection in collections %}
+      <li>{{ collection.title }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+```
+
+The Shopify GraphQL client is also available if you need to safely pass variables (like pagination offsets or search strings), or make mutations:
+
+```twig
+{% set response = craft.shopify.api.gqlClient.query({
+  query: gql,
+  variables: {
+    num: 10,
+  },
+}) %}
+
+{# The plugin does not intercept response data, so you must unpack it based on what was requested: #} 
+{% set data = response.data.nodes %}
+```
 
 #### Store Service
 
@@ -707,9 +801,6 @@ The plugin provides a _Shopify Products_ field, which uses the familiar [relatio
 
 Relationships defined with the _Shopify Products_ field use stable element IDs under the hood. When Shopify products are archived or deleted, the corresponding elements will also be updated in Craft, and naturally filtered out of your query results—including those explicitly attached via a _Shopify Products_ field.
 
-> [!NOTE]
-> Upgrading? Check out the [migration](#migrating-from-v2x) notes for more info.
-
 ---
 
 ## Going Further
@@ -718,21 +809,23 @@ Relationships defined with the _Shopify Products_ field use stable element IDs u
 
 The following settings can be controlled by creating a `shopify.php` file in your `config/` directory.
 
-| Setting                 | Type   | Default | Description |
-|-------------------------|--------|---------|-------------|
-| `apiKey` | `string` | — | Shopify API key. |
-| `apiSecretKey` | `string` | — | Shopify API secret key. |
-| `accessToken` | `string` | — | Shopify API access token. |
-| `hostName` | `string` | — | Shopify [host name](#store-hostname). |
-| `uriFormat` | `string` | — | Product element URI format. |
-| `template` | `string` | — | Product element template path. |
-| `syncProductMetafields` | `bool` | `true` | Whether product metafields should be included when syncing products. This adds an extra API request per product. |
-| `syncVariantMetafields` | `bool` | `false` | Whether variant metafields should be included when syncing products. This adds an extra API request per variant. |
+| Setting                      | Type   | Default | Description                                                                                                              |
+|------------------------------|--------|---------|--------------------------------------------------------------------------------------------------------------------------|
+| `apiKey`                     | `string` | — | Shopify API key.                                                                                                         |
+| `apiSecretKey`               | `string` | — | Shopify API secret key.                                                                                                  |
+| `apiVersion`                 | `string` | — | Shopify [API version](https://shopify.dev/docs/api/usage/versioning) description.                                        |
+| `accessToken`                | `string` | — | Shopify API access token.                                                                                                |
+| `contextualPricingCountries` | `string` | — | Comma-separated list of [two-letter country codes](https://shopify.dev/docs/api/admin-graphql/latest/enums/CountryCode). |
+| `hostName`                   | `string` | — | Shopify [host name](#store-hostname).                                                                                    |
+| `uriFormat`                  | `string` | — | Product element URI format.                                                                                              |
+| `template`                   | `string` | — | Product element template path.                                                                                           |
 
 > [!NOTE]
-> Setting `apiKey`, `apiSecretKey`, `accessToken`, and `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#create-a-shopify-app). You can still reference environment values from the config file with `craft\helpers\App::env()`.
+> Setting `apiKey`, `apiSecretKey`, `apiVersion`, `accessToken`, or `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#create-a-shopify-app). You can still reference environment values from the config file with `craft\helpers\App::env()`.
 
 ### Events
+
+Learn about [responding to events](https://craftcms.com/docs/5.x/extend/events.html) in the Craft extension documentation.
 
 #### `craft\shopify\services\Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT`
 
@@ -754,11 +847,12 @@ Event::on(
   function(ShopifyProductSyncEvent $event) {
     // Example 1: Cancel the sync if a flag is set via a Shopify metafield:
     $metafields = $event->element->getMetafields();
-    if (metafields['do_not_sync'] ?? false) {
+
+    if ($metafields['do_not_sync'] ?? false) {
       $event->isValid = false;
     }
 
-    // Example 2: Set a field value from metafield data:
+    // Example 2: Set a custom field value from metafield data:
     $event->element->setFieldValue('myNumberFieldHandle', $metafields['cool_factor']);
   }
 );
@@ -799,7 +893,3 @@ return [
   ],
 ];
 ```
-
-## Rate Limiting
-
-The plugin makes its best effort to avoid Shopify’s strict [API rate limiting](https://shopify.dev/docs/api/usage/rate-limits) rules by respecting headers in the replies (a feature of the first-party PHP SDK). This means that series of operations (like synchronization or custom API queries within loops) can take grow in a non-linear way.
