@@ -77,7 +77,7 @@ class Products extends Component
      */
     public function syncProductByShopifyId(string $id): void
     {
-        $shopifyId = str_starts_with($id, 'gid://shopify/Product/') ? $id : 'gid://shopify/Product/' . $id;
+        $shopifyId = $this->normalizeShopifyGid($id);
         Plugin::getInstance()->getBulkOperations()->createBulkOperation((string)Plugin::getInstance()->getApi()->getProductGql($id), $shopifyId);
     }
 
@@ -89,7 +89,7 @@ class Products extends Component
     public function syncProductByInventoryItemId($id): void
     {
         // Make sure the ID has the gql prefix
-        $id = str_starts_with($id, 'gid://shopify/InventoryItem/') ? $id : 'gid://shopify/InventoryItem/' . $id;
+        $id = $this->normalizeShopifyGid($id, 'InventoryItem');
 
         $query = Plugin::getInstance()->getApi()->createQuery('inventoryItem', [
             'id',
@@ -180,6 +180,16 @@ class Products extends Component
     }
 
     /**
+     * @param string $shopifyId
+     * @return string
+     * @since 6.0.0
+     */
+    public function normalizeShopifyGid(string $shopifyId, string $type = 'Product'): string
+    {
+     return str_starts_with($shopifyId, 'gid://shopify/' . $type . '/') ? $shopifyId : 'gid://shopify/' . $type . '/' . $shopifyId;
+    }
+
+    /**
      * Deletes a product element by the Shopify ID.
      *
      * @param $id
@@ -197,7 +207,7 @@ class Products extends Component
 
             // Delete data in shopify data table
             // Delete the product data
-            $shopifyId = str_starts_with($id, 'gid://shopify/Product/') ? $id : 'gid://shopify/Product/' . $id;
+            $shopifyId = $this->normalizeShopifyGid($id);
             $this->deleteShopifyDataByShopifyId($shopifyId);
         }
     }
@@ -211,16 +221,16 @@ class Products extends Component
      */
     public function deleteShopifyDataByShopifyId(string $shopifyId): void
     {
+        // Support both id and gid
+        $shopifyId = $this->normalizeShopifyGid($shopifyId);
+
         /** @var ShopifyData|null $shopifyData */
         $shopifyData = ShopifyData::find()->where(['shopifyId' => $shopifyId])->one();
 
-        if (!$shopifyData) {
-            return;
-        }
+        // Delete if possible
+        $shopifyData?->delete();
 
-        $shopifyData->delete();
-
-        // Delete any child data of the product
+        // Delete any child data that may still exist
         /** @var ShopifyData[] $shopifyData */
         $shopifyData = ShopifyData::find()->where(['parentId' => $shopifyId])->all();
         $childIds = [];

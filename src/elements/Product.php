@@ -748,6 +748,19 @@ class Product extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function afterDelete(): void
+    {
+        // Remove all the product shopify data
+        if ($this->shopifyGid) {
+            Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyId($this->shopifyGid);
+        }
+
+        parent::afterDelete();
+    }
+
+    /**
      * @return array
      */
     protected static function defineTableAttributes(): array
@@ -756,8 +769,6 @@ class Product extends Element
             'shopifyId' => Craft::t('shopify', 'Shopify ID'),
             'createdAt' => Craft::t('shopify', 'Created At'),
             'handle' => Craft::t('shopify', 'Handle'),
-            // TODO: Support images
-            // 'images' => Craft::t('shopify', 'Images'),
             'options' => Craft::t('shopify', 'Options'),
             'productType' => Craft::t('shopify', 'Product Type'),
             'publishedAt' => Craft::t('shopify', 'Published At'),
