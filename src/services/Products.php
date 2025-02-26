@@ -9,6 +9,7 @@ use craft\errors\ElementNotFoundException;
 use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
+use craft\helpers\Json;
 use craft\helpers\ProjectConfig;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
@@ -293,11 +294,14 @@ class Products extends Component
      */
     public function eagerLoadMetafieldsForProducts(array $products): array
     {
-        return $this->_eagerLoadTypeOnProducts($products, 'Metafield', function($product, $metafields) {
-            if (!empty($metafields)) {
-                // Squash to key/value array
-                $metafields = array_combine(ArrayHelper::getColumn($metafields, 'key'), ArrayHelper::getColumn($metafields, 'value'));
+        return $this->_eagerLoadTypeOnProducts($products, 'Metafield', function($product, $rows) {
+            $metafields = [];
+
+            foreach ($rows as $row) {
+                $data = Json::decodeIfJson($row['data']);
+                $metafields[$data['key']] = $data['value'];
             }
+
             $product->setMetafields($metafields);
         });
     }
@@ -309,8 +313,8 @@ class Products extends Component
      */
     public function eagerLoadImagesForProducts(array $products): array
     {
-        return $this->_eagerLoadTypeOnProducts($products, 'MediaImage', function($product, $images) {
-            $product->setImages($images);
+        return $this->_eagerLoadTypeOnProducts($products, 'MediaImage', function($product, $rows) {
+            $product->setImages(array_column($rows, 'data'));
         });
     }
 
@@ -321,8 +325,8 @@ class Products extends Component
      */
     public function eagerLoadVariantsForProducts(array $products): array
     {
-        return $this->_eagerLoadTypeOnProducts($products, 'ProductVariant', function($product, $variants) {
-            $product->setVariants($variants);
+        return $this->_eagerLoadTypeOnProducts($products, 'ProductVariant', function($product, $rows) {
+            $product->setVariants(array_column($rows, 'data'));
         });
     }
 
@@ -335,25 +339,20 @@ class Products extends Component
     private function _eagerLoadTypeOnProducts(array $products, string $type, callable $callback): array
     {
         $productIds = ArrayHelper::getColumn($products, 'shopifyGid');
-        $data = Plugin::getInstance()->getApi()->getShopifyDataByType($type, $productIds);
 
-        if (empty($data)) {
-            foreach ($products as $product) {
-                $callback($product, []);
-            }
-        }
+        $data = ShopifyData::find()
+            ->where([
+                'type' => $type,
+                'parentId' => $productIds,
+            ])
+            ->collect();
 
-        // Group images by product ID
-        $data = collect($data)->groupBy('__parentId');
+        // Group objects by owner:
+        $data = $data->groupBy('parentId');
 
+        // Give each product a chance to manipulate the row, directly:
         foreach ($products as $product) {
-            $productData = $data->get($product->shopifyGid, []);
-            if (empty($productData)) {
-                $callback($product, []);
-                continue;
-            }
-
-            $callback($product, $productData->all());
+            $callback($product, $data->get($product->shopifyGid, []));
         }
 
         return $products;
