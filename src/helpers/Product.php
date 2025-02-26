@@ -17,6 +17,7 @@ use craft\helpers\UrlHelper;
 use craft\i18n\Formatter;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\records\ShopifyData;
+use yii\base\InvalidConfigException;
 
 /**
  * Shopify Product Helper.
@@ -27,7 +28,9 @@ use craft\shopify\records\ShopifyData;
 class Product
 {
     /**
+     * @param ProductElement $product
      * @return string
+     * @throws InvalidConfigException
      */
     public static function renderCardHtml(ProductElement $product): string
     {

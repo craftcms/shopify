@@ -55,6 +55,9 @@
 - Deprecated `craft\shopify\elements\Product::getBodyHtml()`. `getDescriptionHtml()` should be used instead.
 - Deprecated `craft\shopify\elements\Product::setBodyHtml()`. `setDescriptionHtml()` should be used instead.
 - Deprecated `craft\shopify\elements\Product::getShopifyStatusHtml()`.  `craft\shopify\helpers\Product::shopifyStatusHtml()` should be used instead.
+- Deprecated `craft\shopify\helpers\Metafields`.
+- Deprecated `craft\shopify\models\Settings::$syncProductMetafields`.
+- Deprecated `craft\shopify\models\Settings::$syncVariantMetafields`.
 - Deprecated `craft\shopify\services\Api::get()`. `query()` should be used instead.
 - Deprecated `craft\shopify\services\Api::getAll()`. `query()` should be used instead.
 - Deprecated `craft\shopify\services\Api::getAllProducts()`.
