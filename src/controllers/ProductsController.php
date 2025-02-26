@@ -31,7 +31,7 @@ class ProductsController extends \craft\web\Controller
     public function actionProductIndex(): Response
     {
         $newProductUrl = '';
-        if ($baseUrl = Plugin::getInstance()->getSettings()->hostName) {
+        if ($baseUrl = Plugin::getInstance()->getSettings()->getHostName(true)) {
             $newProductUrl = UrlHelper::url('https://' . App::parseEnv($baseUrl) . '/admin/products/new');
         }
 
@@ -41,12 +41,17 @@ class ProductsController extends \craft\web\Controller
     /**
      * Syncs all products
      *
-     * @return Response
+     * @return Response|null
      */
-    public function actionSync(): Response
+    public function actionSync(): ?Response
     {
-        Plugin::getInstance()->getProducts()->syncAllProducts();
-        return $this->asSuccess(Craft::t('shopify', 'Products successfully synced'));
+        $result = Plugin::getInstance()->getBulkOperations()->createProductsBulkOperation();
+
+        if ($result === false) {
+            return $this->asFailure(Craft::t('shopify', 'Failed to create products sync'));
+        }
+
+        return $this->asSuccess(Craft::t('shopify', 'Products sync created'));
     }
 
     /**

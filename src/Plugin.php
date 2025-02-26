@@ -13,6 +13,7 @@ namespace craft\shopify;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
+use craft\console\Application as ConsoleApplication;
 use craft\console\Controller;
 use craft\console\controllers\ResaveController;
 use craft\events\DefineConsoleActionsEvent;
@@ -20,17 +21,20 @@ use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\feedme\events\RegisterFeedMeFieldsEvent;
 use craft\fields\Link;
+use craft\helpers\Console;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\services\Fields;
+use craft\services\Gc;
 use craft\services\Utilities;
 use craft\shopify\elements\Product;
 use craft\shopify\feedme\fields\Products as FeedMeProductsField;
 use craft\shopify\fields\Products as ProductsField;
-use craft\shopify\handlers\Product as ProductHandler;
+use craft\shopify\handlers\Webhook;
 use craft\shopify\linktypes\Product as ProductLinkType;
 use craft\shopify\models\Settings;
 use craft\shopify\services\Api;
+use craft\shopify\services\BulkOperations;
 use craft\shopify\services\Products;
 use craft\shopify\services\Store;
 use craft\shopify\utilities\Sync;
@@ -38,7 +42,6 @@ use craft\shopify\web\twig\CraftVariableBehavior;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use Shopify\Webhooks\Registry;
-use Shopify\Webhooks\Topics;
 use yii\base\Event;
 use yii\base\InvalidConfigException;
 
@@ -60,7 +63,7 @@ class Plugin extends BasePlugin
     /**
      * @var string
      */
-    public string $schemaVersion = '5.3.0.0';
+    public string $schemaVersion = '6.0.0.8';
 
     /**
      * @inheritdoc
@@ -85,6 +88,7 @@ class Plugin extends BasePlugin
         return [
             'components' => [
                 'api' => ['class' => Api::class],
+                'bulkOperations' => ['class' => BulkOperations::class],
                 'products' => ['class' => Products::class],
                 'store' => ['class' => Store::class],
             ],
@@ -120,6 +124,7 @@ class Plugin extends BasePlugin
         $this->_registerLinkTypes();
         $this->_registerVariables();
         $this->_registerResaveCommands();
+        $this->_registerGarbageCollection();
         $this->_registerFeedMeEvents();
 
         if (!$request->getIsConsoleRequest()) {
@@ -138,10 +143,19 @@ class Plugin extends BasePlugin
             ->onRemove(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, [$productsService, 'handleDeletedFieldLayout']);
 
         // Globally register shopify webhooks registry event handlers
-        Registry::addHandler(Topics::PRODUCTS_CREATE, new ProductHandler());
-        Registry::addHandler(Topics::PRODUCTS_DELETE, new ProductHandler());
-        Registry::addHandler(Topics::PRODUCTS_UPDATE, new ProductHandler());
-        Registry::addHandler(Topics::INVENTORY_LEVELS_UPDATE, new ProductHandler());
+        foreach ($this->getApi()::WEBHOOK_TOPICS as $topic) {
+            Registry::addHandler($topic, new Webhook());
+        }
+    }
+
+    /**
+     * @return BulkOperations
+     * @throws InvalidConfigException
+     * @since 6.0.0
+     */
+    public function getBulkOperations(): BulkOperations
+    {
+        return $this->get('bulkOperations');
     }
 
     /**
@@ -310,6 +324,27 @@ class Plugin extends BasePlugin
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $event->rules['shopify/webhook/handle'] = 'shopify/webhook/handle';
+        });
+    }
+
+    /**
+     * Register the things that need to be garbage collected
+     *
+     * @since 6.0.0
+     */
+    private function _registerGarbageCollection(): void
+    {
+        Event::on(Gc::class, Gc::EVENT_RUN, function(Event $event) {
+            // Deletes carts that meet the purge settings
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout('    > purging syncs ... ');
+            }
+
+            Plugin::getInstance()->getBulkOperations()->purgeBulkOperations();
+
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout("done\n", Console::FG_GREEN);
+            }
         });
     }
 

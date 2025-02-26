@@ -8,13 +8,16 @@
 namespace craft\shopify\helpers;
 
 use Craft;
+use craft\enums\Color;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
+use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\i18n\Formatter;
 use craft\shopify\elements\Product as ProductElement;
-use craft\shopify\records\ProductData;
+use craft\shopify\records\ShopifyData;
+use yii\base\InvalidConfigException;
 
 /**
  * Shopify Product Helper.
@@ -25,7 +28,9 @@ use craft\shopify\records\ProductData;
 class Product
 {
     /**
+     * @param ProductElement $product
      * @return string
+     * @throws InvalidConfigException
      */
     public static function renderCardHtml(ProductElement $product): string
     {
@@ -58,7 +63,8 @@ class Product
         $meta = [];
 
         $meta[Craft::t('shopify', 'Handle')] = $product->handle;
-        $meta[Craft::t('shopify', 'Status')] = $product->getShopifyStatusHtml();
+        $meta[Craft::t('shopify', 'Status')] = Product::shopifyStatusHtml($product);
+        $meta[Craft::t('shopify', 'Channel')] = Product::shopifyPublishedHtml($product);
 
         // Options
         if (count($product->getOptions()) > 0) {
@@ -88,15 +94,18 @@ class Product
         }
 
         // Variants
-        if (count($product->getVariants()) > 0) {
-            $meta[Craft::t('shopify', 'Variants')] = collect($product->getVariants())
+        $variants = $product->getVariants();
+        if (count($variants) > 0) {
+            $meta[Craft::t('shopify', 'Total variants')] = Craft::$app->getFormatter()->asInteger(count($variants));
+
+            $meta[Craft::t('shopify', 'Variants')] = collect($variants)
                 ->pluck('title')
                 ->join(', ');
         }
 
         // Metafields
-        if (count($product->getMetaFields()) > 0) {
-            $meta[Craft::t('shopify', 'Metafields')] = collect($product->getMetaFields())
+        if (count($product->getMetafields()) > 0) {
+            $meta[Craft::t('shopify', 'Metafields')] = collect($product->getMetafields())
                 ->keys()
                 ->join(', ');
         }
@@ -117,8 +126,8 @@ class Product
         ]);
 
         // This is the date updated in the database which represents the last time it was updated from a Shopify webhook or sync.
-        /** @var ProductData $productData */
-        $productData = ProductData::find()->where(['shopifyId' => $product->shopifyId])->one();
+        /** @var ShopifyData $productData */
+        $productData = ShopifyData::find()->where(['shopifyId' => $product->shopifyGid])->one();
         $dateUpdated = DateTimeHelper::toDateTime($productData->dateUpdated);
         $now = new \DateTime();
         $diff = $now->diff($dateUpdated);
@@ -137,6 +146,41 @@ class Product
                 'swap' => 'outerHTML',
                 'trigger' => 'every 15s',
             ],
+        ]);
+    }
+
+    /**
+     * @param ProductElement $product
+     * @return string
+     * @since 6.0.0
+     */
+    public static function shopifyStatusHtml(ProductElement $product): string
+    {
+        $color = match (StringHelper::toLowerCase($product->shopifyStatus)) {
+            'active' => Color::Green->value,
+            'archived' => Color::Red->value,
+            default => Color::Orange->value, // takes care of draft
+        };
+
+        return Cp::statusLabelHtml([
+            'color' => $color,
+            'label' => StringHelper::titleize($product->shopifyStatus),
+        ]);
+    }
+
+    /**
+     * @param ProductElement $product
+     * @return string
+     * @since 6.0.0
+     */
+    public static function shopifyPublishedHtml(ProductElement $product): string
+    {
+        $color = $product->publishedOnCurrentPublication ? Color::Green->value : Color::Red->value;
+        $status = $product->publishedOnCurrentPublication ? Craft::t('shopify', 'Published') : Craft::t('shopify', 'Unpublished');
+
+        return Cp::statusLabelHtml([
+            'color' => $color,
+            'label' => $status,
         ]);
     }
 }

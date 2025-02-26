@@ -9,8 +9,6 @@ namespace craft\shopify\events;
 
 use craft\events\CancelableEvent;
 use craft\shopify\elements\Product as ProductElement;
-use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
-use Shopify\Rest\Admin2024_10\Product as ShopifyProduct2410;
 
 /**
  * Event triggered just before a synchronized product element is going to be saved.
@@ -25,7 +23,7 @@ class ShopifyProductSyncEvent extends CancelableEvent
     public ProductElement $element;
 
     /**
-     * @var ShopifyProduct|ShopifyProduct2410 Source Shopify API resource.
+     * @var array Source Shopify API resource.
      */
-    public ShopifyProduct|ShopifyProduct2410 $source;
+    public array $source;
 }

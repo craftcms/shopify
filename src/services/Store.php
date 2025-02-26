@@ -2,9 +2,7 @@
 
 namespace craft\shopify\services;
 
-use Craft;
 use craft\base\Component;
-use craft\helpers\App;
 use craft\helpers\UrlHelper;
 use craft\shopify\Plugin;
 use yii\base\InvalidConfigException;
@@ -18,6 +16,11 @@ use yii\base\InvalidConfigException;
 class Store extends Component
 {
     /**
+     * @var array|null
+     */
+    private ?array $_shop = null;
+
+    /**
      * Creates a URL to the external Shopify store
      *
      * @param string $path
@@ -28,7 +31,7 @@ class Store extends Component
     public function getUrl(string $path = '', array $params = []): string
     {
         $settings = Plugin::getInstance()->getSettings();
-        $host = App::parseEnv($settings->hostName);
+        $host = $settings->getHostName(true);
 
         if (!$host) {
             throw new InvalidConfigException('Shopify URLs cannot be generated without a hostname configured.');
@@ -43,23 +46,21 @@ class Store extends Component
      */
     public function getCurrency(): string
     {
-        return $this->getShopSettings()['currency'];
+        return $this->getShopSettings()['currencyCode'];
     }
 
     /**
-     * @return array|string|null
+     * @return array|null
      * @throws InvalidConfigException
      */
-    public function getShopSettings()
+    public function getShopSettings(): ?array
     {
-        $cacheKey = 'shopify-shop';
-        $shop = Craft::$app->getCache()->get($cacheKey);
-        if (!$shop) {
-            $resource = Plugin::getInstance()->getApi()->get('shop');
-            Craft::$app->getCache()->set($cacheKey, $resource['shop']);
-            $shop = $resource['shop'];
+        if ($this->_shop !== null) {
+            return $this->_shop;
         }
 
-        return $shop;
+        $this->_shop = Plugin::getInstance()->getApi()->getShop();
+
+        return $this->_shop;
     }
 }

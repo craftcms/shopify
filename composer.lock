@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cf552060d09ed0e77050668d30d9f57e",
+    "content-hash": "5579c69093cba4acf980d707db8d2838",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -119,6 +119,69 @@
                 }
             ],
             "time": "2023-11-29T23:19:16+00:00"
+        },
+        {
+            "name": "carnage/php-graphql-client",
+            "version": "1.14.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/carnage/php-graphql-client.git",
+                "reference": "7c28f461a0a3e86983ff769b8e1fa876ebc133cc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/carnage/php-graphql-client/zipball/7c28f461a0a3e86983ff769b8e1fa876ebc133cc",
+                "reference": "7c28f461a0a3e86983ff769b8e1fa876ebc133cc",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "guzzlehttp/guzzle": "^7.0.1",
+                "php": "^8.2",
+                "psr/http-client": "^1.0",
+                "psr/http-message": "^2.0 "
+            },
+            "require-dev": {
+                "aws/aws-sdk-php": "^3.186",
+                "phpstan/phpstan": "^1.11.10",
+                "phpunit/phpunit": "^10.5.20",
+                "squizlabs/php_codesniffer": "3.10.1"
+            },
+            "suggest": {
+                "aws/aws-sdk-php": "Move this package to require section to use AWS IAM authorization",
+                "gmostafa/php-graphql-oqm": "To have object-to-query mapping support"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "GraphQL\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mostafa Ghoneimy",
+                    "email": "emostafagh@gmail.com"
+                }
+            ],
+            "description": "GraphQL client and query builder.",
+            "keywords": [
+                "builder",
+                "client",
+                "graph-ql",
+                "graphql",
+                "php",
+                "query",
+                "query-builder"
+            ],
+            "support": {
+                "issues": "https://github.com/carnage/php-graphql-client/issues",
+                "source": "https://github.com/carnage/php-graphql-client/tree/1.14.1"
+            },
+            "time": "2024-08-12T14:32:56+00:00"
         },
         {
             "name": "cebe/markdown",
@@ -8000,21 +8063,21 @@
         },
         {
             "name": "craftcms/feed-me",
-            "version": "6.6.1",
+            "version": "6.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/craftcms/feed-me.git",
-                "reference": "f0c9691fc256c8d7d38e40b6ae629ad728d390c5"
+                "reference": "824a41692ed3692ae74837782cfb38a43e96cc3d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/craftcms/feed-me/zipball/f0c9691fc256c8d7d38e40b6ae629ad728d390c5",
-                "reference": "f0c9691fc256c8d7d38e40b6ae629ad728d390c5",
+                "url": "https://api.github.com/repos/craftcms/feed-me/zipball/824a41692ed3692ae74837782cfb38a43e96cc3d",
+                "reference": "824a41692ed3692ae74837782cfb38a43e96cc3d",
                 "shasum": ""
             },
             "require": {
                 "cakephp/utility": "^5.0.0",
-                "craftcms/cms": "^5.0.0-beta.2",
+                "craftcms/cms": "^5.6.0",
                 "jakeasmith/http_build_url": "^1.0",
                 "league/csv": "^9.0",
                 "nesbot/carbon": "^2.10|^3.0.0",
@@ -8066,7 +8129,7 @@
                 "rss": "https://github.com/craftcms/feed-me/commits/master.atom",
                 "source": "https://github.com/craftcms/feed-me"
             },
-            "time": "2024-12-02T02:50:46+00:00"
+            "time": "2025-02-07T19:19:35+00:00"
         },
         {
             "name": "craftcms/html-field",
@@ -8635,16 +8698,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "1.12.16",
+            "version": "1.12.17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "e0bb5cb78545aae631220735aa706eac633a6be9"
+                "reference": "7027b3b0270bf392de0cfba12825979768d728bf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/e0bb5cb78545aae631220735aa706eac633a6be9",
-                "reference": "e0bb5cb78545aae631220735aa706eac633a6be9",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/7027b3b0270bf392de0cfba12825979768d728bf",
+                "reference": "7027b3b0270bf392de0cfba12825979768d728bf",
                 "shasum": ""
             },
             "require": {
@@ -8689,7 +8752,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-21T14:50:05+00:00"
+            "time": "2025-02-07T15:01:57+00:00"
         },
         {
             "name": "rector/rector",

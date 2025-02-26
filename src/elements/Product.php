@@ -11,6 +11,8 @@ use Craft;
 use craft\base\Element;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\User;
+use craft\errors\DeprecationException;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
@@ -57,9 +59,38 @@ class Product extends Element
     public const SHOPIFY_STATUS_ARCHIVED = 'archived';
 
     /**
-     * @var string
+     * @param string|null $bodyHtml
+     * @return void
+     * @throws DeprecationException
+     * @deprecated in 6.0.0. Use [[setDescriptionHtml()]] instead.
      */
-    public ?string $bodyHtml = null;
+    public function setBodyHtml(?string $bodyHtml): void
+    {
+        // Craft::$app->getDeprecator()->log(__METHOD__, 'Product::setBodyHtml() has been deprecated. Use setDescriptionHtml() instead.');
+    }
+
+    /**
+     * @return string|null
+     * @deprecated in 6.0.0. Use [[getDescriptionHtml()]] instead.
+     */
+    public function getBodyHtml(): ?string
+    {
+        return $this->getDescriptionHtml();
+    }
+
+    /**
+     * @return string|null
+     * @since 6.0.0
+     */
+    public function getDescriptionHtml(): ?string
+    {
+        $descriptionHtml = ArrayHelper::getValue($this->getData(), 'descriptionHtml');
+        if ($descriptionHtml === null) {
+            return null;
+        }
+
+        return StringHelper::shortcodesToEmoji($descriptionHtml);
+    }
 
     /**
      * @var ?DateTime
@@ -74,7 +105,7 @@ class Product extends Element
     /**
      * @var array
      */
-    private array $_images;
+    private ?array $_images = null;
 
     /**
      * @var array
@@ -84,7 +115,7 @@ class Product extends Element
     /**
      * @var array
      */
-    private array $_metaFields = [];
+    private ?array $_metaFields = null;
 
     /**
      * @var string
@@ -97,9 +128,9 @@ class Product extends Element
     public ?DateTime $publishedAt = null;
 
     /**
-     * @var string
+     * @var bool
      */
-    public ?string $publishedScope = null;
+    public ?bool $publishedOnCurrentPublication = null;
 
     /**
      * The product ID in the Shopify store
@@ -107,6 +138,11 @@ class Product extends Element
      * @var int|null
      */
     public ?int $shopifyId = null;
+
+    /**
+     * @var string|null
+     */
+    public ?string $shopifyGid = null;
 
     /**
      * @var string
@@ -129,9 +165,9 @@ class Product extends Element
     public ?DateTime $updatedAt = null;
 
     /**
-     * @var array
+     * @var array|null
      */
-    private array $_variants;
+    private ?array $_variants = null;
 
     /**
      * @var string
@@ -139,12 +175,42 @@ class Product extends Element
     public ?string $vendor = null;
 
     /**
+     * @var array|null
+     * @see self::getData()
+     * @see self::setData()
+     */
+    private ?array $_data = null;
+
+    /**
+     * @param array|string|null $data
+     * @return void
+     * @since 6.0.0
+     */
+    public function setData(array|string|null $data): void
+    {
+        if ($data === null || is_array($data)) {
+            $this->_data = $data;
+            return;
+        }
+
+        $this->_data = Json::decodeIfJson($data);
+    }
+
+    /**
+     * @return array
+     * @since 6.0.0
+     */
+    public function getData(): array
+    {
+        return $this->_data ?? [];
+    }
+
+    /**
      * @inheritdoc
      */
     public function init(): void
     {
         $this->title = $this->title ? StringHelper::shortcodesToEmoji($this->title) : null;
-        $this->bodyHtml = $this->bodyHtml ? StringHelper::shortcodesToEmoji($this->bodyHtml) : null;
         parent::init();
     }
 
@@ -202,10 +268,10 @@ class Product extends Element
     public function setTags(array|string $tags): void
     {
         if (is_string($tags)) {
-            $tags = StringHelper::split($tags);
+            $tags = Json::decodeIfJson($tags);
         }
 
-        $this->tags = $tags;
+        $this->_tags = $tags;
     }
 
     /**
@@ -234,6 +300,22 @@ class Product extends Element
      */
     public function getImages(): array
     {
+        if (!$this->shopifyGid) {
+            return [];
+        }
+
+        if ($this->_images !== null) {
+            return $this->_images;
+        }
+
+        $images = Plugin::getInstance()->getApi()->getShopifyDataByType('MediaImage', $this->shopifyGid);
+
+        if (empty($images)) {
+            return [];
+        }
+
+        $this->setImages($images);
+
         return $this->_images ?? [];
     }
 
@@ -262,7 +344,7 @@ class Product extends Element
      * @param string|array $value
      * @return void
      */
-    public function setMetaFields(string|array $value): void
+    public function setMetafields(string|array $value): void
     {
         if (is_string($value)) {
             $value = Json::decodeIfJson($value);
@@ -273,9 +355,31 @@ class Product extends Element
 
     /**
      * @return array
+     * @throws InvalidConfigException
      */
-    public function getMetaFields(): array
+    public function getMetafields(): array
     {
+        if (!$this->shopifyGid) {
+            return [];
+        }
+
+        if ($this->_metaFields !== null) {
+            return $this->_metaFields;
+        }
+
+        $metafields = Plugin::getInstance()->getApi()->getShopifyDataByType('Metafield', $this->shopifyGid);
+
+        if (empty($metafields)) {
+            return [];
+        }
+
+        $data = [];
+        foreach ($metafields as $metafield) {
+            $data[$metafield['key']] = $metafield['value'];
+        }
+
+        $this->setMetafields($data);
+
         return $this->_metaFields ?? [];
     }
 
@@ -294,10 +398,41 @@ class Product extends Element
 
     /**
      * @return array
+     * @throws InvalidConfigException
      */
     public function getVariants(): array
     {
+        if (!$this->shopifyGid) {
+            return [];
+        }
+
+        if ($this->_variants !== null) {
+            return $this->_variants;
+        }
+
+        $variants = Plugin::getInstance()->getApi()->getShopifyDataByType('ProductVariant', $this->shopifyGid);
+
+        if (empty($variants)) {
+            return [];
+        }
+
+        $this->setVariants($variants);
+
         return $this->_variants ?? [];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributes(): array
+    {
+        $attributes = parent::attributes();
+        $attributes[] = 'images';
+        $attributes[] = 'metafields';
+        $attributes[] = 'variants';
+        $attributes[] = 'publishedOnCurrentPublication';
+
+        return $attributes;
     }
 
     /**
@@ -325,7 +460,7 @@ class Product extends Element
      */
     public static function displayName(): string
     {
-        return Craft::t('app', 'Product');
+        return Craft::t('shopify', 'Product');
     }
 
     /**
@@ -333,7 +468,7 @@ class Product extends Element
      */
     public static function lowerDisplayName(): string
     {
-        return Craft::t('app', 'Shopify product');
+        return Craft::t('shopify', 'Shopify product');
     }
 
     /**
@@ -341,7 +476,7 @@ class Product extends Element
      */
     public static function pluralDisplayName(): string
     {
-        return Craft::t('app', 'Shopify Products');
+        return Craft::t('shopify', 'Shopify Products');
     }
 
     /**
@@ -349,7 +484,7 @@ class Product extends Element
      */
     public static function pluralLowerDisplayName(): string
     {
-        return Craft::t('app', 'Shopify products');
+        return Craft::t('shopify', 'Shopify products');
     }
 
     /**
@@ -402,15 +537,13 @@ class Product extends Element
 
     /**
      * @return string
+     * @deprecated in 6.0.0. Use [[craft\shopify\helpers\Product::shopifyStatusHtml()]] instead.
      */
     public function getShopifyStatusHtml(): string
     {
-        $color = match ($this->shopifyStatus) {
-            'active' => 'green',
-            'archived' => 'red',
-            default => 'orange', // takes care of draft
-        };
-        return "<span class='status $color'></span>" . StringHelper::titleize($this->shopifyStatus);
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Product::getShopifyStatusHtml() has been deprecated. Use \craft\shopify\helpers\Product::shopifyStatusHtml() instead.');
+
+        return ProductHelper::shopifyStatusHtml($this);
     }
 
     /**
@@ -603,6 +736,7 @@ class Product extends Element
         }
 
         $record->shopifyId = $this->shopifyId;
+        $record->shopifyGid = $this->shopifyGid;
 
         // We want to always have the same date as the element table, based on the logic for updating these in the element service i.e re-saving
         $record->dateUpdated = $this->dateUpdated;
@@ -614,6 +748,19 @@ class Product extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function afterDelete(): void
+    {
+        // Remove all the product shopify data
+        if ($this->shopifyGid) {
+            Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyId($this->shopifyGid);
+        }
+
+        parent::afterDelete();
+    }
+
+    /**
      * @return array
      */
     protected static function defineTableAttributes(): array
@@ -622,12 +769,9 @@ class Product extends Element
             'shopifyId' => Craft::t('shopify', 'Shopify ID'),
             'createdAt' => Craft::t('shopify', 'Created At'),
             'handle' => Craft::t('shopify', 'Handle'),
-            // TODO: Support images
-            // 'images' => Craft::t('shopify', 'Images'),
             'options' => Craft::t('shopify', 'Options'),
             'productType' => Craft::t('shopify', 'Product Type'),
             'publishedAt' => Craft::t('shopify', 'Published At'),
-            'publishedScope' => Craft::t('shopify', 'Published Scope'),
             'shopifyStatus' => Craft::t('shopify', 'Shopify Status'),
             'tags' => Craft::t('shopify', 'Tags'),
             'updatedAt' => Craft::t('shopify', 'Updated At'),
@@ -712,7 +856,7 @@ class Product extends Element
             case 'shopifyEdit':
                 return HtmlHelper::a('', $this->getShopifyEditUrl(), ['target' => '_blank', 'data' => ['icon' => 'external']]);
             case 'shopifyStatus':
-                return $this->getShopifyStatusHtml();
+                return ProductHelper::shopifyStatusHtml($this);
             case 'shopifyId':
                 return $this->$attribute;
             case 'options':
@@ -825,7 +969,6 @@ class Product extends Element
         $labels['options'] = Craft::t('shopify', 'Options');
         $labels['productType'] = Craft::t('shopify', 'Product Type');
         $labels['publishedAt'] = Craft::t('shopify', 'Published at');
-        $labels['publishedScope'] = Craft::t('shopify', 'Published Scope');
         $labels['tags'] = Craft::t('shopify', 'Tags');
         $labels['shopifyStatus'] = Craft::t('shopify', 'Status');
         $labels['templateSuffix'] = Craft::t('shopify', 'Template Suffix');

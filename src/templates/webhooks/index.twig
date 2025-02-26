@@ -22,8 +22,7 @@
 
     {# Divs needed for the Admin Table js below #}
     <div class="field">
-        <div id="webhooks-container">
-        </div>
+        <div id="webhooks-container"></div>
     </div>
 
     {% set tableData = [] %}
@@ -31,14 +30,14 @@
         {% set tableData = tableData|merge([{
             id: webhook.id,
             title: webhook.topic,
-            address: webhook.address
+            callbackUrl: webhook.endpoint.callbackUrl
         }]) %}
     {% endfor %}
 
     {% js %}
         var columns = [
         { name: '__slot:title', title: '{{ 'Topic'|t('shopify') }}' },
-        { name: 'address', title: '{{ 'URL'|t('shopify') }}' }
+        { name: 'callbackUrl', title: '{{ 'URL'|t('shopify') }}' }
         ];
 
         new Craft.VueAdminTable({

@@ -753,7 +753,7 @@ Event::on(
   Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT,
   function(ShopifyProductSyncEvent $event) {
     // Example 1: Cancel the sync if a flag is set via a Shopify metafield:
-    $metafields = $event->element->getMetaFields();
+    $metafields = $event->element->getMetafields();
     if (metafields['do_not_sync'] ?? false) {
       $event->isValid = false;
     }

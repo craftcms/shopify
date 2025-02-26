@@ -11,6 +11,12 @@ use craft\helpers\Json;
 use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
 use Shopify\Rest\Admin2024_10\Metafield as ShopifyMetafield2410;
 
+/**
+ * Shopify Settings model.
+ *
+ * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
+ * @deprecated in 6.0.0.
+ */
 class Metafields
 {
     /**

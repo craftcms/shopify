@@ -9,17 +9,26 @@ namespace craft\shopify\services;
 
 use Craft;
 use craft\base\Component;
-use craft\helpers\App;
+use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 use craft\log\MonologTarget;
 use craft\shopify\Plugin;
+use craft\shopify\records\ShopifyData;
+use GraphQL\Mutation;
+use GraphQL\Query;
+use GraphQL\QueryBuilder\QueryBuilder;
+use GraphQL\Variable;
 use GuzzleHttp\Client;
+use Illuminate\Support\Collection;
 use Psr\Http\Client\ClientInterface;
 use Shopify\ApiVersion;
 use Shopify\Auth\FileSessionStorage;
 use Shopify\Auth\Session;
+use Shopify\Clients\Graphql;
 use Shopify\Clients\HttpClientFactory;
 use Shopify\Clients\Rest;
 use Shopify\Context;
+use Shopify\Exception\MissingArgumentException;
 use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
 use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
 use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
@@ -27,6 +36,7 @@ use Shopify\Rest\Admin2024_10\Metafield as ShopifyMetafield2410;
 use Shopify\Rest\Admin2024_10\Product as ShopifyProduct2410;
 use Shopify\Rest\Admin2024_10\Variant as ShopifyVariant2410;
 use Shopify\Rest\Base as ShopifyBaseResource;
+use Shopify\Webhooks\Topics;
 
 /**
  * Shopify API service.
@@ -40,15 +50,27 @@ use Shopify\Rest\Base as ShopifyBaseResource;
 class Api extends Component
 {
     /**
-     * @var string
-     * @deprecated in 5.3.0. Use `Settings::getApiVersion()` instead.
+     * @var string[]
+     * @since 6.0.0
      */
-    public const SHOPIFY_API_VERSION = '2023-10';
+    public const WEBHOOK_TOPICS = [
+        Topics::PRODUCTS_CREATE,
+        Topics::PRODUCTS_UPDATE,
+        Topics::PRODUCTS_DELETE,
+        Topics::INVENTORY_LEVELS_UPDATE,
+        Topics::BULK_OPERATIONS_FINISH,
+        Topics::SHOP_UPDATE,
+    ];
 
     /**
      * @var Session|null
      */
     private ?Session $_session = null;
+
+    /**
+     * @var Graphql|null
+     */
+    private ?Graphql $_gqlClient = null;
 
     /**
      * @var Rest|null
@@ -68,9 +90,504 @@ class Api extends Component
     }
 
     /**
+     * @return Query
+     * @since 6.0.0
+     */
+    public function getShopGql(): Query
+    {
+        $fields = [
+            'id',
+            'billingAddress' => [
+                'address1',
+                'address2',
+                'city',
+                'company',
+                'country',
+                'countryCodeV2',
+                'formatted',
+                'formattedArea',
+                'id',
+                'latitude',
+                'longitude',
+                'phone',
+                'province',
+                'provinceCode',
+                'zip',
+            ],
+            'contactEmail',
+            'createdAt',
+            'currencyCode',
+            'description',
+            'email',
+            'ianaTimezone',
+            'marketingSmsConsentEnabledAtCheckout',
+            'myshopifyDomain',
+            'name',
+            'orderNumberFormatPrefix',
+            'orderNumberFormatSuffix',
+            'taxesIncluded',
+            'taxShipping',
+            'timezoneAbbreviation',
+            'updatedAt',
+            'url',
+            'weightUnit',
+        ];
+
+        return $this->createQuery('shop', $fields);
+    }
+
+    /**
+     * @param bool $update
+     * @return array|null
+     * @since 6.0.0
+     */
+    public function getShop(bool $update = false): ?array
+    {
+        $shop = null;
+
+        // Check if the data is synced into the DB
+        $shopRecord = ShopifyData::findOne(['type' => 'Shop']);
+        if ($shopRecord && !$update) {
+            return Json::decodeIfJson($shopRecord->data);
+        }
+
+        // Sync the data from the API
+        try {
+            $response = $this->query($this->getShopGql());
+
+            if (empty($response)) {
+                throw new \Exception('Shop data not found in the response.');
+            }
+
+            if (!$shopRecord) {
+                $shopRecord = new ShopifyData();
+            }
+
+            $shopRecord->shopifyId = $response['id'];
+            $shopRecord->type = 'Shop';
+            $shopRecord->data = $response;
+
+            if (!$shopRecord->save()) {
+                throw new \Exception('Failed to save shop data: ' . $shopRecord->getErrors()[0]);
+            }
+
+            $shop = $shopRecord->data;
+        } catch (\Exception $e) {
+            Craft::error('Failed to sync Shopify shop data: ' . $e->getMessage(), __METHOD__);
+        }
+
+        return $shop;
+    }
+
+    /**
+     * @param string|null $id
+     * @return Query
+     * @since 6.0.0
+     */
+    public function getProductGql(?string $id = null): Query
+    {
+        $contextualPricingCountries = Plugin::getInstance()->getSettings()->getContextualPricingCountries();
+        $contextualPricing = [];
+
+        if ($contextualPricingCountries) {
+            $contextualPricingCountries = explode(',', $contextualPricingCountries);
+            foreach ($contextualPricingCountries as $country) {
+                $key = strtolower($country);
+                $contextualPricing[$key . 'ContextualPricing:contextualPricing(context:{country:' . $country . '})'] = [
+                    'price' => [
+                        'amount',
+                        'currencyCode',
+                    ],
+                    'compareAtPrice' => [
+                        'amount',
+                        'currencyCode',
+                    ],
+                ];
+            }
+        }
+
+        $fields = [
+            'edges' => [
+                'node' => [
+                    'descriptionHtml',
+                    'createdAt',
+                    'handle',
+                    'id',
+                    'media' => [
+                        'edges' => [
+                            'node' => [
+                                'mediaContentType',
+                                'alt',
+                                'id',
+                                '... on MediaImage' => [
+                                    'createdAt',
+                                    'updatedAt',
+                                    'image' => [
+                                        'altText',
+                                        'height',
+                                        'width',
+                                        'url',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                    'metafields' => [
+                        'edges' => [
+                            'node' => [
+                                'id',
+                                'key',
+                                'value',
+                            ],
+                        ],
+                    ],
+                    'options' => [
+                        'id',
+                        'name',
+                        'position',
+                        'values',
+                        'optionValues' => [
+                            'id',
+                            'name',
+                            'hasVariants',
+                        ],
+                    ],
+                    'productType',
+                    'publishedAt',
+                    'publishedOnCurrentPublication',
+                    'status',
+                    'tags',
+                    'templateSuffix',
+                    'title',
+                    'totalInventory',
+                    'updatedAt',
+                    'variants' => [
+                        'edges' => [
+                            'node' => array_merge(
+                                $contextualPricing,
+                                [
+                                'id',
+                                'barcode',
+                                'compareAtPrice',
+                                'createdAt',
+                                'displayName',
+                                'price',
+                                'sku',
+                                'taxable',
+                                'title',
+                                'updatedAt',
+                                'inventoryItem' => [
+                                    'id',
+                                    'countryCodeOfOrigin',
+                                    'createdAt',
+                                    'updatedAt',
+                                    'sku',
+                                    'tracked',
+                                    'unitCost' => [
+                                        'amount',
+                                        'currencyCode',
+                                    ],
+                                ],
+                                'inventoryPolicy',
+                                'inventoryQuantity',
+                                'metafields' => [
+                                    'edges' => [
+                                        'node' => [
+                                            'id',
+                                            'key',
+                                            'value',
+                                        ],
+                                    ],
+                                ],
+                                'product' => [
+                                    'id',
+                                ],
+                                'selectedOptions' => [
+                                    'name',
+                                    'value',
+                                ],
+                            ]),
+                        ],
+                    ],
+                    'vendor',
+                ],
+            ],
+        ];
+
+        return $this->createQuery('products', $fields, function(QueryBuilder $builder) use ($id) {
+            if ($id) {
+                // Strip Shopify prefix if it exists
+                $id = str_replace('gid://shopify/Product/', '', $id);
+
+                $builder->setArgument('query', sprintf('id:%s', $id));
+            }
+        });
+    }
+
+    /**
+     * @param $key
+     * @param $value
+     * @param QueryBuilder $builderQuery
+     * @return void
+     */
+    private function _prepQueryBuilder($key, $value, QueryBuilder $builderQuery): void
+    {
+        if (is_array($value)) {
+            $subQueryBuilder = (new QueryBuilder($key));
+            foreach ($value as $k => $v) {
+                $this->_prepQueryBuilder($k, $v, $subQueryBuilder);
+            }
+
+            $value = $subQueryBuilder->getQuery();
+        }
+
+        $builderQuery->selectField($value);
+    }
+
+    /**
+     * @param string $name
+     * @param array $fields
+     * @param callable|null $beforeFields
+     * @return Query
+     * @since 6.0.0
+     */
+    public function createQuery(string $name, array $fields, callable $beforeFields = null): Query
+    {
+        $builder = new QueryBuilder($name);
+
+        if ($beforeFields !== null) {
+            $beforeFields($builder);
+        }
+
+        foreach ($fields as $key => $value) {
+            $this->_prepQueryBuilder($key, $value, $builder);
+        }
+
+        return $builder->getQuery();
+    }
+
+    /**
+     * Run a Shopify GraphQL query.
+     *
+     * @param Query|string $query
+     * @param array|null $variables
+     * @return mixed
+     * @since 6.0.0
+     */
+    public function query(Query|string $query, ?array $variables = null): mixed
+    {
+        $data = ['query' => (string)$query];
+        if ($variables) {
+            $data['variables'] = $variables;
+        }
+
+        try {
+            $response = $this->getGqlClient()->query($data);
+            $body = $response->getDecodedBody();
+
+            if (!isset($body['data'])) {
+                throw new \Exception('No data returned from GraphQL query.');
+            }
+
+            $data = $body['data'];
+            $data = ArrayHelper::firstValue($data);
+            if (!empty($data['userErrors'])) {
+                throw new \Exception($data['userErrors'][0]['message']);
+            }
+
+            return $data;
+        } catch (\Exception $e) {
+            Craft::error('Could not run GraphQL query: ' . $e->getMessage(), __METHOD__);
+
+            return false;
+        }
+    }
+
+    /**
+     * @param string $type
+     * @param string|false|null $parentId
+     * @param bool $returnRecords
+     * @return array|null
+     * @since 6.0.0
+     */
+    public function getShopifyDataByType(string $type, array|string|null|false $parentId = null, bool $returnRecords = false): ?array
+    {
+        $criteria = ['type' => $type];
+        if ($parentId !== null) {
+            $criteria['parentId'] = $parentId ?: null;
+        }
+
+        $data = ShopifyData::findAll($criteria);
+
+        if (empty($data)) {
+            return null;
+        }
+
+        if ($returnRecords) {
+            return $data;
+        }
+
+        return array_map(fn($record) => $record->data, $data);
+    }
+
+    /**
+     * Returns or sets up a Rest API client.
+     *
+     * @return Graphql
+     * @throws MissingArgumentException
+     * @since 6.0.0
+     */
+    public function getGqlClient(): Graphql
+    {
+        if ($this->_gqlClient === null) {
+            $session = $this->getSession();
+            $this->_gqlClient = new Graphql($session->getShop(), $session->getAccessToken());
+        }
+
+        return $this->_gqlClient;
+    }
+
+    /**
+     * Returns or initializes a context + session.
+     *
+     * @return Session|null
+     * @throws \Shopify\Exception\MissingArgumentException
+     */
+    public function getSession(): ?Session
+    {
+        $pluginSettings = Plugin::getInstance()->getSettings();
+
+        if (
+            $this->_session === null &&
+            ($apiKey = $pluginSettings->getApiKey(true)) &&
+            ($apiSecretKey = $pluginSettings->getApiSecretKey(true))
+        ) {
+            /** @var MonologTarget $webLogTarget */
+            $webLogTarget = Craft::$app->getLog()->targets['web'];
+
+            Context::initialize(
+                apiKey: $apiKey,
+                apiSecretKey: $apiSecretKey,
+                scopes: ['write_products', 'read_products', 'read_inventory'],
+                // This `hostName` is different from the `shop` value used when creating a Session!
+                // Shopify wants a name for the host/environment that is initiating the connection.
+                hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
+                sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
+                apiVersion: $pluginSettings->getApiVersion(),
+                isEmbeddedApp: false,
+                logger: $webLogTarget->getLogger(),
+            );
+
+            Context::$HTTP_CLIENT_FACTORY = new class() extends HttpClientFactory {
+                public function client(): ClientInterface
+                {
+                    // This is the default client, but we need to add the header for presentment prices
+                    return new Client(['headers' => ['X-Shopify-Api-Features' => 'include-presentment-prices']]);
+                }
+            };
+
+            $hostName = $pluginSettings->getHostName(true);
+            $accessToken = $pluginSettings->getAccessToken(true);
+
+            $this->_session = new Session(
+                id: 'NA',
+                shop: $hostName,
+                isOnline: false,
+                state: 'NA'
+            );
+
+            $this->_session->setAccessToken($accessToken); // this is the most important part of the authentication
+        }
+
+        return $this->_session;
+    }
+
+    /**
+     * @return Collection
+     * @throws \Exception
+     * @since 6.0.0
+     */
+    public function getWebhooks(): Collection
+    {
+        $query = $this->createQuery('webhookSubscriptions', [
+            'nodes' => [
+                'id',
+                'topic',
+                'endpoint' => [
+                    '... on WebhookHttpEndpoint' => [
+                        'callbackUrl',
+                    ],
+                ],
+            ],
+        ], function(QueryBuilder $builder) {
+            $builder->setArgument('first', 100);
+        });
+
+        $response = $this->query($query);
+
+        if (empty($response) || !isset($response['nodes'])) {
+            return collect();
+        }
+
+        return collect($response['nodes']);
+    }
+
+    /**
+     * @param string $id
+     * @param string|null $error
+     * @return bool
+     * @throws MissingArgumentException
+     * @since 6.0.0
+     */
+    public function deleteWebhookById(string $id, ?string &$error = null): bool
+    {
+        if ($this->getSession() === null) {
+            $error = Craft::t('shopify', 'No Shopify session available.');
+            return false;
+        }
+
+        $mutation = (new Mutation('webhookSubscriptionDelete'))
+            ->setOperationName('webhookSubscriptionDelete')
+            ->setVariables([
+                new Variable('id', 'ID!'),
+            ])
+            ->setArguments([
+                'id' => '$id',
+            ])
+            ->setSelectionSet([
+                (new Query('userErrors'))
+                    ->setSelectionSet([
+                        'field',
+                        'message',
+                    ]),
+                'deletedWebhookSubscriptionId',
+            ]);
+
+        try {
+            Plugin::getInstance()->getApi()->getGqlClient()->query([
+                'query' => (string)$mutation,
+                'variables' => [
+                    'id' => $id,
+                ],
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Craft::error('Could not delete webhook with Shopify API: ' . $e->getMessage(), __METHOD__);
+
+            $error = Craft::t('shopify', 'Webhook could not be deleted');
+            return false;
+        }
+    }
+
+    // Old REST methods
+    // =========================================================================
+
+    /**
      * Retrieve all a shop’s products.
      *
      * @return ShopifyProduct[]|ShopifyProduct2410[]
+     * @deprecated in 6.0.0
      */
     public function getAllProducts(): array
     {
@@ -84,6 +601,7 @@ class Api extends Component
      * Retrieve a single product by its Shopify ID.
      *
      * @return ShopifyProduct|ShopifyProduct2410
+     * @deprecated in 6.0.0
      */
     public function getProductByShopifyId($id): ShopifyProduct|ShopifyProduct2410
     {
@@ -94,6 +612,7 @@ class Api extends Component
      * Retrieve a product ID by a variant's inventory item ID.
      *
      * @return ?int The product Shopify ID
+     * @deprecated in 6.0.0
      */
     public function getProductIdByInventoryItemId($id): ?int
     {
@@ -113,6 +632,7 @@ class Api extends Component
      *
      * @param int $id Shopify Product ID
      * @return ShopifyMetafield[]|ShopifyMetafield2410[]
+     * @deprecated in 6.0.0
      */
     public function getMetafieldsByProductId(int $id): array
     {
@@ -127,6 +647,7 @@ class Api extends Component
      * @param int $id
      * @return ShopifyMetafield[]|ShopifyMetafield2410[]
      * @since 4.1.0
+     * @deprecated in 6.0.0
      */
     public function getMetafieldsByVariantId(int $id): array
     {
@@ -142,6 +663,7 @@ class Api extends Component
      * @param string $ownerResource
      * @return ShopifyMetafield[]|ShopifyMetafield2410[]
      * @since 4.1.0
+     * @deprecated in 6.0.0
      */
     public function getMetafieldsByIdAndOwnerResource(int $id, string $ownerResource): array
     {
@@ -171,6 +693,7 @@ class Api extends Component
      * Retrieves "variants" for the provided Shopify product ID.
      *
      * @param int $id Shopify Product ID
+     * @deprecated in 6.0.0
      */
     public function getVariantsByProductId(int $id): array
     {
@@ -197,6 +720,7 @@ class Api extends Component
      * Shortcut for retrieving arbitrary API resources. A plain (parsed) response body is returned, so it’s the caller’s responsibility for unpacking it properly.
      *
      * @see Rest::get();
+     * @deprecated in 6.0.0. Use [[query()]] instead.
      */
     public function get($path, array $query = [])
     {
@@ -211,6 +735,7 @@ class Api extends Component
      * @param string $type Stripe API resource class
      * @param array $params
      * @return ShopifyBaseResource[]
+     * @deprecated in 6.0.0. Use [[query()]] instead.
      */
     public function getAll(string $type, array $params = []): array
     {
@@ -234,6 +759,8 @@ class Api extends Component
      * Returns or sets up a Rest API client.
      *
      * @return Rest
+     * @throws MissingArgumentException
+     * @deprecated in 6.0.0. Use [[getGqlClient()]] instead.
      */
     public function getClient(): Rest
     {
@@ -243,61 +770,6 @@ class Api extends Component
         }
 
         return $this->_client;
-    }
-
-    /**
-     * Returns or initializes a context + session.
-     *
-     * @return Session|null
-     * @throws \Shopify\Exception\MissingArgumentException
-     */
-    public function getSession(): ?Session
-    {
-        $pluginSettings = Plugin::getInstance()->getSettings();
-
-        if (
-            $this->_session === null &&
-            ($apiKey = App::parseEnv($pluginSettings->apiKey)) &&
-            ($apiSecretKey = App::parseEnv($pluginSettings->apiSecretKey))
-        ) {
-            /** @var MonologTarget $webLogTarget */
-            $webLogTarget = Craft::$app->getLog()->targets['web'];
-
-            Context::initialize(
-                apiKey: $apiKey,
-                apiSecretKey: $apiSecretKey,
-                scopes: ['write_products', 'read_products', 'read_inventory'],
-                // This `hostName` is different from the `shop` value used when creating a Session!
-                // Shopify wants a name for the host/environment that is initiating the connection.
-                hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
-                sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
-                apiVersion: $pluginSettings->getApiVersion(),
-                isEmbeddedApp: false,
-                logger: $webLogTarget->getLogger(),
-            );
-
-            Context::$HTTP_CLIENT_FACTORY = new class() extends HttpClientFactory {
-                public function client(): ClientInterface
-                {
-                    // This is the default client, but we need to add the header for presentment prices
-                    return new Client(['headers' => ['X-Shopify-Api-Features' => 'include-presentment-prices']]);
-                }
-            };
-
-            $hostName = App::parseEnv($pluginSettings->hostName);
-            $accessToken = App::parseEnv($pluginSettings->accessToken);
-
-            $this->_session = new Session(
-                id: 'NA',
-                shop: $hostName,
-                isOnline: false,
-                state: 'NA'
-            );
-
-            $this->_session->setAccessToken($accessToken); // this is the most important part of the authentication
-        }
-
-        return $this->_session;
     }
 
     /**

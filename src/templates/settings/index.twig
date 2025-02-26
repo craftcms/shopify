@@ -74,7 +74,7 @@
             label: 'API Key'|t('shopify'),
             id: 'apiKey',
             name: 'settings[apiKey]',
-            value: settings.apiKey,
+            value: settings.getApiKey(false),
             errors: settings.getErrors('apiKey'),
             suggestEnvVars: true,
         }) }}
@@ -83,7 +83,7 @@
             label: 'API Secret Key'|t('shopify'),
             id: 'apiSecretKey',
             name: 'settings[apiSecretKey]',
-            value: settings.apiSecretKey,
+            value: settings.getApiSecretKey(false),
             errors: settings.getErrors('apiSecretKey'),
             suggestEnvVars: true,
         }) }}
@@ -92,7 +92,7 @@
             label: 'Access Token'|t('shopify'),
             id: 'accessToken',
             name: 'settings[accessToken]',
-            value: settings.accessToken,
+            value: settings.getAccessToken(false),
             errors: settings.getErrors('accessToken'),
             suggestEnvVars: true,
         }) }}
@@ -102,7 +102,17 @@
             instructions: 'The Shopify store hostname.'|t('shopify'),
             id: 'hostName',
             name: 'settings[hostName]',
-            value: settings.hostName,
+            value: settings.getHostName(false),
+            errors: settings.getErrors('hostName'),
+            suggestEnvVars: true,
+        }) }}
+
+        {{ forms.autosuggestField({
+            label: 'Contextual Pricing Countries'|t('shopify'),
+            instructions: 'A comma separated list of country codes used to return contextual pricing.'|t('shopify'),
+            id: 'contextualPricingCountries',
+            name: 'settings[contextualPricingCountries]',
+            value: settings.getContextualPricingCountries(false),
             errors: settings.getErrors('hostName'),
             suggestEnvVars: true,
         }) }}

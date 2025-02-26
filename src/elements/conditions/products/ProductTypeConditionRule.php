@@ -9,7 +9,7 @@ use craft\elements\db\ElementQueryInterface;
 use craft\helpers\StringHelper;
 use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\elements\Product;
-use craft\shopify\records\ProductData;
+use craft\shopify\records\ShopifyData;
 
 class ProductTypeConditionRule extends BaseMultiSelectConditionRule implements ElementConditionRuleInterface
 {
@@ -26,7 +26,8 @@ class ProductTypeConditionRule extends BaseMultiSelectConditionRule implements E
      */
     protected function options(): array
     {
-        $values = ProductData::find()->select('productType')->distinct()->column();
+        $values = ShopifyData::find()->select('productType')->distinct()->where(['type' => 'Product'])->column();
+
         // If we have current values, make sure they're in the list
         if ($this->values) {
             $values = array_merge($values, $this->values);

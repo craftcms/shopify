@@ -15,9 +15,9 @@ use Shopify\Webhooks\Topics;
  * Webhook handler.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @deprecated in 6.0.0. Use [[\craft\shopify\handlers\Webhook]] instead.
+ * @since 6.0.0
  */
-class Product implements Handler
+class Webhook implements Handler
 {
     public function handle(string $topic, string $shop, array $body): void
     {
@@ -31,6 +31,13 @@ class Product implements Handler
                 break;
             case Topics::INVENTORY_ITEMS_UPDATE:
                 Plugin::getInstance()->getProducts()->syncProductByInventoryItemId($body['inventory_item_id']);
+                break;
+            case Topics::BULK_OPERATIONS_FINISH:
+                Plugin::getInstance()->getBulkOperations()->handleBulkOperationFinished($body);
+                break;
+            case Topics::SHOP_UPDATE:
+                // Unfortunately, the shop data in the webhook differs to that returned by the GraphQl API.
+                Plugin::getInstance()->getApi()->getShop(true);
                 break;
         }
     }

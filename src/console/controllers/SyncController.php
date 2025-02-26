@@ -9,7 +9,6 @@ namespace craft\shopify\console\controllers;
 
 use craft\console\Controller;
 use craft\helpers\Console;
-use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
 use yii\console\ExitCode;
 
@@ -22,7 +21,7 @@ use yii\console\ExitCode;
 class SyncController extends Controller
 {
     /** @var string $defaultAction */
-    public $defaultAction = 'products';
+    public $defaultAction = 'all';
 
     /**
      * @var bool Whether to slow down API requests to avoid rate limiting.
@@ -50,7 +49,7 @@ class SyncController extends Controller
     }
 
     /**
-     * Reset Commerce data.
+     * Sync Products only.
      */
     public function actionProducts(): int
     {
@@ -61,18 +60,14 @@ class SyncController extends Controller
     private function _syncProducts(): void
     {
         $this->stdout('Syncing Shopify products…' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
-        // start timer
-        $start = microtime(true);
 
-        $originalThrottle = Plugin::getInstance()->getProducts()->throttle;
-        Plugin::getInstance()->getProducts()->throttle = $this->throttle;
+        $result = Plugin::getInstance()->getBulkOperations()->createProductsBulkOperation();
 
-        Plugin::getInstance()->getProducts()->syncAllProducts();
+        if ($result === false) {
+            $this->stderr('Failed to create a bulk operation.' . PHP_EOL, Console::FG_RED);
+            return;
+        }
 
-        Plugin::getInstance()->getProducts()->throttle = $originalThrottle;
-
-        // end timer
-        $time = microtime(true) - $start;
-        $this->stdout('Finished syncing ' . Product::find()->count() . ' product(s) in ' . round($time, 2) . 's' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
+        $this->stdout('Shopify products sync requested ' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
     }
 }

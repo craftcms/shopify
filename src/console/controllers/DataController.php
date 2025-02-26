@@ -12,6 +12,8 @@ use craft\console\Controller;
 use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\shopify\elements\Product;
+use craft\shopify\records\BulkOperation;
+use craft\shopify\records\ShopifyData;
 use Exception;
 use yii\console\ExitCode;
 
@@ -36,6 +38,7 @@ class DataController extends Controller
         $this->stdout('Resetting Shopify plugin data will permanently delete all:' . PHP_EOL);
         $this->stdout('  > products' . PHP_EOL);
         $this->stdout('  > variants' . PHP_EOL);
+        $this->stdout('  > sync history' . PHP_EOL);
         $this->stdout('from Craft. (Data in Shopify will not be affected.)' . PHP_EOL . PHP_EOL);
 
         if (!$this->confirm(
@@ -48,6 +51,10 @@ class DataController extends Controller
 
         try {
             $this->_deleteProducts();
+
+            $this->_deleteShopifyData();
+
+            $this->_deleteBulkOperations();
 
             $this->stdout(PHP_EOL . 'Finished.' . PHP_EOL . PHP_EOL, Console::FG_GREEN);
 
@@ -79,6 +86,26 @@ class DataController extends Controller
             $elementsService->deleteElement($product, true);
         }
 
+        $this->stdout(' done' . PHP_EOL, Console::FG_GREEN);
+    }
+
+    /**
+     * @return void
+     */
+    private function _deleteShopifyData(): void
+    {
+        $this->stdout('  > Removing shopify data ...');
+        ShopifyData::deleteAll();
+        $this->stdout(' done' . PHP_EOL, Console::FG_GREEN);
+    }
+
+    /**
+     * @return void
+     */
+    private function _deleteBulkOperations(): void
+    {
+        $this->stdout('  > Removing sync history ...');
+        BulkOperation::deleteAll();
         $this->stdout(' done' . PHP_EOL, Console::FG_GREEN);
     }
 }
