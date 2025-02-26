@@ -129,7 +129,7 @@ class BulkOperations extends Component
         $bulkOperation = Craft::createObject(array_merge($result, ['class' => BulkOperation::class]));
 
         // Before trying to create a new bulk op in shopify, we should call their API to see if there is one running
-        // This will enure we don't cause any issue with other processes
+        // This will ensure we don't cause any issue with other processes
 
         $bulkOpsStatusQuery = (new \GraphQL\Query('currentBulkOperation'))
             ->setSelectionSet([
