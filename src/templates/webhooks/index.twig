@@ -36,8 +36,8 @@
 
     {% js %}
         var columns = [
-        { name: '__slot:title', title: '{{ 'Topic'|t('shopify') }}' },
-        { name: 'callbackUrl', title: '{{ 'URL'|t('shopify') }}' }
+            { name: '__slot:title', title: '{{ 'Topic'|t('shopify') }}' },
+            { name: 'callbackUrl', title: '{{ 'URL'|t('shopify') }}' }
         ];
 
         new Craft.VueAdminTable({
@@ -51,8 +51,8 @@
             emptyMessage: Craft.t('shopify', 'No webhooks exist yet.'),
             tableData: {{ tableData|json_encode|raw }},
             deleteCallback: function(){
-            window.location.reload(); // We need to reload to get the create button showing again
-        }
+                window.location.reload(); // We need to reload to get the create button showing again
+            }
         });
     {% endjs %}
 {% endblock %}
