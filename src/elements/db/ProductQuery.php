@@ -321,7 +321,7 @@ class ProductQuery extends ElementQuery
      */
     protected function statusCondition(string $status): mixed
     {
-        $res = match ($status) {
+        return match ($status) {
             strtolower(Product::STATUS_LIVE) => [
                 'elements.enabled' => true,
                 'elements_sites.enabled' => true,
@@ -339,8 +339,6 @@ class ProductQuery extends ElementQuery
             ],
             default => parent::statusCondition($status),
         };
-
-        return $res;
     }
 
     /**
