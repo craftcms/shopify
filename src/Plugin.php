@@ -16,11 +16,13 @@ use craft\base\Plugin as BasePlugin;
 use craft\console\Application as ConsoleApplication;
 use craft\console\Controller;
 use craft\console\controllers\ResaveController;
+use craft\db\Query;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\feedme\events\RegisterFeedMeFieldsEvent;
 use craft\fields\Link;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
@@ -42,6 +44,7 @@ use craft\shopify\utilities\Sync;
 use craft\shopify\web\twig\CraftVariableBehavior;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
+use GraphQL\Query as GqlQuery;
 use Shopify\Webhooks\Registry;
 use yii\base\Event;
 use yii\base\InvalidConfigException;
@@ -347,9 +350,90 @@ class Plugin extends BasePlugin
                 Console::stdout("done\n", Console::FG_GREEN);
             }
 
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout('    > deleting partial product elements ... ');
+            }
+
             /** @var Gc $gc */
             $gc = $event->sender;
             $gc->deletePartialElements(Product::class, Table::PRODUCTS, 'id');
+
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout("done\n", Console::FG_GREEN);
+            }
+
+            // See if there are any orphaned products that no longer exist in Shopify
+            $shopifyProductElementsMissingData = (new Query())
+                ->select([
+                    'products.id',
+                    'products.shopifyId',
+                ])
+                ->from(Table::PRODUCTS . ' products')
+                ->leftJoin(Table::DATA . ' data', '[[data.shopifyId]] = [[products.shopifyGid]]')
+                ->where(['data.shopifyId' => null])
+                ->all();
+
+            $shopifyIds = ArrayHelper::getColumn($shopifyProductElementsMissingData, 'shopifyId');
+
+            if (!empty($shopifyIds)) {
+                if (Craft::$app instanceof ConsoleApplication) {
+                    Console::stdout('    > deleting product elements not in Shopify ... ');
+                }
+
+                $startCursor = null;
+                $savedShopifyIds = [];
+
+                // Batch through 100 at a time
+                foreach (array_chunk($shopifyIds, 100) as $ids) {
+                    $args = ['first' => 100, 'query' => 'id:' . implode(' OR id:', $ids)];
+                    if ($startCursor) {
+                        $args['after'] = $startCursor;
+                    }
+
+                    // Check with the Shopify API to see if these products still exist
+                    $query = (new GqlQuery('products'))
+                    ->setArguments($args)
+                    ->setSelectionSet([
+                        (new GqlQuery('edges'))
+                            ->setSelectionSet([
+                                (new GqlQuery('node'))
+                                    ->setSelectionSet([
+                                        'id',
+                                    ]),
+                            ]),
+                        (new GqlQuery('pageInfo'))
+                            ->setSelectionSet([
+                                'hasNextPage',
+                                'endCursor',
+                            ]),
+                    ]);
+                    $response = self::getInstance()->getApi()->query($query);
+
+                    if (!$response) {
+                        continue;
+                    }
+
+                    $startCursor = $response['pageInfo']['endCursor'];
+
+                    $savedShopifyIds = array_merge($savedShopifyIds, array_map(static function($edge) {
+                        return str_replace('gid://shopify/Product/', '', $edge['node']['id']);
+                    }, $response['edges']));
+                }
+
+                $deleteIds = array_diff($shopifyIds, $savedShopifyIds);
+
+                if (!empty($deleteIds)) {
+                    foreach ($deleteIds as $deleteId) {
+                        $element = ArrayHelper::firstWhere($shopifyProductElementsMissingData, 'shopifyId', $deleteId);
+                        Craft::$app->getElements()->deleteElementById($element['id'], Product::class, null, true);
+                    }
+
+                }
+
+                if (Craft::$app instanceof ConsoleApplication) {
+                    Console::stdout("done\n", Console::FG_GREEN);
+                }
+            }
         });
     }
 
