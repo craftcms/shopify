@@ -23,7 +23,6 @@ use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\helpers\Product as ProductHelper;
 use craft\shopify\Plugin;
 use craft\shopify\records\Product as ProductRecord;
-use craft\shopify\records\ShopifyData;
 use craft\shopify\web\assets\shopifycp\ShopifyCpAsset;
 use craft\web\CpScreenResponseBehavior;
 use DateTime;
@@ -308,17 +307,7 @@ class Product extends Element
             return $this->_images;
         }
 
-        $images = ShopifyData::find()
-            ->where([
-                'type' => 'MediaImage',
-                'parentId' => $this->shopifyGid,
-            ])
-            ->collect()
-            ->map(function($row) {
-                $data = Json::decodeIfJson($row['data']);
-
-                return $data;
-            });
+        $images = Plugin::getInstance()->getApi()->getShopifyDataByType('MediaImage', $this->shopifyGid);
 
         $this->setImages($images);
 
@@ -373,17 +362,12 @@ class Product extends Element
             return $this->_metaFields;
         }
 
-        $metafields = ShopifyData::find()
-            ->where([
-                'type' => 'Metafield',
-                'parentId' => $this->shopifyGid,
-            ])
-            ->collect()
-            ->mapWithKeys(function($row) {
-                $data = Json::decodeIfJson($row['data']);
+        $data = Plugin::getInstance()->getApi()->getShopifyDataByType('Metafield', $this->shopifyGid);
 
+        $metafields = collect($data)
+            ->mapWithKeys(function($d) {
                 return [
-                    $data['key'] => $data['value'],
+                    $d['key'] => Json::decodeIfJson($d['value']),
                 ];
             });
 
@@ -419,17 +403,7 @@ class Product extends Element
             return $this->_variants;
         }
 
-        $variants = ShopifyData::find()
-            ->where([
-                'type' => 'ProductVariant',
-                'parentId' => $this->shopifyGid,
-            ])
-            ->collect()
-            ->map(function($row) {
-                $data = Json::decodeIfJson($row['data']);
-
-                return $data;
-            });
+        $variants = Plugin::getInstance()->getApi()->getShopifyDataByType('ProductVariant', $this->shopifyGid);
 
         $this->setVariants($variants);
 

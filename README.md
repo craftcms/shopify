@@ -797,9 +797,20 @@ The same params argument can be passed to a product element’s `getShopifyUrl()
 
 ## Product Field
 
-The plugin provides a _Shopify Products_ field, which uses the familiar [relational field](https://craftcms.com/docs/5.x/system/relations.html) UI to allow authors to select Product elements.
+The plugin provides a _Shopify Products_ field, which uses the familiar [relational field](https://craftcms.com/docs/5.x/system/relations.html) UI to allow authors to select synchronized Product elements.
 
 Relationships defined with the _Shopify Products_ field use stable element IDs under the hood. When Shopify products are archived or deleted, the corresponding elements will also be updated in Craft, and naturally filtered out of your query results—including those explicitly attached via a _Shopify Products_ field.
+
+These fields return an element query, which you can customize using any [supported query param](#query-parameters), or immediately execute:
+```twig
+{% set featuredProducts = category.myProductsField.all() %}
+
+<ul>
+  {% for product in featuredProducts %}
+    <li>{{ product.link }}</li>
+  {% endfor %}
+</ul>
+```
 
 ---
 

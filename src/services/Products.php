@@ -294,12 +294,13 @@ class Products extends Component
     public function eagerLoadMetafieldsForProducts(array $products): array
     {
         return $this->_eagerLoadTypeOnProducts($products, 'Metafield', function($product, $rows) {
-            $metafields = [];
-
-            foreach ($rows as $row) {
-                $data = Json::decodeIfJson($row['data']);
-                $metafields[$data['key']] = $data['value'];
-            }
+            $metafields = collect($rows)
+                ->mapWithKeys(function($d, $key) {
+                    return [
+                        $d->data['key'] => Json::decodeIfJson($d->data['value']),
+                    ];
+                })
+                ->all();
 
             $product->setMetafields($metafields);
         });
@@ -339,19 +340,15 @@ class Products extends Component
     {
         $productIds = ArrayHelper::getColumn($products, 'shopifyGid');
 
-        $data = ShopifyData::find()
-            ->where([
-                'type' => $type,
-                'parentId' => $productIds,
-            ])
-            ->collect();
+        $data = Plugin::getInstance()->getApi()->getShopifyDataByType($type, $productIds, true);
 
-        // Group objects by owner:
-        $data = $data->groupBy('parentId');
+        // Group objects by their owner:
+        $data = collect($data)->groupBy('parentId');
 
-        // Give each product a chance to manipulate the row, directly:
+        // Give each product a chance to handle the rows, directly:
         foreach ($products as $product) {
-            $callback($product, $data->get($product->shopifyGid, []));
+            $productData = $data->get($product->shopifyGid);
+            $callback($product, empty($productData) ? [] : $productData->all());
         }
 
         return $products;

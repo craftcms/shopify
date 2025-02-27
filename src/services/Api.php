@@ -412,13 +412,15 @@ class Api extends Component
     }
 
     /**
+     * Queries the data table for records of the specified type, optionally owned by one or more “parent” objects.
+     *
      * @param string $type
      * @param string|false|null $parentId
      * @param bool $returnRecords
-     * @return array|null
+     * @return array
      * @since 6.0.0
      */
-    public function getShopifyDataByType(string $type, array|string|null|false $parentId = null, bool $returnRecords = false): ?array
+    public function getShopifyDataByType(string $type, array|string|null|false $parentId = null, bool $returnRecords = false): array
     {
         $criteria = ['type' => $type];
         if ($parentId !== null) {
@@ -427,10 +429,7 @@ class Api extends Component
 
         $data = ShopifyData::findAll($criteria);
 
-        if (empty($data)) {
-            return null;
-        }
-
+        // The caller can request the raw database rows, instead of just the `data` JSON column:
         if ($returnRecords) {
             return $data;
         }
