@@ -21,7 +21,6 @@ use craft\shopify\db\Table;
  * @property string $type
  * @property string $data
  * @property string $parentId
- * @property bool $stale
  * @property string $dateCreated
  * @property string $dateUpdated
  */

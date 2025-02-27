@@ -252,41 +252,6 @@ class Products extends Component
     }
 
     /**
-     * @param string $shopifyId
-     * @return void
-     * @since 6.0.0
-     */
-    public function markShopifyDataStaleByShopifyId(string $shopifyId): void
-    {
-        ShopifyData::updateAll(['stale' => true], ['shopifyId' => $shopifyId]);
-
-        ShopifyData::updateAll(['stale' => true], ['parentId' => $shopifyId]);
-
-        $childIds = (new Query())
-            ->select('shopifyId')
-            ->from(Table::DATA)
-            ->where(['parentId' => $shopifyId])
-            ->column();
-
-        while (!empty($childIds)) {
-            $childId = array_shift($childIds);
-
-            ShopifyData::updateAll(['stale' => true], ['shopifyId' => $childId]);
-
-            ShopifyData::updateAll(['stale' => true], ['parentId' => $childId]);
-
-            $shopifyData = (new Query())
-                ->select('shopifyId')
-                ->from(Table::DATA)
-                ->where(['parentId' => $childId])
-                ->column();
-            foreach ($shopifyData as $id) {
-                $childIds[] = $id;
-            }
-        }
-    }
-
-    /**
      * @param array|Product[] $products
      * @return array
      * @since 6.0.0

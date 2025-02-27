@@ -51,7 +51,6 @@ class Install extends Migration
             'type' => $this->string(),
             'data' => $this->json(),
             'parentId' => $this->string(),
-            'stale' => $this->boolean()->notNull()->defaultValue(false),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
