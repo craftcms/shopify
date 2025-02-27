@@ -225,8 +225,22 @@ class Product extends Element
             'productType',
             'tags',
             'options',
-            'metaFields',
+            'metafields',
         ]);
+    }
+
+    /**
+     * @inerhitdoc
+     */
+    protected function searchKeywords(string $attribute): string
+    {
+        return match ($attribute) {
+            'options' => StringHelper::toString(collect($this->getOptions())
+                ->map(fn($option) => !empty($option) && isset($option['values']) ? StringHelper::toString($option['values']) : '')
+                ->all()),
+            default => parent::searchKeywords($attribute)
+        };
+
     }
 
     /**
@@ -309,7 +323,7 @@ class Product extends Element
 
         $images = Plugin::getInstance()->getApi()->getShopifyDataByType('MediaImage', $this->shopifyGid);
 
-        $this->setImages($images);
+        $this->setImages($images->all());
 
         return $this->_images ?? [];
     }
@@ -364,7 +378,7 @@ class Product extends Element
 
         $data = Plugin::getInstance()->getApi()->getShopifyDataByType('Metafield', $this->shopifyGid);
 
-        $metafields = collect($data)
+        $metafields = $data
             ->mapWithKeys(function($d) {
                 return [
                     $d['key'] => Json::decodeIfJson($d['value']),
@@ -405,7 +419,7 @@ class Product extends Element
 
         $variants = Plugin::getInstance()->getApi()->getShopifyDataByType('ProductVariant', $this->shopifyGid);
 
-        $this->setVariants($variants);
+        $this->setVariants($variants->all());
 
         return $this->_variants ?? [];
     }

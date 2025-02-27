@@ -417,24 +417,26 @@ class Api extends Component
      * @param string $type
      * @param string|false|null $parentId
      * @param bool $returnRecords
-     * @return array
+     * @return Collection
      * @since 6.0.0
      */
-    public function getShopifyDataByType(string $type, array|string|null|false $parentId = null, bool $returnRecords = false): array
+    public function getShopifyDataByType(string $type, array|string|null|false $parentId = null, bool $returnRecords = false): Collection
     {
         $criteria = ['type' => $type];
         if ($parentId !== null) {
             $criteria['parentId'] = $parentId ?: null;
         }
 
-        $data = ShopifyData::findAll($criteria);
+        $data = ShopifyData::find()
+            ->where($criteria)
+            ->collect();
 
         // The caller can request the raw database rows, instead of just the `data` JSON column:
         if ($returnRecords) {
             return $data;
         }
 
-        return array_map(fn($record) => $record->data, $data);
+        return $data->map(fn($record) => $record->data);
     }
 
     /**

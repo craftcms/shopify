@@ -335,6 +335,7 @@ class Products extends Component
      * @param string $type
      * @param callable $callback
      * @return array
+     * @throws InvalidConfigException
      */
     private function _eagerLoadTypeOnProducts(array $products, string $type, callable $callback): array
     {
@@ -343,7 +344,7 @@ class Products extends Component
         $data = Plugin::getInstance()->getApi()->getShopifyDataByType($type, $productIds, true);
 
         // Group objects by their owner:
-        $data = collect($data)->groupBy('parentId');
+        $data = $data->groupBy('parentId');
 
         // Give each product a chance to handle the rows, directly:
         foreach ($products as $product) {
