@@ -317,7 +317,7 @@ A new query begins with the `craft.shopifyProducts` factory function:
 The following element query parameters are supported, in addition to [Craft’s standard set](https://craftcms.com/docs/5.x/development/element-queries.html).
 
 > [!NOTE]
-> Fields stored as JSON (like `options` and `metadata`) are only queryable as plain text. If you need to do advanced organization or filtering, we recommend using custom Category or Tag fields in your Product [field layout](#custom-fields).
+> Fields stored as JSON (like `options` and `metafields`) are only queryable as plain text. If you need to do advanced organization or filtering, we recommend using custom Category or Tag fields in your Product [field layout](#custom-fields).
 
 #### `shopifyId`
 
