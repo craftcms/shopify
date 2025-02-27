@@ -125,6 +125,10 @@ The `syncProductMetafields` and `syncVariantMetafields` are no longer used, and 
 
 Accessors on our [product element](#native-attributes) remain stable, but with the shift to the GraphQL Admin API, many _canonical_ property names on products and variants have changed. If you directly output properties of _variants_ in your templates, they are apt to need updates. The [`ProductVariant` model documentation](https://shopify.dev/docs/api/admin-rest/2025-01/resources/product-variant) shows how to translate old property names (teal) to the new GraphQL schema (magenta).
 
+### Query Methods
+
+It is no longer possible to query by product option values.
+
 ### Contextual Pricing
 
 Shopify’s “presentment prices” are now referred to as “contextual pricing.” Variant arrays still have the default `price` and `compareAtPrice` fields (previously `price` and `compare_at_price`, respectively), but to fetch context-dependent prices, you must provide a list of [two-letter country codes](https://shopify.dev/docs/api/admin-graphql/latest/enums/CountryCode) via the **Contextual Pricing Countries** setting. _Product data must be [sychronized](#synchronization) after changing this setting._
@@ -409,19 +413,6 @@ Images are stored as a blob of JSON, and only intended for use in a template in 
   .images('*stripes*')
   .all() %}
 ```
-
-#### `options`
-
-[Options](#using-options) are stored as a blob of JSON, and only intended for use in a template in conjunction with a loaded product. You may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/system/searching.html#development).
-
-```twig
-{# Find products that use a "color" option: #}
-{% set clogs = craft.shopifyProducts
-  .options('"Color"')
-  .all() %}
-```
-
-The above includes quote (`"`) literals, because it’s attempting to locate a specific key in a JSON array, which will always be surrounded by double-quotes.
 
 ## Templating
 
