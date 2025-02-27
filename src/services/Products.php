@@ -4,7 +4,6 @@ namespace craft\shopify\services;
 
 use Craft;
 use craft\base\Component;
-use craft\db\Query;
 use craft\errors\ElementNotFoundException;
 use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;

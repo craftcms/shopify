@@ -427,7 +427,6 @@ class Plugin extends BasePlugin
                         $element = ArrayHelper::firstWhere($shopifyProductElementsMissingData, 'shopifyId', $deleteId);
                         Craft::$app->getElements()->deleteElementById($element['id'], Product::class, null, true);
                     }
-
                 }
 
                 if (Craft::$app instanceof ConsoleApplication) {

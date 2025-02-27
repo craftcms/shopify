@@ -240,7 +240,6 @@ class Product extends Element
                 ->all()),
             default => parent::searchKeywords($attribute)
         };
-
     }
 
     /**
