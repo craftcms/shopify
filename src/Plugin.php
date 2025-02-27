@@ -27,6 +27,7 @@ use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Gc;
 use craft\services\Utilities;
+use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
 use craft\shopify\feedme\fields\Products as FeedMeProductsField;
 use craft\shopify\fields\Products as ProductsField;
@@ -345,6 +346,10 @@ class Plugin extends BasePlugin
             if (Craft::$app instanceof ConsoleApplication) {
                 Console::stdout("done\n", Console::FG_GREEN);
             }
+
+            /** @var Gc $gc */
+            $gc = $event->sender;
+            $gc->deletePartialElements(Product::class, Table::PRODUCTS, 'id');
         });
     }
 
