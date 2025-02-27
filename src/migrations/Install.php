@@ -146,7 +146,6 @@ class Install extends Migration
      */
     public function addForeignKeys(): void
     {
-        $this->addForeignKey(null, Table::PRODUCTS, ['shopifyGid'], Table::DATA, ['shopifyId'], null, null);
         $this->addForeignKey(null, Table::PRODUCTS, ['id'], CraftTable::ELEMENTS, ['id'], 'CASCADE', 'CASCADE');
     }
 
