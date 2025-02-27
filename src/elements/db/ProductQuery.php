@@ -68,11 +68,6 @@ class ProductQuery extends ElementQuery
     public mixed $images = null;
 
     /**
-     * @var mixed|null
-     */
-    public mixed $options = null;
-
-    /**
      * @var bool|null
      * @since 6.0.0
      */

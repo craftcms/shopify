@@ -125,10 +125,6 @@ The `syncProductMetafields` and `syncVariantMetafields` are no longer used, and 
 
 Accessors on our [product element](#native-attributes) remain stable, but with the shift to the GraphQL Admin API, many _canonical_ property names on products and variants have changed. If you directly output properties of _variants_ in your templates, they are apt to need updates. The [`ProductVariant` model documentation](https://shopify.dev/docs/api/admin-rest/2025-01/resources/product-variant) shows how to translate old property names (teal) to the new GraphQL schema (magenta).
 
-### Query Methods
-
-It is no longer possible to query by product option values.
-
 ### Contextual Pricing
 
 Shopify’s “presentment prices” are now referred to as “contextual pricing.” Variant arrays still have the default `price` and `compareAtPrice` fields (previously `price` and `compare_at_price`, respectively), but to fetch context-dependent prices, you must provide a list of [two-letter country codes](https://shopify.dev/docs/api/admin-graphql/latest/enums/CountryCode) via the **Contextual Pricing Countries** setting. _Product data must be [sychronized](#synchronization) after changing this setting._
