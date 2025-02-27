@@ -50,7 +50,6 @@
 - Added `craft\shopify\services\Products::eagerLoadImagesForProducts()`.
 - Added `craft\shopify\services\Products::eagerLoadMetafieldsForProducts()`.
 - Added `craft\shopify\services\Products::eagerLoadVariantsForProducts()`.
-- Added `craft\shopify\services\Products::markShopifyDataStaleByShopifyId()`.
 - Added `craft\shopify\services\Products::normalizeShopifyGid()`.
 - `craft\shopify\events\ShopifyProductSyncEvent::$source` now has a type of `array`.
 - `craft\shopify\services\Products::createOrUpdateProduct()` no longer has `$metafields` and `$variants` arguments.
