@@ -82,6 +82,7 @@ return [
     'Updating product variants for “{title}”' => 'Updating product variants for “{title}”',
     'Variants' => 'Variants',
     'Vendor' => 'Vendor',
+    'View products' => 'View products',
     'Webhook deleted' => 'Webhook deleted',
     'Webhooks could not be deleted' => 'Webhooks could not be deleted',
     'Webhooks could not be registered.' => 'Webhooks could not be registered.',

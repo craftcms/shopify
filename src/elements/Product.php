@@ -215,6 +215,24 @@ class Product extends Element
 
     /**
      * @inheritdoc
+     * @since 3.0
+     */
+    public static function gqlScopesByContext(mixed $context): array
+    {
+        /** @var FieldLayout $context */
+        return ['ShopifyProduct'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getGqlTypeName(): string
+    {
+        return 'ShopifyProduct';
+    }
+
+    /**
+     * @inheritdoc
      */
     public static function searchableAttributes(): array
     {
