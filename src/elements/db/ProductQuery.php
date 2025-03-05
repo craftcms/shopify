@@ -46,7 +46,6 @@ class ProductQuery extends ElementQuery
      */
     public mixed $handle = null;
 
-
     /**
      * @var mixed|null
      */
