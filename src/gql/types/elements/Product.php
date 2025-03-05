@@ -7,8 +7,8 @@
 
 namespace craft\shopify\gql\types\elements;
 
-use craft\shopify\gql\interfaces\elements\Product as ProductInterface;
 use craft\gql\types\elements\Element as ElementType;
+use craft\shopify\gql\interfaces\elements\Product as ProductInterface;
 
 /**
  * Class Product

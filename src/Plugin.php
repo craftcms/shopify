@@ -290,7 +290,7 @@ class Plugin extends BasePlugin
             $event->queries = array_merge($event->queries, [
                 Craft::t('shopify', 'Shopify Products') => [
                     $typeName . ':read' => ['label' => Craft::t('shopify', 'View products')],
-                ]
+                ],
             ]);
         });
     }

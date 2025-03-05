@@ -8,10 +8,10 @@
 namespace craft\shopify\gql\arguments\elements;
 
 use Craft;
-use craft\shopify\elements\Product as ProductElement;
-use craft\shopify\Plugin;
 use craft\gql\base\ElementArguments;
 use craft\gql\types\QueryArgument;
+use craft\shopify\elements\Product as ProductElement;
+use craft\shopify\Plugin;
 use GraphQL\Type\Definition\Type;
 
 /**

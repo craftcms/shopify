@@ -7,10 +7,10 @@
 
 namespace craft\shopify\gql\resolvers\elements;
 
-use craft\shopify\elements\Product as ProductElement;
-use craft\helpers\Gql as GqlHelper;
 use craft\elements\db\ElementQuery;
 use craft\gql\base\ElementResolver;
+use craft\helpers\Gql as GqlHelper;
+use craft\shopify\elements\Product as ProductElement;
 
 /**
  * Class Product

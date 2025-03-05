@@ -8,10 +8,10 @@
 namespace craft\shopify\gql\interfaces\elements;
 
 use Craft;
-use craft\shopify\elements\Product as ProductElement;
-use craft\shopify\gql\types\generators\ProductType;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\interfaces\Element;
+use craft\shopify\elements\Product as ProductElement;
+use craft\shopify\gql\types\generators\ProductType;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
 

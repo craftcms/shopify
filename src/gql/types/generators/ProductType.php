@@ -9,11 +9,11 @@ namespace craft\shopify\gql\types\generators;
 
 use Craft;
 use craft\base\Field;
+use craft\gql\base\GeneratorInterface;
+use craft\gql\GqlEntityRegistry;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\gql\interfaces\elements\Product as ProductInterface;
 use craft\shopify\gql\types\elements\Product as ProductTypeElement;
-use craft\gql\base\GeneratorInterface;
-use craft\gql\GqlEntityRegistry;
 use craft\shopify\Plugin;
 
 /**
@@ -47,7 +47,7 @@ class ProductType implements GeneratorInterface
                 'fields' => function() use ($productFields) {
                     return $productFields;
                 },
-            ]))
+            ])),
         ];
     }
 }

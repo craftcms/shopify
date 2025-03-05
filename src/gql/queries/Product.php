@@ -7,11 +7,11 @@
 
 namespace craft\shopify\gql\queries;
 
+use craft\gql\base\Query;
 use craft\helpers\Gql;
 use craft\shopify\gql\arguments\elements\Product as ProductArguments;
 use craft\shopify\gql\interfaces\elements\Product as ProductInterface;
 use craft\shopify\gql\resolvers\elements\Product as ProductResolver;
-use craft\gql\base\Query;
 use GraphQL\Type\Definition\Type;
 
 /**
