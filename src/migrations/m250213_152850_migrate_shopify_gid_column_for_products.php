@@ -16,7 +16,7 @@ class m250213_152850_migrate_shopify_gid_column_for_products extends Migration
      */
     public function safeUp(): bool
     {
-        $this->update(Table::PRODUCTS, ['shopifyGid' => new Expression('CONCAT("gid://shopify/Product/", [[shopifyId]])')], updateTimestamp: false);
+        $this->update(Table::PRODUCTS, ['shopifyGid' => new Expression('CONCAT(\'gid://shopify/Product/\', [[shopifyId]])')], updateTimestamp: false);
 
         return true;
     }
