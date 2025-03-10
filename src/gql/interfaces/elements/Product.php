@@ -12,6 +12,7 @@ use craft\gql\GqlEntityRegistry;
 use craft\gql\interfaces\Element;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\gql\types\generators\ProductType;
+use craft\shopify\gql\types\VariantType;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
 
@@ -68,7 +69,11 @@ class Product extends Element
     public static function getFieldDefinitions(): array
     {
         return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
-
+            'variants' => [
+                'name' => 'variants',
+                'type' => VariantType::getType(),
+                'description' => 'The product’s variants.',
+            ],
         ]), self::getName());
     }
 }
