@@ -56,6 +56,8 @@ class Product extends ElementResolver
             return [];
         }
 
+        $query->withAll();
+
         return $query;
     }
 }
