@@ -121,6 +121,8 @@ class Install extends Migration
             $as = $qb->jsonExtract('data', [$col]);
             if (!$db->getIsPgsql()) {
                 $as = 'CAST(JSON_EXTRACT(`data`, \'$."' . $col . '"\') as signed)';
+            } else {
+                $as .= '::boolean';
             }
 
             $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
