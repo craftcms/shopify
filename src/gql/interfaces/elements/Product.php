@@ -13,7 +13,7 @@ use craft\gql\interfaces\Element;
 use craft\gql\types\DateTime;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\gql\types\generators\ProductType;
-use craft\shopify\gql\types\VariantType;
+use craft\shopify\gql\types\JsonType;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
 
@@ -125,9 +125,24 @@ class Product extends Element
                 'type' => Type::string(),
                 'description' => 'The product’s vendor in Shopify.',
             ],
+            'images' => [
+                'name' => 'images',
+                'type' => JsonType::getType(),
+                'description' => 'The product’s images in Shopify.',
+            ],
+            'tags' => [
+                'name' => 'tags',
+                'type' => JsonType::getType(),
+                'description' => 'The product’s tags in Shopify.',
+            ],
+            'metafields' => [
+                'name' => 'metafields',
+                'type' => JsonType::getType(),
+                'description' => 'The product’s metafields in Shopify.',
+            ],
             'variants' => [
                 'name' => 'variants',
-                'type' => VariantType::getType(),
+                'type' => JsonType::getType(),
                 'description' => 'The product’s variants.',
             ],
         ]), self::getName());

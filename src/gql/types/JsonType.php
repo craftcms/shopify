@@ -18,19 +18,19 @@ use GraphQL\Type\Definition\ScalarType;
 use GraphQL\Type\Definition\Type;
 
 /**
- * Class VariantType
+ * Class JsonType
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 6.1.0
  */
-class VariantType extends ScalarType implements SingularTypeInterface
+class JsonType extends ScalarType implements SingularTypeInterface
 {
     /**
      * @return string
      */
     public static function getName(): string
     {
-        return 'ShopifyVariant';
+        return 'ShopifyJson';
     }
 
     public static function getType(): Type
@@ -50,7 +50,7 @@ class VariantType extends ScalarType implements SingularTypeInterface
     public function parseValue($value)
     {
         if (!is_string($value) && !is_array($value) && !is_null($value)) {
-            throw new GqlException('Variants must be either a string, array, or null.');
+            throw new GqlException('Data must be either a string, array, or null.');
         }
 
         return $value;
@@ -67,6 +67,6 @@ class VariantType extends ScalarType implements SingularTypeInterface
         }
 
         // This message will be lost by the wrapping exception, but it feels good to provide one.
-        throw new GqlException("Variants must be either an array, string or null.");
+        throw new GqlException("Data must be either an array, string or null.");
     }
 }
