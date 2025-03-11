@@ -21,6 +21,8 @@ class m250217_093044_add_publishedOnCurrentPublication_virtual_column extends Mi
         $as = $qb->jsonExtract('data', ['publishedOnCurrentPublication']);
         if (!$db->getIsPgsql()) {
             $as = 'CAST(JSON_EXTRACT(`data`, \'$."publishedOnCurrentPublication"\') as signed)';
+        } else {
+            $as .= '::boolean';
         }
 
         $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
