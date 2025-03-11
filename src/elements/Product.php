@@ -146,7 +146,7 @@ class Product extends Element
     /**
      * @var string
      */
-    public string $shopifyStatus = 'active';
+    public string $shopifyStatus = 'ACTIVE';
 
     /**
      * @var array
