@@ -10,6 +10,7 @@ namespace craft\shopify\gql\interfaces\elements;
 use Craft;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\interfaces\Element;
+use craft\gql\types\DateTime;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\gql\types\generators\ProductType;
 use craft\shopify\gql\types\VariantType;
@@ -69,6 +70,61 @@ class Product extends Element
     public static function getFieldDefinitions(): array
     {
         return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
+            'createdAt' => [
+                'name' => 'createdAt',
+                'type' => DateTime::getType(),
+                'description' => 'The date the product was created in Shopify.',
+            ],
+            'publishedAt' => [
+                'name' => 'publishedAt',
+                'type' => DateTime::getType(),
+                'description' => 'The date the product was published in Shopify.',
+            ],
+            'updatedAt' => [
+                'name' => 'updatedAt',
+                'type' => DateTime::getType(),
+                'description' => 'The date the product was updated in Shopify.',
+            ],
+            'handle' => [
+                'name' => 'handle',
+                'type' => Type::string(),
+                'description' => 'The product’s handle.',
+            ],
+            'descriptionHtml' => [
+                'name' => 'descriptionHtml',
+                'type' => Type::string(),
+                'description' => 'The product’s description HTML in Shopify.',
+            ],
+            'productType' => [
+                'name' => 'productType',
+                'type' => Type::string(),
+                'description' => 'The product’s type in Shopify.',
+            ],
+            'publishedOnCurrentPublication' => [
+                'name' => 'publishedOnCurrentPublication',
+                'type' => Type::boolean(),
+                'description' => 'If the product is published on the current publication in Shopify.',
+            ],
+            'shopifyId' => [
+                'name' => 'shopifyId',
+                'type' => Type::string(),
+                'description' => 'The product’s Shopify ID.',
+            ],
+            'shopifyGid' => [
+                'name' => 'shopifyGid',
+                'type' => Type::string(),
+                'description' => 'The product’s Shopify GID.',
+            ],
+            'shopifyStatus' => [
+                'name' => 'shopifyStatus',
+                'type' => Type::string(),
+                'description' => 'The product’s status in Shopify.',
+            ],
+            'vendor' => [
+                'name' => 'vendor',
+                'type' => Type::string(),
+                'description' => 'The product’s vendor in Shopify.',
+            ],
             'variants' => [
                 'name' => 'variants',
                 'type' => VariantType::getType(),
