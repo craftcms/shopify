@@ -739,14 +739,14 @@ The above example can be simplified with the [Buy Button JS](https://shopify.dev
 For fully custom front-end solutions, consider the [Storefront API Javascript client](https://github.com/Shopify/shopify-app-js/tree/main/packages/api-clients/storefront-api-client), which is built and maintained with the new GraphQL API in mind.
 
 ```twig
-{% do view.registerJsFile('https://unpkg.com/browse/@shopify/storefront-api-client@1.0.5/dist/umd/storefront-api-client.min.js') %}
+{% do view.registerJsFile('https://unpkg.com/@shopify/storefront-api-client@1.0.5/dist/umd/storefront-api-client.min.js') %}
 
 <script>
   // Note that these values are interpolated into the script tag with Twig!
   const client = ShopifyStorefrontAPIClient.createStorefrontApiClient({
     storeDomain: '{{ craft.shopify.settings.hostName }}',
     apiVersion: '{{ craft.shopify.settings.apiVersion }}',
-    publicAccessToken: '{{ env('SHOPIFY_PUBLIC_ACCESS_TOKEN') }}',
+    publicAccessToken: '{{ getenv('SHOPIFY_PUBLIC_ACCESS_TOKEN') }}',
   });
 </script>
 ```
@@ -759,7 +759,7 @@ See the [usage examples](https://github.com/Shopify/shopify-app-js/tree/main/pac
 {% endfor %}
 ```
 
-You would then consume these GIDs in Javascript, passing them to queries via the Shopify client:
+You would then consume these GIDs in Javascript, passing them to queries via the Shopify client. Here are the two GraphQL query fragments for creating and updating a cart:
 
 ```js
 const createCartMutation = `
@@ -788,58 +788,64 @@ const updateCartMutation = `
     }
   }
 `;
+```
 
+…and the corresponding plumbing to connect those queries to the DOM elements and `localStorage`:
+
+```js
 async function getCartId() {
-  // Have we already done this? Use an existing cart ID, if available:
-  if (localStorage.getItem('shopifyCartGid')) {
+    // Have we already done this? Use an existing cart ID, if available:
+    if (localStorage.getItem('shopifyCartGid')) {
+        return localStorage.getItem('shopifyCartGid');
+    }
+
+    const { data, errors, extensions } = await client.request(createCartMutation, {
+        variables: {
+            input: {
+                // Accepted parameters are available in the documentation:
+                // https://shopify.dev/docs/api/storefront/latest/mutations/cartCreate
+            },
+        },
+    });
+
+    // Ok, save it for later!
+    localStorage.setItem('shopifyCartGid', data.cartCreate.cart.id);
+
     return localStorage.getItem('shopifyCartGid');
-  }
-
-  const resp = await client.request(createCartMutation, {
-    variables: {
-      input: {
-        // Accepted parameters are available in the documentation:
-        // https://shopify.dev/docs/api/storefront/latest/mutations/cartCreate
-      },
-    },
-  });
-
-  // Ok, save it for later!
-  localStorage.setItem('shopifyCartGid', resp.data.cartCreate.cart.id);
-
-  return localStorage.getItem('shopifyCartGid');
 }
 
 function addItem(cartId, $el) {
-  const line = {
-    qty: 1,
-    // The Shopify GID was set on the button as `data-variant-id`:
-    merchandiseId: $el.dataset.variantId,
-  };
+    const line = {
+        quantity: 1,
+        // The Shopify GID was set on the button as `data-variant-id`:
+        merchandiseId: $el.dataset.variantId,
+    };
 
-  return client.request(updateCartMutation, {
-    variables: {
-      input: {
-        cartId,
-        lines: [line],
-      },
-    },
-  });
+    return client.request(updateCartMutation, {
+        variables: {
+            cartId,
+            lines: [line],
+        },
+    });
 }
 
 // Find "buy buttons" and listen for clicks:
 const $buyButtons = document.getElementsByClassName('buy-button');
 
 Array.from($buyButtons).forEach(function($bb) {
-  $bb.addEventListener('click', function(e) {
-    // Ensure we have a cart ID, then add the clicked item:
-    getCartId()
-      .then(function(cartId) {
-          addItem(cartId, $bb);
-      });
-  });
+    $bb.addEventListener('click', function(e) {
+        // Ensure we have a cart ID, then add the clicked item:
+        getCartId()
+            .then(function(cartId) {
+                return addItem(cartId, $bb);
+            })
+            .then(console.log);
+    });
 });
 ```
+
+> [!WARNING]
+> This is just a slice of the required functionality for an on-site cart—the actual implementation depends largely on what features you want to offer customers, your front-end stack, and your appetite for dealing directly with the GraphQL client!
 
 ### Checkout
 
