@@ -324,17 +324,17 @@ class ProductQuery extends ElementQuery
             strtolower(Product::STATUS_LIVE) => [
                 'elements.enabled' => true,
                 'elements_sites.enabled' => true,
-                'data.shopifyStatus' => 'active',
+                'data.shopifyStatus' => 'ACTIVE',
             ],
             strtolower(Product::STATUS_SHOPIFY_DRAFT) => [
                 'elements.enabled' => true,
                 'elements_sites.enabled' => true,
-                'data.shopifyStatus' => 'draft',
+                'data.shopifyStatus' => 'DRAFT',
             ],
             strtolower(Product::STATUS_SHOPIFY_ARCHIVED) => [
                 'elements.enabled' => true,
                 'elements_sites.enabled' => true,
-                'data.shopifyStatus' => 'archived',
+                'data.shopifyStatus' => 'ARCHIVED',
             ],
             default => parent::statusCondition($status),
         };

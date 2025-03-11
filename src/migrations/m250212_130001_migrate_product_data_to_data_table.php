@@ -42,7 +42,7 @@ class m250212_130001_migrate_product_data_to_data_table extends Migration
                     "tags" => explode(', ', $productDatum['tags'] ?? ''),
                     "title" => $productDatum['title'],
                     "handle" => $productDatum['handle'],
-                    "status" => $productDatum['shopifyStatus'],
+                    "status" => strtoupper($productDatum['shopifyStatus']),
                     "vendor" => $productDatum['vendor'],
                     "createdAt" => $productDatum['createdAt'],
                     "updatedAt" => $productDatum['updatedAt'],
