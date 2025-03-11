@@ -143,7 +143,12 @@ class Product extends Element
             'variants' => [
                 'name' => 'variants',
                 'type' => JsonType::getType(),
-                'description' => 'The product’s variants.',
+                'description' => 'The product’s variants in Shopify.',
+            ],
+            'data' => [
+                'name' => 'data',
+                'type' => JsonType::getType(),
+                'description' => 'The product’s synced data from Shopify.',
             ],
         ]), self::getName());
     }
