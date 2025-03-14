@@ -13,6 +13,7 @@ use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\User;
 use craft\errors\DeprecationException;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Cp;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
@@ -539,12 +540,9 @@ class Product extends Element
 
     /**
      * @return string
-     * @deprecated in 6.0.0. Use [[craft\shopify\helpers\Product::shopifyStatusHtml()]] instead.
      */
     public function getShopifyStatusHtml(): string
     {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Product::getShopifyStatusHtml() has been deprecated. Use \craft\shopify\helpers\Product::shopifyStatusHtml() instead.');
-
         return ProductHelper::shopifyStatusHtml($this);
     }
 
@@ -858,7 +856,7 @@ class Product extends Element
             case 'shopifyEdit':
                 return HtmlHelper::a('', $this->getShopifyEditUrl(), ['target' => '_blank', 'data' => ['icon' => 'external']]);
             case 'shopifyStatus':
-                return ProductHelper::shopifyStatusHtml($this);
+                return $this->getShopifyStatusHtml();
             case 'shopifyId':
                 return $this->$attribute;
             case 'options':

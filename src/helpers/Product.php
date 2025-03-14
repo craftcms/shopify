@@ -156,9 +156,19 @@ class Product
      */
     public static function shopifyStatusHtml(ProductElement $product): string
     {
+        // @TODO update this either when Craft 4 support is dropped or 4 gets enums
+        if (!class_exists(Color::class) || !method_exists(Cp::class, 'statusLabelHtml')) {
+            $color = match ($product->shopifyStatus) {
+                'ACTIVE' => 'green',
+                'ARCHIVED' => 'red',
+                default => 'orange', // takes care of draft
+            };
+            return "<span class='status $color'></span>" . StringHelper::titleize($product->shopifyStatus);
+        }
+
         $color = match (StringHelper::toLowerCase($product->shopifyStatus)) {
-            'active' => Color::Green->value,
-            'archived' => Color::Red->value,
+            'ACTIVE' => Color::Green->value,
+            'ARCHIVED' => Color::Red->value,
             default => Color::Orange->value, // takes care of draft
         };
 
@@ -175,8 +185,15 @@ class Product
      */
     public static function shopifyPublishedHtml(ProductElement $product): string
     {
-        $color = $product->publishedOnCurrentPublication ? Color::Green->value : Color::Red->value;
         $status = $product->publishedOnCurrentPublication ? Craft::t('shopify', 'Published') : Craft::t('shopify', 'Unpublished');
+
+        // @TODO update this either when Craft 4 support is dropped or 4 gets enums
+        if (!class_exists(Color::class) || !method_exists(Cp::class, 'statusLabelHtml')) {
+            $color = $product->publishedOnCurrentPublication ? 'green' : 'red';
+            return "<span class='status $color'></span>" . $status;
+        }
+
+        $color = $product->publishedOnCurrentPublication ? Color::Green->value : Color::Red->value;
 
         return Cp::statusLabelHtml([
             'color' => $color,

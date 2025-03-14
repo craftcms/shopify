@@ -56,7 +56,6 @@
 - `craft\shopify\services\Products::createOrUpdateProduct()`’s `$product` argument now has a type of `array`.
 - Renamed `craft\shopify\handlers\Product` to `Webhook`.
 - Deprecated `craft\shopify\elements\Product::getBodyHtml()`. `getDescriptionHtml()` should be used instead.
-- Deprecated `craft\shopify\elements\Product::getShopifyStatusHtml()`.  `craft\shopify\helpers\Product::shopifyStatusHtml()` should be used instead.
 - Deprecated `craft\shopify\elements\Product::setBodyHtml()`. `setDescriptionHtml()` should be used instead.
 - Deprecated `craft\shopify\helpers\Metafields`.
 - Deprecated `craft\shopify\models\Settings::$syncProductMetafields`. Metafields are _always_ included when synchronizing product data.
