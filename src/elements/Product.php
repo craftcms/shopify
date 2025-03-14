@@ -13,7 +13,6 @@ use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\User;
 use craft\errors\DeprecationException;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Cp;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
