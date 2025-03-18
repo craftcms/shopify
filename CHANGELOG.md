@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## 6.0.0-beta.3 - 2025-03-18
+
+- Fixed a PHP error that could occur when upgrading on Craft CMS 4.
+
 ## 6.0.0-beta.2 - 2025-03-10
 
 - Fixed a SQL error that could occur when upgrading on PostgreSQL. ([#127](https://github.com/craftcms/commerce/issues/127))
