@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed a SQL error that could occur when sorting products.
 - Fixed a bug where status colors were showing incorrectly.
 
 ## 6.0.0-beta.3 - 2025-03-18

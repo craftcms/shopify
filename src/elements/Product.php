@@ -802,19 +802,19 @@ class Product extends Element
 
         $sortOptions['title'] = [
             'label' => Craft::t('app', 'Title'),
-            'orderBy' => 'shopify_productdata.title',
+            'orderBy' => 'data.title',
             'defaultDir' => SORT_DESC,
         ];
 
         $sortOptions['shopifyId'] = [
             'label' => Craft::t('shopify', 'Shopify ID'),
-            'orderBy' => 'shopify_productdata.shopifyId',
+            'orderBy' => 'data.shopifyId',
             'defaultDir' => SORT_DESC,
         ];
 
         $sortOptions['shopifyStatus'] = [
             'label' => Craft::t('shopify', 'Shopify Status'),
-            'orderBy' => 'shopify_productdata.shopifyStatus',
+            'orderBy' => 'data.shopifyStatus',
             'defaultDir' => SORT_DESC,
         ];
 
