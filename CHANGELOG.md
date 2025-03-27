@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a bug where status colors were showing incorrectly.
+
 ## 6.0.0-beta.3 - 2025-03-18
 
 - Fixed a PHP error that could occur when upgrading on Craft CMS 4.

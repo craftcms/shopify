@@ -158,17 +158,17 @@ class Product
     {
         // @TODO update this either when Craft 4 support is dropped or 4 gets enums
         if (!class_exists(Color::class) || !method_exists(Cp::class, 'statusLabelHtml')) {
-            $color = match ($product->shopifyStatus) {
-                'ACTIVE' => 'green',
-                'ARCHIVED' => 'red',
+            $color = match (StringHelper::toLowerCase($product->shopifyStatus)) {
+                ProductElement::SHOPIFY_STATUS_ACTIVE => 'green',
+                ProductElement::SHOPIFY_STATUS_ARCHIVED => 'red',
                 default => 'orange', // takes care of draft
             };
             return "<span class='status $color'></span>" . StringHelper::titleize($product->shopifyStatus);
         }
 
         $color = match (StringHelper::toLowerCase($product->shopifyStatus)) {
-            'ACTIVE' => Color::Green->value,
-            'ARCHIVED' => Color::Red->value,
+            ProductElement::SHOPIFY_STATUS_ACTIVE => Color::Green->value,
+            ProductElement::SHOPIFY_STATUS_ARCHIVED => Color::Red->value,
             default => Color::Orange->value, // takes care of draft
         };
 
