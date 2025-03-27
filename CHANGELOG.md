@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 6.0.0-beta.4 - 2025-03-27
 
 - Fixed a SQL error that could occur when sorting products.
 - Fixed a bug where status colors were showing incorrectly.
