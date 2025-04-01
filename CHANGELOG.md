@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a SQL error that could occur when upgrading.
+
 ## 6.0.0-beta.4 - 2025-03-27
 
 - Fixed a SQL error that could occur when sorting products.
