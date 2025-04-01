@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 6.0.0-beta.5 - 2025-04-01
 
 - Fixed a SQL error that could occur when upgrading.
 
