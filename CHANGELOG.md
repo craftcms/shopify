@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Improved the performance of bulk operation processing.
+
 ## 6.0.0-beta.5 - 2025-04-01
 
 - Fixed a SQL error that could occur when upgrading.

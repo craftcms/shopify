@@ -35,6 +35,10 @@ class ProcessBulkOperationData extends BaseBatchedJob
      */
     public int $objectCount = 0;
 
+    /**
+     * @var string|null
+     */
+    public ?string $tempFilePath = null;
 
     /**
      * Signal which data should be cleared before processing the bulk operation.
@@ -57,18 +61,25 @@ class ProcessBulkOperationData extends BaseBatchedJob
      */
     protected function loadData(): Batchable
     {
-        // Download the data to temporary file from the `$dataUrl`
-        $filePath = Assets::tempFilePath('jsonl');
+        $downloadFile = false;
 
-        // Retrieve remote file contents
-        $client = Craft::createGuzzleClient();
-        $response = $client->get($this->dataUrl);
+        // check to see if the file is still in temporary storage
+        if ($this->tempFilePath === null || !file_exists($this->tempFilePath)) {
+            $this->tempFilePath = Assets::tempFilePath('jsonl');
+            $downloadFile = true;
+        }
 
-        // Write the contents to the temporary file
-        FileHelper::writeToFile($filePath, $response->getBody()->getContents());
+        if ($downloadFile) {
+            // Retrieve remote file contents
+            $client = Craft::createGuzzleClient();
+            $response = $client->get($this->dataUrl);
+
+            // Write the contents to the temporary file
+            FileHelper::writeToFile($this->tempFilePath, $response->getBody()->getContents());
+        }
 
         $bulkDataBatcher = new BulkDataBatcher();
-        $bulkDataBatcher->filePath = $filePath;
+        $bulkDataBatcher->filePath = $this->tempFilePath;
         $bulkDataBatcher->total = $this->objectCount;
 
         return $bulkDataBatcher;
@@ -150,6 +161,11 @@ class ProcessBulkOperationData extends BaseBatchedJob
         $bulkOperation->setStatus(BulkOperationStatus::Completed);
 
         Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
+
+        // Delete the temporary file
+        if ($this->tempFilePath !== null && file_exists($this->tempFilePath)) {
+            FileHelper::unlink($this->tempFilePath);
+        }
 
         // Start the next bulk op if there is one
         Plugin::getInstance()->getBulkOperations()->nextBulkOperation();
