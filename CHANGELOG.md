@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 6.0.0-beta.6 - 2025-04-08
 
 - Improved the performance of bulk operation processing.
 
