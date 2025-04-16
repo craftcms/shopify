@@ -5,6 +5,7 @@
 
 - Shopify for Craft now uses the [GraphQL Admin API](https://shopify.dev/docs/api/admin-graphql) to interact with Shopify.
 - Data syncing is now done via the queue.
+- Shopify now requires Craft CMS 4.15.0+ or 5.0.0+.
 - Added the `shopify/data/reset` command.
 - Added `craft\shopify\Plugin::getBulkOperation()`.
 - Added `craft\shopify\api\BulkDataBatcher`.
