@@ -17,7 +17,7 @@ Build a content-driven storefront by synchronizing [Shopify](https://shopify.com
 
 ## Installation
 
-Shopify requires Craft CMS 4.3.0+ or 5.0.0+.
+Shopify requires Craft CMS 4.15.0+ or 5.0.0+.
 
 To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/shopify) from your Craft project, or follow these instructions.
 
