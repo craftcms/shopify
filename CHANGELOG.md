@@ -1,32 +1,12 @@
 # Release Notes for Shopify
 
-## 6.0.0-beta.6 - 2025-04-08
-
-- Improved the performance of bulk operation processing.
-
-## 6.0.0-beta.5 - 2025-04-01
-
-- Fixed a SQL error that could occur when upgrading.
-
-## 6.0.0-beta.4 - 2025-03-27
-
-- Fixed a SQL error that could occur when sorting products.
-- Fixed a bug where status colors were showing incorrectly.
-
-## 6.0.0-beta.3 - 2025-03-18
-
-- Fixed a PHP error that could occur when upgrading on Craft CMS 4.
-
-## 6.0.0-beta.2 - 2025-03-10
-
-- Fixed a SQL error that could occur when upgrading on PostgreSQL. ([#127](https://github.com/craftcms/commerce/issues/127))
-
-## 6.0.0-beta.1 - 2025-02-27
+## 6.0.0 - 2025-04-16
 
 > [!IMPORTANT]
 > After updating, go to **Shopify** → **Webhooks** and create the missing webhooks.
 
 - Shopify for Craft now uses the [GraphQL Admin API](https://shopify.dev/docs/api/admin-graphql) to interact with Shopify.
+- Shopify now requires Craft CMS 4.15.0+ or 5.0.0+.
 - Data syncing is now done via the queue.
 - Added the `shopify/data/reset` command.
 - Added `craft\shopify\Plugin::getBulkOperation()`.
