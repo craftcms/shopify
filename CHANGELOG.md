@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## 6.0.0 - 2025-04-16
+## 6.0.0 - 2025-04-17
 
 > [!IMPORTANT]
 > After updating, go to **Shopify** → **Webhooks** and create the missing webhooks.
