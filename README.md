@@ -57,8 +57,12 @@ Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-a
 
    Additionally (at the bottom of this screen), the **Webhook subscriptions** → **Event version** should be `2024-10`.
 
-3. **Admin API access token**: Reveal and copy this value into your `.env` file, as `SHOPIFY_ADMIN_ACCESS_TOKEN`.
-4. **API key and secret key**: Reveal and/or copy the **API key** and **API secret key** into your `.env` under `SHOPIFY_API_KEY` and `SHOPIFY_API_SECRET_KEY`, respectively.
+3. **Storefront API access scopes**: The following scopes are required for the plugin to function correctly:
+
+   - `unauthenticated_read_product_listings`
+
+4. **Admin API access token**: Reveal and copy this value into your `.env` file, as `SHOPIFY_ADMIN_ACCESS_TOKEN`.
+5. **API key and secret key**: Reveal and/or copy the **API key** and **API secret key** into your `.env` under `SHOPIFY_API_KEY` and `SHOPIFY_API_SECRET_KEY`, respectively.
 
 #### Store Hostname
 
