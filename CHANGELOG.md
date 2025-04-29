@@ -1,9 +1,9 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 6.0.1 - 2025-04-29
 
 - Fixed a PHP error that could occur when viewing Shopify utilities. ([#156](https://github.com/craftcms/commerce/issues/156))
-- Fixed a bug where image data was missing from Shopify variants.
+- Fixed a bug where `image` was missing from Shopify variant data.
 
 ## 6.0.0 - 2025-04-17
 
