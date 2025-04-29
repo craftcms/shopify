@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a PHP error that could occur when viewing Shopify utilities. ([#156](https://github.com/craftcms/commerce/issues/156))
+
 ## 6.0.0 - 2025-04-17
 
 > [!IMPORTANT]
