@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a bug where image data was missing from Shopify variants.
+
 ## 6.0.0 - 2025-04-17
 
 > [!IMPORTANT]

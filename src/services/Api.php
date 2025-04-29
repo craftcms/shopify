@@ -284,6 +284,16 @@ class Api extends Component
                                 'title',
                                 'updatedAt',
                                 'position',
+                                'image' => [
+                                    'altText',
+                                    'height',
+                                    'id',
+                                    'url',
+                                    'width',
+                                    'originalSrc',
+                                    'src',
+                                    'transformedSrc',
+                                ],
                                 'inventoryItem' => [
                                     'id',
                                     'countryCodeOfOrigin',
