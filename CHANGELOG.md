@@ -2,7 +2,7 @@
 
 ## 6.0.1 - 2025-04-29
 
-- Fixed a PHP error that could occur when viewing Shopify utilities. ([#156](https://github.com/craftcms/commerce/issues/156))
+- Fixed a PHP error that could occur when viewing Shopify utilities. ([#156](https://github.com/craftcms/shopify/issues/156))
 - Fixed a bug where `image` was missing from Shopify variant data.
 
 ## 6.0.0 - 2025-04-17
