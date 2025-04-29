@@ -10,7 +10,6 @@ namespace craft\shopify\enums;
 use Craft;
 use craft\enums\Color;
 use craft\helpers\Cp;
-use craft\helpers\Html;
 
 /**
  * Bulk Operation Status enum
