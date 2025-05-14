@@ -20,7 +20,12 @@ class m250514_130142_add_id_index_to_data_table extends Migration
             return true;
         }
 
-        $this->dropPrimaryKey('PRIMARY', Table::DATA);
+        if ($this->getDb()->getIsPgsql()) {
+            $this->dropPrimaryKey('shopify_data_pkey', Table::DATA);
+        } else {
+            $this->dropPrimaryKey('PRIMARY', Table::DATA);
+        }
+
         $this->addColumn(Table::DATA, 'id', $this->primaryKey());
 
         return true;
