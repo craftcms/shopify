@@ -47,6 +47,7 @@ class Install extends Migration
 
         $this->archiveTableIfExists(Table::DATA);
         $this->createTable(Table::DATA, [
+            'id' => $this->primaryKey(),
             'shopifyId' => $this->string(),
             'type' => $this->string(),
             'data' => $this->json(),
@@ -54,7 +55,6 @@ class Install extends Migration
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
-            'PRIMARY KEY([[shopifyId]])',
         ]);
 
         $this->archiveTableIfExists(Table::BULK_OPERATIONS);
