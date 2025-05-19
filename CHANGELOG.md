@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 6.0.2 - 2025-05-19
 
 - Fixed a bug where image sort order wasn’t being respected when syncing products. ([#161](https://github.com/craftcms/shopify/issues/161))
 
