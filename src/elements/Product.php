@@ -444,7 +444,7 @@ class Product extends Element
      */
     public function getCheapestVariant(): array
     {
-        return collect($this->getVariants())->sortBy('price')->first();
+        return collect($this->getVariants())->sortBy('price')->first() ?? [];
     }
 
     /**
@@ -454,7 +454,7 @@ class Product extends Element
      */
     public function getDefaultVariant(): array
     {
-        return collect($this->getVariants())->first();
+        return collect($this->getVariants())->first() ?? [];
     }
 
     /**
