@@ -112,7 +112,7 @@ Click **Create** on the Webhooks screen to add the required webhooks to Shopify.
 
 ## Upgrading
 
-To guarantee that the plugin can access all the Shopify resources it needs, review **Admin API access scopes** in the [requirements](#create-a-shopify-app) section _before_ performing an upgrade.
+To guarantee that the plugin can access all the Shopify resources it needs, review **Admin API access scopes** and **Storefront API access scopes** in the [requirements](#create-a-shopify-app) section _before_ performing an upgrade.
 
 _After_ upgrading, check that the required webhooks are in place by visiting **Shopify** → **Webhooks** in the Craft control panel. The plugin will retrieve all the webhooks for your storefront, and display a **Create** button if any are missing for the current environment.
 
