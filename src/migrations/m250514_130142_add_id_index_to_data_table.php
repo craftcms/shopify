@@ -19,6 +19,8 @@ class m250514_130142_add_id_index_to_data_table extends Migration
             return true;
         }
 
+        $this->execute('SET SESSION sql_require_primary_key=0');
+
         if ($this->getDb()->getIsPgsql()) {
             $this->dropPrimaryKey('shopify_data_pkey', Table::DATA);
         } else {
@@ -27,6 +29,8 @@ class m250514_130142_add_id_index_to_data_table extends Migration
 
         $this->addColumn(Table::DATA, 'id', $this->primaryKey());
 
+        $this->execute('SET SESSION sql_require_primary_key=1');
+        
         return true;
     }
 
