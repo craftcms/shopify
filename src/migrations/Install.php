@@ -119,7 +119,7 @@ class Install extends Migration
 
         foreach ($boolColumns as $col => $alias) {
             $as = $qb->jsonExtract('data', [$col]);
-            if ($db->getIsMaria()){
+            if ($db->getIsMaria()) {
                 $as = 'CAST(IF(JSON_EXTRACT(`data`, \'$."' . $col . '"\'), 1, 0) as signed)';
             } elseif ($db->getIsMysql()) {
                 $as = 'CAST(JSON_EXTRACT(`data`, \'$."' . $col . '"\') as signed)';
