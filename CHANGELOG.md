@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed a SQL error that occurred when syncing products on MariaDB. ([#166](https://github.com/craftcms/shopify/issues/166))
 - Fixed a SQL error that could occur when upgrading.
 
 ## 6.0.2 - 2025-05-19
