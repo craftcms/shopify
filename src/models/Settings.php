@@ -14,6 +14,7 @@ use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
 use Shopify\ApiVersion;
+use Shopify\Utils;
 
 /**
  * Shopify Settings model.
@@ -66,6 +67,13 @@ class Settings extends Model
         return [
             [['apiSecretKey', 'apiKey', 'accessToken', 'hostName', 'apiVersion'], 'required'],
             [['apiVersion'], 'in', 'range' => Plugin::getInstance()->getApi()->getSupportedApiVersions()],
+            [['hostName'], function($attribute) {
+                $hostName = $this->$attribute;
+
+                if (Utils::sanitizeShopDomain($hostName) === null) {
+                    $this->addError($attribute,Craft::t('Shopify', 'The host name must be a valid Shopify store domain.'));
+                }
+            }, 'skipOnEmpty' => true],
         ];
     }
 
