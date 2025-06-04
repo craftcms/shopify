@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a PHP error that occurred when setting the Shopify host name to a non `myshopify` domain. ([#168](https://github.com/craftcms/shopify/issues/168))
+
 ## 6.0.3 - 2025-05-27
 
 - Fixed a SQL error that occurred when syncing products on MariaDB. ([#166](https://github.com/craftcms/shopify/issues/166))
