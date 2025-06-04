@@ -66,7 +66,7 @@ Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-a
 
 #### Store Hostname
 
-The last piece of info you’ll need on hand is your store’s hostname. This is usually what appears in the browser when using the Shopify admin—it’s also shown if you navigate to the Settings -> Domains screen of your store:
+The last piece of info you’ll need on hand is your store’s hostname. This is usually what appears in the browser when using the Shopify admin—it’s also shown if you navigate to the `Settings -> Domains` screen of your store:
 
 <img src="./docs/shopify-hostname.png" alt="Screenshot of the settings screen in the Shopify admin, with an arrow pointing to the store’s default hostname in the sidebar.">
 
