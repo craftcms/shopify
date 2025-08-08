@@ -138,8 +138,8 @@ class Install extends Migration
      */
     public function createIndexes(): void
     {
-        $this->createIndex(null, Table::PRODUCTS, ['shopifyId'], true);
-        $this->createIndex(null, Table::PRODUCTS, ['shopifyGid'], true);
+        $this->createIndex(null, Table::PRODUCTS, ['shopifyId'], false);
+        $this->createIndex(null, Table::PRODUCTS, ['shopifyGid'], false);
         $this->createIndex(null, Table::DATA, ['shopifyId'], true);
         $this->createIndex(null, Table::DATA, ['parentId'], false);
     }
