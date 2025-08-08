@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fixed a PHP error that occurred when setting the Shopify host name to a non `myshopify` domain. ([#168](https://github.com/craftcms/shopify/issues/168))
+- Fixed a PHP error that occurred when creating product drafts. ([#176](https://github.com/craftcms/shopify/issues/176))
 
 ## 6.0.3 - 2025-05-27
 
