@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## 6.0.4.1 - 2025-08-08
+
+- Fixed a PHP error that could occur when upgrading. ([#176](https://github.com/craftcms/shopify/issues/176))
+
 ## 6.0.4 - 2025-08-08
 
 - Fixed a PHP error that occurred when setting the Shopify host name to a non `myshopify` domain. ([#168](https://github.com/craftcms/shopify/issues/168))
