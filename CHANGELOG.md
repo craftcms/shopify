@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a bug where Shopify data could be overwritten when syncing products. ([#177](https://github.com/craftcms/shopify/issues/177))
+
 ## 6.0.4.1 - 2025-08-08
 
 - Fixed a PHP error that could occur when upgrading. ([#176](https://github.com/craftcms/shopify/issues/176))

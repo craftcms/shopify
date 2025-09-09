@@ -140,7 +140,7 @@ class Install extends Migration
     {
         $this->createIndex(null, Table::PRODUCTS, ['shopifyId'], false);
         $this->createIndex(null, Table::PRODUCTS, ['shopifyGid'], false);
-        $this->createIndex(null, Table::DATA, ['shopifyId'], true);
+        $this->createIndex(null, Table::DATA, ['shopifyId'], false);
         $this->createIndex(null, Table::DATA, ['parentId'], false);
     }
 

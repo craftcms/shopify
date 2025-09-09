@@ -97,7 +97,11 @@ class ProcessBulkOperationData extends BaseBatchedJob
             return;
         }
 
-        $record = ShopifyData::findOne(['shopifyId' => $item['id']]);
+        $parentId = $item['__parentId'] ?? null;
+
+        // Find data records based on their Shopify ID and parent ID. This is to avoid overwriting
+        // records with the same ID but different parents (e.g. Metafields, Images etc).
+        $record = ShopifyData::findOne(['shopifyId' => $item['id'], 'parentId' => $parentId]);
         if (!$record) {
             $record = new ShopifyData();
         }
