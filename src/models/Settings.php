@@ -140,7 +140,7 @@ class Settings extends Model
      */
     public function getApiVersion(bool $parse = true): string
     {
-        return $parse ? App::parseEnv($this->_apiVersion) : $this->_apiVersion;
+        return ($parse ? App::parseEnv($this->_apiVersion) : $this->_apiVersion) ?? '';
     }
 
     /**
@@ -160,7 +160,7 @@ class Settings extends Model
      */
     public function getApiKey(bool $parse = true): string
     {
-        return $parse ? App::parseEnv($this->_apiKey) : $this->_apiKey;
+        return ($parse ? App::parseEnv($this->_apiKey) : $this->_apiKey) ?? '';
     }
 
     /**
@@ -180,7 +180,7 @@ class Settings extends Model
      */
     public function getApiSecretKey(bool $parse = true): string
     {
-        return $parse ? App::parseEnv($this->_apiSecretKey) : $this->_apiSecretKey;
+        return ($parse ? App::parseEnv($this->_apiSecretKey) : $this->_apiSecretKey) ?? '';
     }
 
     /**
@@ -200,7 +200,7 @@ class Settings extends Model
      */
     public function getHostName(bool $parse = true): string
     {
-        return $parse ? App::parseEnv($this->_hostName) : $this->_hostName;
+        return ($parse ? App::parseEnv($this->_hostName) : $this->_hostName) ?? '';
     }
 
     /**
@@ -220,7 +220,7 @@ class Settings extends Model
      */
     public function getAccessToken(bool $parse = true): string
     {
-        return $parse ? App::parseEnv($this->_accessToken) : $this->_accessToken;
+        return ($parse ? App::parseEnv($this->_accessToken) : $this->_accessToken) ?? '';
     }
 
     /**

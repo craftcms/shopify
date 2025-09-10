@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a PHP error that could occur with missing environment variables. ([#178](https://github.com/craftcms/shopify/issues/178))
+
 ## 6.0.5 - 2025-09-09
 
 - Fixed a bug where Shopify data could be overwritten when syncing products. ([#177](https://github.com/craftcms/shopify/issues/177))
