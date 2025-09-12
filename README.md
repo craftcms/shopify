@@ -96,7 +96,7 @@ Now that you have credentials for your custom app, it’s time to add them to Cr
    - **API Version**: `$SHOPIFY_API_VERSION`
    - **API Key**: `$SHOPIFY_API_KEY`
    - **API Secret Key**: `$SHOPIFY_API_SECRET_KEY`
-   - **Access Token**: `$SHOPIFY_ACCESS_TOKEN`
+   - **Access Token**: `SHOPIFY_ADMIN_ACCESS_TOKEN`
    - **Host Name**: `$SHOPIFY_HOSTNAME`
 3. Click **Save**.
 
