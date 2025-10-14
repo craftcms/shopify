@@ -83,6 +83,7 @@ class Api extends Component
     public function getSupportedApiVersions(): array
     {
         return [
+            ApiVersion::JULY_2025,
             ApiVersion::OCTOBER_2024,
             ApiVersion::OCTOBER_2023,
         ];

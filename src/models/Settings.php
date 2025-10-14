@@ -42,7 +42,7 @@ class Settings extends Model
      * @see setApiVersion()
      * @see getApiVersion()
      */
-    private string $_apiVersion = ApiVersion::OCTOBER_2024;
+    private string $_apiVersion = ApiVersion::JULY_2025;
 
     /**
      * Whether product metafields should be included when syncing products. This adds an extra API request per product.
