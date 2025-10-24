@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 6.1.0 - 2025-10-24
 
 - Shopify for Craft now supports version `2025-07` of Shopify’s GraphQL Admin API.
 - Fixed a PHP error that could occur with missing environment variables. ([#178](https://github.com/craftcms/shopify/issues/178))
