@@ -10,6 +10,7 @@ namespace craft\shopify\models;
 use Craft;
 use craft\base\Model;
 use craft\helpers\App;
+use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
@@ -240,7 +241,7 @@ class Settings extends Model
      */
     public function getContextualPricingCountries(bool $parse = true): string
     {
-        return ($parse ? App::parseEnv($this->_contextualPricingCountries) : $this->_contextualPricingCountries) ?? '';
+        return ($parse ? StringHelper::toUpperCase(App::parseEnv($this->_contextualPricingCountries)) : $this->_contextualPricingCountries) ?? '';
     }
 
     /**

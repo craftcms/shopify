@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a bug where contextual pricing countries weren’t being force to be capitalized.
+
 ## 6.1.0 - 2025-10-24
 
 - Shopify for Craft now supports version `2025-07` of Shopify’s GraphQL Admin API.
