@@ -61,25 +61,28 @@ class ProcessBulkOperationData extends BaseBatchedJob
      */
     protected function loadData(): Batchable
     {
-        $downloadFile = false;
-
-        // check to see if the file is still in temporary storage
-        if ($this->tempFilePath === null || !file_exists($this->tempFilePath)) {
+        // The first iteration of the batch we will not have a file name yet, so we will generate one here and store it
+        // on the job context so that it is serialized and available for subsequent iterations.
+        if ($this->tempFilePath === null) {
             $this->tempFilePath = Assets::tempFilePath('jsonl');
-            $downloadFile = true;
         }
 
-        if ($downloadFile) {
-            // Retrieve remote file contents
+        // We will always download the file if it doesn't already exist. This is to ensure that if the worker picking
+        // up subsequent executions of the batch job is on a different server, it will re-fetch the file so we can
+        // safely keep processing the batch. The consequence is that the file will leak and we won't be able to
+        // delete it from every worker server once the entire batch finishes.
+        if (!file_exists($this->tempFilePath)) {
             $client = Craft::createGuzzleClient();
+
             $response = $client->get($this->dataUrl);
 
-            // Write the contents to the temporary file
             FileHelper::writeToFile($this->tempFilePath, $response->getBody()->getContents());
         }
 
         $bulkDataBatcher = new BulkDataBatcher();
+
         $bulkDataBatcher->filePath = $this->tempFilePath;
+
         $bulkDataBatcher->total = $this->objectCount;
 
         return $bulkDataBatcher;
