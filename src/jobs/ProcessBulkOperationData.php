@@ -61,25 +61,22 @@ class ProcessBulkOperationData extends BaseBatchedJob
      */
     protected function loadData(): Batchable
     {
-        $downloadFile = false;
-
-        // check to see if the file is still in temporary storage
-        if ($this->tempFilePath === null || !file_exists($this->tempFilePath)) {
+        // The first iteration of the batch we will not have a file name yet, so we will generate one here and store it
+        // on the job context so that it is serialized and available for subsequent iterations.
+        if ($this->tempFilePath === null) {
             $this->tempFilePath = Assets::tempFilePath('jsonl');
-            $downloadFile = true;
         }
 
-        if ($downloadFile) {
-            // Retrieve remote file contents
-            $client = Craft::createGuzzleClient();
-            $response = $client->get($this->dataUrl);
+        $client = Craft::createGuzzleClient();
 
-            // Write the contents to the temporary file
-            FileHelper::writeToFile($this->tempFilePath, $response->getBody()->getContents());
-        }
+        $response = $client->get($this->dataUrl);
+
+        FileHelper::writeToFile($this->tempFilePath, $response->getBody()->getContents());
 
         $bulkDataBatcher = new BulkDataBatcher();
+
         $bulkDataBatcher->filePath = $this->tempFilePath;
+
         $bulkDataBatcher->total = $this->objectCount;
 
         return $bulkDataBatcher;
@@ -119,6 +116,13 @@ class ProcessBulkOperationData extends BaseBatchedJob
         // Process the data based on the type
         if ($record->type === 'Product') {
             Plugin::getInstance()->getProducts()->createOrUpdateProduct($item);
+        }
+
+        // Always delete the temporary file after processing the current job. We don't know if the next chunk of the
+        // job will be picked up by the same worker or not. If we leave the file there, it effectively means that
+        // the file has leaked and we won't be able to delete it from all worker servers once the batch is done
+        if ($this->tempFilePath !== null && file_exists($this->tempFilePath)) {
+            FileHelper::unlink($this->tempFilePath);
         }
     }
 
@@ -165,11 +169,6 @@ class ProcessBulkOperationData extends BaseBatchedJob
         $bulkOperation->setStatus(BulkOperationStatus::Completed);
 
         Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
-
-        // Delete the temporary file
-        if ($this->tempFilePath !== null && file_exists($this->tempFilePath)) {
-            FileHelper::unlink($this->tempFilePath);
-        }
 
         // Start the next bulk op if there is one
         Plugin::getInstance()->getBulkOperations()->nextBulkOperation();
