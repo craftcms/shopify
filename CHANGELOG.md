@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 6.1.1 - 2025-11-06
 
 - Fixed a bug where file storage could be maxed out when using multiple queue workers.
 - Fixed a bug where contextual pricing countries weren’t being force to be capitalized.
