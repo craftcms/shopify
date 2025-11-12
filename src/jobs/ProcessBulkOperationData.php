@@ -67,6 +67,13 @@ class ProcessBulkOperationData extends BaseBatchedJob
             $this->tempFilePath = Assets::tempFilePath('jsonl');
         }
 
+        $exists = file_exists($this->tempFilePath);
+        $size   = $exists ? filesize($this->tempFilePath) : 0;
+
+        if ($exists && $size === 0) {
+            @unlink($this->tempFilePath);
+        }
+
         // Only re-download if the file doesn't already exist
         // If the queue is using multiple workers and the file leaks between them,
         if (!file_exists($this->tempFilePath)) {
