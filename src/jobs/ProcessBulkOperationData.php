@@ -67,9 +67,18 @@ class ProcessBulkOperationData extends BaseBatchedJob
             $this->tempFilePath = Assets::tempFilePath('jsonl');
         }
 
+        $fileExists = file_exists($this->tempFilePath);
+        $fileSize = $fileExists ? filesize($this->tempFilePath) : 0;
+
+        // If somehow a zero-byte file exists, remove it to force a re-download
+        if ($fileExists && $fileSize === 0) {
+            FileHelper::unlink($this->tempFilePath);
+            $fileExists = false;
+        }
+
         // Only re-download if the file doesn't already exist
         // If the queue is using multiple workers and the file leaks between them,
-        if (!file_exists($this->tempFilePath)) {
+        if (!$fileExists) {
             // Retrieve remote file contents
             $client = Craft::createGuzzleClient();
             $response = $client->get($this->dataUrl);
