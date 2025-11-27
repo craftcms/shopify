@@ -270,6 +270,13 @@ class Settings extends Model
      */
     public function getWebhookUrl(): string
     {
-        return UrlHelper::actionUrl('shopify/webhook/handle');
+        $url = UrlHelper::actionUrl('shopify/webhook/handle');
+        $webhookBaseUrl = App::env('SHOPIFY_WEBHOOK_BASE_URL');
+
+        if ($webhookBaseUrl) {
+            $url = StringHelper::replaceFirst($url, rtrim(UrlHelper::baseUrl(), '/'), rtrim($webhookBaseUrl, '/'));
+        }
+
+        return $url;
     }
 }
