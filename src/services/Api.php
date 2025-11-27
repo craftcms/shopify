@@ -19,6 +19,7 @@ use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
 use GraphQL\Variable;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
 use Psr\Http\Client\ClientInterface;
 use Shopify\ApiVersion;
@@ -36,6 +37,7 @@ use Shopify\Rest\Admin2024_10\Metafield as ShopifyMetafield2410;
 use Shopify\Rest\Admin2024_10\Product as ShopifyProduct2410;
 use Shopify\Rest\Admin2024_10\Variant as ShopifyVariant2410;
 use Shopify\Rest\Base as ShopifyBaseResource;
+use Shopify\Utils;
 use Shopify\Webhooks\Topics;
 
 /**
@@ -62,6 +64,11 @@ class Api extends Component
     ];
 
     /**
+     * @since 7.0.0
+     */
+    public const API_ACCESS_TOKEN_CACHE_KEY = 'shopifyApiAccessToken';
+
+    /**
      * @var Session|null
      */
     private ?Session $_session = null;
@@ -83,9 +90,7 @@ class Api extends Component
     public function getSupportedApiVersions(): array
     {
         return [
-            ApiVersion::JULY_2025,
-            ApiVersion::OCTOBER_2024,
-            ApiVersion::OCTOBER_2023,
+            ApiVersion::OCTOBER_2025,
         ];
     }
 
@@ -508,7 +513,7 @@ class Api extends Component
             };
 
             $hostName = $pluginSettings->getHostName(true);
-            $accessToken = $pluginSettings->getAccessToken(true);
+            $accessToken = $this->getAccessToken();
 
             $this->_session = new Session(
                 id: 'NA',
@@ -521,6 +526,53 @@ class Api extends Component
         }
 
         return $this->_session;
+    }
+
+
+    /**
+     * @return string
+     * @throws GuzzleException
+     * @since 7.0.0
+     */
+    public function getAccessToken(): string
+    {
+        // Try and retrieve the access token from the cache
+        if ($accessToken = Craft::$app->getCache()->get(self::API_ACCESS_TOKEN_CACHE_KEY)) {
+            return $accessToken;
+        }
+
+        $client = Craft::createGuzzleClient([
+            'headers' => [
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ],
+        ]);
+
+        $shopDomain = Utils::sanitizeShopDomain(Plugin::getInstance()->getSettings()->getHostName());
+        $endpoint = 'https://' . $shopDomain . '/admin/oauth/access_token';
+
+        try {
+            $response = $client->post($endpoint, [
+                'form_params' => [
+                    'client_id' => Plugin::getInstance()->getSettings()->getApiKey(true),
+                    'client_secret' => Plugin::getInstance()->getSettings()->getApiSecretKey(true),
+                    'grant_type' => 'client_credentials',
+                ],
+            ]);
+
+            $body = Json::decodeIfJson((string)$response->getBody());
+
+            if (!isset($body['access_token'])) {
+                throw new \Exception('No access token returned from Shopify.');
+            }
+
+            // Cache the access token for its lifetime minus 2 minutes
+            Craft::$app->getCache()->set(self::API_ACCESS_TOKEN_CACHE_KEY, $body['access_token'], $body['expires_in'] - 120);
+
+            return $body['access_token'];
+        } catch (\Exception $e) {
+            Craft::error('Could not get access token from Shopify: ' . $e->getMessage(), __METHOD__);
+            throw $e;
+        }
     }
 
     /**

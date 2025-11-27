@@ -8,6 +8,8 @@
 namespace craft\shopify\controllers;
 
 use Craft;
+use craft\helpers\Html;
+use craft\helpers\Json;
 use craft\shopify\Plugin;
 use craft\web\assets\admintable\AdminTableAsset;
 use craft\web\Controller;
@@ -41,13 +43,65 @@ class WebhooksController extends Controller
         }
 
         $webhooks = $api->getWebhooks();
+        $tableData = [];
 
         // If we don't have all webhooks needed for the current environment show the create button
-        $containsAllWebhooks = $webhooks->filter(function($item) use ($api) {
+        $containsAllWebhooks = $webhooks->filter(function($item) use ($api, &$tableData) {
+            $tableData[] = [
+                    'id' => $item['id'],
+                    'title' => $item['topic'],
+                    'callbackUrl' => $item['endpoint']['callbackUrl'],
+                ];
             return in_array($item['topic'], $api::WEBHOOK_TOPICS) && $item['endpoint']['callbackUrl'] == Plugin::getInstance()->getSettings()->getWebhookUrl();
         })->count() === count($api::WEBHOOK_TOPICS);
 
-        return $this->renderTemplate('shopify/webhooks/index', compact('webhooks', 'containsAllWebhooks'));
+        $view->registerTranslations('shopify', [
+            'Are you sure you want to delete this webhook?',
+            'No webhooks exist yet.',
+            'Topic',
+            'URL',
+            'Webhook could not be deleted',
+            'Webhook deleted',
+        ]);
+
+        $tableData = Json::encode($tableData);
+
+        $view->registerJs(<<<JS
+var columns = [
+            { name: '__slot:title', title: Craft.t('shopify', 'Topic') },
+            { name: 'callbackUrl', title: Craft.t('shopify', 'URL') }
+        ];
+
+        new Craft.VueAdminTable({
+            fullPane: false,
+            columns: columns,
+            container: '#webhooks-container',
+            deleteAction: 'shopify/webhooks/delete',
+            deleteConfirmationMessage: Craft.t('shopify', "Are you sure you want to delete this webhook?"),
+            deleteFailMessage: Craft.t('shopify', "Webhook could not be deleted"),
+            deleteSuccessMessage: Craft.t('shopify', "Webhook deleted"),
+            emptyMessage: Craft.t('shopify', 'No webhooks exist yet.'),
+            tableData: $tableData,
+            deleteCallback: function(){
+                window.location.reload(); // We need to reload to get the create button showing again
+            }
+        });
+JS);
+
+        $screen = $this->asCpScreen()
+            ->title(Craft::t('shopify', 'Webhooks'))
+            ->selectedSubnavItem('webhooks')
+            ->contentHtml(
+                Html::tag('p', Craft::t('shopify', 'Webhooks for the current environment.')) .
+                Html::tag('div', Html::tag('div', '', ['id' => 'webhooks-container']), ['class' => 'field'])
+            );
+
+        if (!$containsAllWebhooks) {
+            $screen->action('shopify/webhooks/create')
+                ->submitButtonLabel(Craft::t('shopify', 'Create webhooks'));
+        }
+
+        return $screen;
     }
 
     /**

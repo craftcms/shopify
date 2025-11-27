@@ -1,5 +1,15 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+> [!IMPORTANT]
+> After updating, this plugin now requires API version `2025-10` and the creation of an app via the Dev Dashboard.
+> Webhooks will need to be recreated for the new app. Go to **Shopify** → **Webhooks** and create the missing webhooks.
+
+- Shopify for Craft now supports version `2025-10` of Shopify’s GraphQL Admin API.
+- It is now possible to configure the webhook URLs using the `SHOPIFY_WEBHOOK_BASE_URL` environment variable. ([#185](https://github.com/craftcms/shopify/issues/185))
+- Added `craft\shopify\services\Api::API_ACCESS_TOKEN_CACHE_KEY`.
+
 ## 6.1.1 - 2025-11-06
 
 - Fixed a bug where file storage could be maxed out when using multiple queue workers.

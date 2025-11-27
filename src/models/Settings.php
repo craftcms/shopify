@@ -27,7 +27,6 @@ class Settings extends Model
 {
     private string $_apiKey = '';
     private string $_apiSecretKey = '';
-    private string $_accessToken = '';
     private string $_hostName = '';
     public string $uriFormat = '';
     public string $template = '';
@@ -43,7 +42,7 @@ class Settings extends Model
      * @see setApiVersion()
      * @see getApiVersion()
      */
-    private string $_apiVersion = ApiVersion::JULY_2025;
+    private string $_apiVersion = ApiVersion::OCTOBER_2025;
 
     /**
      * Whether product metafields should be included when syncing products. This adds an extra API request per product.
@@ -66,7 +65,7 @@ class Settings extends Model
     public function rules(): array
     {
         return [
-            [['apiSecretKey', 'apiKey', 'accessToken', 'hostName', 'apiVersion'], 'required'],
+            [['apiSecretKey', 'apiKey', 'hostName', 'apiVersion'], 'required'],
             [['apiVersion'], 'in', 'range' => Plugin::getInstance()->getApi()->getSupportedApiVersions()],
             [['hostName'], function($attribute) {
                 $hostName = $this->$attribute;
@@ -84,7 +83,6 @@ class Settings extends Model
         $names[] = 'apiVersion';
         $names[] = 'apiKey';
         $names[] = 'apiSecretKey';
-        $names[] = 'accessToken';
         $names[] = 'contextualPricingCountries';
         $names[] = 'hostName';
         $names[] = 'uriFormat';
@@ -99,7 +97,6 @@ class Settings extends Model
             'apiVersion' => fn() => $this->getApiVersion(false),
             'apiKey' => fn() => $this->getApiKey(false),
             'apiSecretKey' => fn() => $this->getApiSecretKey(false),
-            'accessToken' => fn() => $this->getAccessToken(false),
             'contextualPricingCountries' => fn() => $this->getContextualPricingCountries(false),
             'hostName' => fn() => $this->getHostName(false),
             'uriFormat' => 'uriFormat',
@@ -116,7 +113,6 @@ class Settings extends Model
             'apiKey' => Craft::t('shopify', 'Shopify API Key'),
             'apiSecretKey' => Craft::t('shopify', 'Shopify API Secret Key'),
             'apiVersion' => Craft::t('shopify', 'Shopify API Version'),
-            'accessToken' => Craft::t('shopify', 'Shopify Access Token'),
             'contextualPricingCountries' => Craft::t('shopify', 'Context Pricing Countries'),
             'hostName' => Craft::t('shopify', 'Shopify Host Name'),
             'uriFormat' => Craft::t('shopify', 'Product URI format'),
@@ -202,26 +198,6 @@ class Settings extends Model
     public function getHostName(bool $parse = true): string
     {
         return ($parse ? App::parseEnv($this->_hostName) : $this->_hostName) ?? '';
-    }
-
-    /**
-     * @param string $accessToken
-     * @return void
-     * @since 6.0.0
-     */
-    public function setAccessToken(string $accessToken): void
-    {
-        $this->_accessToken = $accessToken;
-    }
-
-    /**
-     * @param bool $parse
-     * @return string
-     * @since 6.0.0
-     */
-    public function getAccessToken(bool $parse = true): string
-    {
-        return ($parse ? App::parseEnv($this->_accessToken) : $this->_accessToken) ?? '';
     }
 
     /**

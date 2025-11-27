@@ -155,6 +155,7 @@ class BulkOperations extends Component
                     ]),
                 (new \GraphQL\Query('userErrors'))
                     ->setSelectionSet([
+                        'code',
                         'field',
                         'message',
                     ]),

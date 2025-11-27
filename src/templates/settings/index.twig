@@ -89,15 +89,6 @@
         }) }}
 
         {{ forms.autosuggestField({
-            label: 'Access Token'|t('shopify'),
-            id: 'accessToken',
-            name: 'settings[accessToken]',
-            value: settings.getAccessToken(false),
-            errors: settings.getErrors('accessToken'),
-            suggestEnvVars: true,
-        }) }}
-
-        {{ forms.autosuggestField({
             label: 'Host Name'|t('shopify'),
             instructions: 'The Shopify store hostname.'|t('shopify'),
             id: 'hostName',
