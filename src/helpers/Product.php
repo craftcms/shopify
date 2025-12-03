@@ -29,10 +29,11 @@ class Product
 {
     /**
      * @param ProductElement $product
+     * @param array $excludeMetaDataKeys
      * @return string
      * @throws InvalidConfigException
      */
-    public static function renderCardHtml(ProductElement $product): string
+    public static function renderCardHtml(ProductElement $product, array $excludeMetaDataKeys = []): string
     {
         $formatter = Craft::$app->getFormatter();
 
@@ -105,7 +106,7 @@ class Product
 
         // Metafields
         if (count($product->getMetafields()) > 0) {
-            $meta[Craft::t('shopify', 'Metafields')] = collect($product->getMetafields())
+            $meta[Craft::t('shopify', 'Meta fields')] = collect($product->getMetafields())
                 ->keys()
                 ->join(', ');
         }
@@ -116,14 +117,13 @@ class Product
         $meta[Craft::t('shopify', 'Published at')] = $formatter->asDatetime($product->publishedAt, Formatter::FORMAT_WIDTH_SHORT);
         $meta[Craft::t('shopify', 'Updated at')] = $formatter->asDatetime($product->updatedAt, Formatter::FORMAT_WIDTH_SHORT);
 
-        $metadataHtml = Cp::metadataHtml($meta);
+        foreach ($excludeMetaDataKeys as $key) {
+            if (array_key_exists($key, $meta)) {
+                unset($meta[$key]);
+            }
+        }
 
-        $spinner = Html::tag('div', '', [
-            'class' => 'spinner',
-            'hx' => [
-                'indicator',
-            ],
-        ]);
+        $metadataHtml = Cp::metadataHtml($meta);
 
         // This is the date updated in the database which represents the last time it was updated from a Shopify webhook or sync.
         /** @var ShopifyData $productData */
@@ -132,20 +132,13 @@ class Product
         $now = new \DateTime();
         $diff = $now->diff($dateUpdated);
         $duration = DateTimeHelper::humanDuration($diff, false);
-        $footer = Html::tag('div', 'Updated ' . $duration . ' ago.' . $spinner, [
+        $footer = Html::tag('div', 'Updated ' . $duration . ' ago.', [
             'class' => 'pec-footer',
         ]);
 
         return Html::tag('div', $cardHeader . $hr . $metadataHtml . $footer, [
             'class' => 'meta proxy-element-card',
             'id' => 'pec-' . $product->id,
-            'hx' => [
-                'get' => UrlHelper::actionUrl('shopify/products/render-card-html', [
-                    'id' => $product->id,
-                ]),
-                'swap' => 'outerHTML',
-                'trigger' => 'every 15s',
-            ],
         ]);
     }
 

@@ -20,6 +20,9 @@ use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\shopify\elements\conditions\products\ProductCondition;
 use craft\shopify\elements\db\ProductQuery;
+use craft\shopify\fieldlayoutelements\MetafieldsField;
+use craft\shopify\fieldlayoutelements\OptionsField;
+use craft\shopify\fieldlayoutelements\VariantsField;
 use craft\shopify\helpers\Product as ProductHelper;
 use craft\shopify\Plugin;
 use craft\shopify\records\Product as ProductRecord;
@@ -696,8 +699,25 @@ class Product extends Element
     {
         /** @noinspection PhpUnhandledExceptionInspection */
         Craft::$app->getView()->registerAssetBundle(ShopifyCpAsset::class);
-        $productCard = ProductHelper::renderCardHtml($this);
-        return $productCard . parent::getSidebarHtml($static);
+
+        // Conditionally show metadata in the sidebar dependent on the field layout
+        $excludeKeys = [];
+        $this->getFieldLayout()->getFields(Function ($field) use (&$excludeKeys) {
+            if ($field instanceof VariantsField) {
+                $excludeKeys[] = 'Variants';
+                return true;
+            } else if ($field instanceof OptionsField) {
+                $excludeKeys[] = 'Options';
+                return true;
+            } else if ($field instanceof MetafieldsField) {
+                $excludeKeys[] = 'Metafields';
+                return true;
+            }
+
+            return false;
+        });
+
+        return ProductHelper::renderCardHtml($this, $excludeKeys) . parent::getSidebarHtml($static);
     }
 
     /**

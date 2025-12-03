@@ -1,0 +1,88 @@
+<?php
+/**
+ * @link https://craftcms.com/
+ * @copyright Copyright (c) Pixel & Tonic, Inc.
+ * @license https://craftcms.github.io/license/
+ */
+
+namespace craft\shopify\fieldlayoutelements;
+
+use Craft;
+use craft\base\ElementInterface;
+use craft\fieldlayoutelements\BaseNativeField;
+use craft\helpers\Cp;
+use craft\helpers\Html;
+use craft\shopify\elements\Product;
+use yii\base\InvalidArgumentException;
+
+/**
+ * VariantsField represents a Variants field that can be included within a product’s product field layout designer.
+ *
+ * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
+ * @since 7.0.0
+ */
+class VariantsField extends BaseNativeField
+{
+    /**
+     * @inheritdoc
+     */
+    public string $attribute = 'variants';
+
+    /**
+     * @inheritdoc
+     */
+    public function hasCustomWidth(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function defaultLabel(ElementInterface $element = null, bool $static = false): ?string
+    {
+        return Craft::t('shopify', 'Variants');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function inputHtml(ElementInterface $element = null, bool $static = false): ?string
+    {
+        if (!$element instanceof Product) {
+            throw new InvalidArgumentException(__CLASS__ . ' can only be used in product field layouts.');
+        }
+
+        $variants = $element->getVariants();
+
+        $cols = [
+            'title' => ['heading' => Craft::t('shopify', 'Variant'), 'type' => 'html'],
+            'sku' => ['heading' => Craft::t('shopify', 'SKU'), 'type' => 'html'],
+            'price' => ['heading' => Craft::t('shopify', 'Price'), 'type' => 'html'],
+        ];
+
+        foreach ($variants as &$variant) {
+            $link = sprintf('%s/variants/%s', $element->getShopifyEditUrl(), str_replace('gid://shopify/ProductVariant/', '', $variant['id']));
+            $variant['title'] = Html::a(Html::encode($variant['title']), $link, [
+                'aria-label' => Craft::t('shopify', 'Edit variant {title} on Shopify', ['title' => $variant['title']]),
+                'target' => '_blank',
+                'class' => ''
+            ]);
+            $variant['sku'] = Html::tag('code', $variant['sku']);
+        }
+
+        if (empty($variants)) {
+            return Html::beginTag('div', ['class' => 'zilch']) .
+                    Html::tag('p', Craft::t('shopify', 'This product has no variants.')) .
+                Html::endTag('div');
+        }
+
+        return Cp::editableTableHtml([
+            'id' => $this->id(),
+            'name' => $this->baseInputName(),
+            'cols' => $cols,
+            'rows' => $variants,
+            'static' => true,
+        ]);
+    }
+}

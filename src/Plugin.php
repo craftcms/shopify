@@ -18,6 +18,7 @@ use craft\console\Controller;
 use craft\console\controllers\ResaveController;
 use craft\db\Query;
 use craft\events\DefineConsoleActionsEvent;
+use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\feedme\events\RegisterFeedMeFieldsEvent;
@@ -25,6 +26,7 @@ use craft\fields\Link;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
 use craft\helpers\UrlHelper;
+use craft\models\FieldLayout;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Gc;
@@ -32,6 +34,10 @@ use craft\services\Utilities;
 use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
 use craft\shopify\feedme\fields\Products as FeedMeProductsField;
+use craft\shopify\fieldlayoutelements\MediaField;
+use craft\shopify\fieldlayoutelements\MetafieldsField;
+use craft\shopify\fieldlayoutelements\OptionsField;
+use craft\shopify\fieldlayoutelements\VariantsField;
 use craft\shopify\fields\Products as ProductsField;
 use craft\shopify\handlers\Webhook;
 use craft\shopify\linktypes\Product as ProductLinkType;
@@ -125,6 +131,7 @@ class Plugin extends BasePlugin
         $this->_registerElementTypes();
         $this->_registerUtilityTypes();
         $this->_registerFieldTypes();
+        $this->_registerFieldLayoutElements();
         $this->_registerLinkTypes();
         $this->_registerVariables();
         $this->_registerResaveCommands();
@@ -253,6 +260,27 @@ class Plugin extends BasePlugin
     {
         Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, static function(RegisterComponentTypesEvent $event) {
             $event->types[] = ProductsField::class;
+        });
+    }
+
+    /**
+     * @return void
+     * @since 7.0.0
+     */
+    private function _registerFieldLayoutElements(): void
+    {
+        Event::on(FieldLayout::class, FieldLayout::EVENT_DEFINE_NATIVE_FIELDS, static function(DefineFieldLayoutFieldsEvent $e) {
+            /** @var FieldLayout $fieldLayout */
+            $fieldLayout = $e->sender;
+
+            switch ($fieldLayout->type) {
+                case Product::class:
+                    $e->fields[] = VariantsField::class;
+                    $e->fields[] = OptionsField::class;
+                    $e->fields[] = MetafieldsField::class;
+                    $e->fields[] = MediaField::class;
+                    break;
+            }
         });
     }
 

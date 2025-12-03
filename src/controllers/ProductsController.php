@@ -53,17 +53,4 @@ class ProductsController extends \craft\web\Controller
 
         return $this->asSuccess(Craft::t('shopify', 'Products sync created'));
     }
-
-    /**
-     * Renders the card HTML.
-     *
-     * @return string
-     */
-    public function actionRenderCardHtml(): string
-    {
-        $id = (int)Craft::$app->request->getParam('id');
-        /** @var Product $product */
-        $product = Product::find()->id($id)->status(null)->one();
-        return ProductHelper::renderCardHtml($product);
-    }
 }
