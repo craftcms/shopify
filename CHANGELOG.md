@@ -1,5 +1,10 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a bug where syncing queue jobs could run indefinitely. ([#189](https://github.com/craftcms/shopify/issues/189))
+- Fixed a bug where syncing products could fail if the sync file had downloaded incorrectly.
+
 ## 6.1.1 - 2025-11-06
 
 - Fixed a bug where file storage could be maxed out when using multiple queue workers.
