@@ -241,7 +241,9 @@ class Settings extends Model
      */
     public function getContextualPricingCountries(bool $parse = true): string
     {
-        return ($parse ? StringHelper::toUpperCase(App::parseEnv($this->_contextualPricingCountries)) : $this->_contextualPricingCountries) ?? '';
+        $parsedValue = App::parseEnv($this->_contextualPricingCountries) ?? '';
+
+        return ($parse ? StringHelper::toUpperCase($parsedValue) : $this->_contextualPricingCountries) ?? '';
     }
 
     /**
