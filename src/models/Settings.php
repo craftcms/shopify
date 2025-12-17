@@ -10,10 +10,12 @@ namespace craft\shopify\models;
 use Craft;
 use craft\base\Model;
 use craft\helpers\App;
+use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
 use Shopify\ApiVersion;
+use Shopify\Utils;
 
 /**
  * Shopify Settings model.
@@ -41,7 +43,7 @@ class Settings extends Model
      * @see setApiVersion()
      * @see getApiVersion()
      */
-    private string $_apiVersion = ApiVersion::OCTOBER_2024;
+    private string $_apiVersion = ApiVersion::JULY_2025;
 
     /**
      * Whether product metafields should be included when syncing products. This adds an extra API request per product.
@@ -66,6 +68,13 @@ class Settings extends Model
         return [
             [['apiSecretKey', 'apiKey', 'accessToken', 'hostName', 'apiVersion'], 'required'],
             [['apiVersion'], 'in', 'range' => Plugin::getInstance()->getApi()->getSupportedApiVersions()],
+            [['hostName'], function($attribute) {
+                $hostName = $this->$attribute;
+
+                if (Utils::sanitizeShopDomain($hostName) === null) {
+                    $this->addError($attribute,Craft::t('Shopify', 'The host name must be a valid Shopify store domain.'));
+                }
+            }, 'skipOnEmpty' => true],
         ];
     }
 
@@ -132,7 +141,7 @@ class Settings extends Model
      */
     public function getApiVersion(bool $parse = true): string
     {
-        return $parse ? App::parseEnv($this->_apiVersion) : $this->_apiVersion;
+        return ($parse ? App::parseEnv($this->_apiVersion) : $this->_apiVersion) ?? '';
     }
 
     /**
@@ -152,7 +161,7 @@ class Settings extends Model
      */
     public function getApiKey(bool $parse = true): string
     {
-        return $parse ? App::parseEnv($this->_apiKey) : $this->_apiKey;
+        return ($parse ? App::parseEnv($this->_apiKey) : $this->_apiKey) ?? '';
     }
 
     /**
@@ -172,7 +181,7 @@ class Settings extends Model
      */
     public function getApiSecretKey(bool $parse = true): string
     {
-        return $parse ? App::parseEnv($this->_apiSecretKey) : $this->_apiSecretKey;
+        return ($parse ? App::parseEnv($this->_apiSecretKey) : $this->_apiSecretKey) ?? '';
     }
 
     /**
@@ -192,7 +201,7 @@ class Settings extends Model
      */
     public function getHostName(bool $parse = true): string
     {
-        return $parse ? App::parseEnv($this->_hostName) : $this->_hostName;
+        return ($parse ? App::parseEnv($this->_hostName) : $this->_hostName) ?? '';
     }
 
     /**
@@ -212,7 +221,7 @@ class Settings extends Model
      */
     public function getAccessToken(bool $parse = true): string
     {
-        return $parse ? App::parseEnv($this->_accessToken) : $this->_accessToken;
+        return ($parse ? App::parseEnv($this->_accessToken) : $this->_accessToken) ?? '';
     }
 
     /**
@@ -232,7 +241,9 @@ class Settings extends Model
      */
     public function getContextualPricingCountries(bool $parse = true): string
     {
-        return ($parse ? App::parseEnv($this->_contextualPricingCountries) : $this->_contextualPricingCountries) ?? '';
+        $parsedValue = App::parseEnv($this->_contextualPricingCountries) ?? '';
+
+        return ($parse ? StringHelper::toUpperCase($parsedValue) : $this->_contextualPricingCountries) ?? '';
     }
 
     /**

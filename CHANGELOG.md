@@ -1,5 +1,42 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a PHP error that could occur when contextual pricing countries aren’t set. ([#191](https://github.com/craftcms/shopify/issues/191))
+
+## 6.1.2 - 2025-12-08
+
+- Fixed a bug where syncing queue jobs could run indefinitely. ([#189](https://github.com/craftcms/shopify/issues/189))
+- Fixed a bug where syncing products could fail if the sync file had downloaded incorrectly.
+
+## 6.1.1 - 2025-11-06
+
+- Fixed a bug where file storage could be maxed out when using multiple queue workers.
+- Fixed a bug where contextual pricing countries weren’t being force to be capitalized.
+
+## 6.1.0 - 2025-10-24
+
+- Shopify for Craft now supports version `2025-07` of Shopify’s GraphQL Admin API.
+- Fixed a PHP error that could occur with missing environment variables. ([#178](https://github.com/craftcms/shopify/issues/178))
+
+## 6.0.5 - 2025-09-09
+
+- Fixed a bug where Shopify data could be overwritten when syncing products. ([#177](https://github.com/craftcms/shopify/issues/177))
+
+## 6.0.4.1 - 2025-08-08
+
+- Fixed a PHP error that could occur when upgrading. ([#176](https://github.com/craftcms/shopify/issues/176))
+
+## 6.0.4 - 2025-08-08
+
+- Fixed a PHP error that occurred when setting the Shopify host name to a non `myshopify` domain. ([#168](https://github.com/craftcms/shopify/issues/168))
+- Fixed a PHP error that occurred when creating product drafts. ([#176](https://github.com/craftcms/shopify/issues/176))
+
+## 6.0.3 - 2025-05-27
+
+- Fixed a SQL error that occurred when syncing products on MariaDB. ([#166](https://github.com/craftcms/shopify/issues/166))
+- Fixed a SQL error that could occur when upgrading.
+
 ## 6.0.2 - 2025-05-19
 
 - Fixed a bug where image sort order wasn’t being respected when syncing products. ([#161](https://github.com/craftcms/shopify/issues/161))

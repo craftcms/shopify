@@ -55,7 +55,7 @@ Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-a
    - `read_product_listings`
    - `read_inventory`
 
-   Additionally (at the bottom of this screen), the **Webhook subscriptions** → **Event version** should be `2024-10`.
+   Additionally (at the bottom of this screen), the **Webhook subscriptions** → **Event version** should be `2025-07`.
 
 3. **Storefront API access scopes**: The following scopes are required for the plugin to function correctly:
 
@@ -66,17 +66,22 @@ Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-a
 
 #### Store Hostname
 
-The last piece of info you’ll need on hand is your store’s hostname. This is usually what appears in the browser when using the Shopify admin—it’s also shown in the Settings screen of your store:
+The last piece of info you’ll need on hand is your store’s hostname. This is usually what appears in the browser when using the Shopify admin—it’s also shown if you navigate to the `Settings -> Domains` screen of your store:
 
 <img src="./docs/shopify-hostname.png" alt="Screenshot of the settings screen in the Shopify admin, with an arrow pointing to the store’s default hostname in the sidebar.">
 
-Save this value (_without_ the leading `http://` or `https://`) in your `.env` as `SHOPIFY_HOSTNAME`. At this point, you should have the following Shopify-specific values:
+Save this value (_without_ the leading `http://` or `https://`) in your `.env` as `SHOPIFY_HOSTNAME`. 
+
+> [!NOTE]
+> The hostname required is the one ending with `myshopify.com` or `myshopify.io`.
+
+At this point, you should have the following Shopify-specific values:
 
 ```env
 # ...
 
 SHOPIFY_ADMIN_ACCESS_TOKEN="..."
-SHOPIFY_API_VERSION="2024-10"
+SHOPIFY_API_VERSION="2025-07"
 SHOPIFY_API_KEY="..."
 SHOPIFY_API_SECRET_KEY="..."
 SHOPIFY_HOSTNAME="my-storefront.myshopify.com"
@@ -91,7 +96,7 @@ Now that you have credentials for your custom app, it’s time to add them to Cr
    - **API Version**: `$SHOPIFY_API_VERSION`
    - **API Key**: `$SHOPIFY_API_KEY`
    - **API Secret Key**: `$SHOPIFY_API_SECRET_KEY`
-   - **Access Token**: `$SHOPIFY_ACCESS_TOKEN`
+   - **Access Token**: `SHOPIFY_ADMIN_ACCESS_TOKEN`
    - **Host Name**: `$SHOPIFY_HOSTNAME`
 3. Click **Save**.
 
@@ -174,7 +179,7 @@ Going forward, your products are automatically kept in sync via [webhooks](#set-
 
 ### Native Attributes
 
-In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains direct accessors for these canonical Shopify [Product attributes](https://shopify.dev/docs/api/admin-graphql/2024-10/objects/Product):
+In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains direct accessors for these canonical Shopify [Product attributes](https://shopify.dev/docs/api/admin-graphql/2025-07/objects/Product):
 
 | Attribute         | Description                                                                                                                                                                                        | Type       |
 |-------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ---------- |
@@ -510,13 +515,13 @@ Products behave just like any other element, in Twig. Once you’ve loaded a pro
 ### Variants and Pricing
 
 Products don’t have a price, despite what the Shopify UI might imply—instead, every product has at least one
-[Variant](https://shopify.dev/api/admin-rest/2024-10/resources/product-variant#resource-object).
+[Variant](https://shopify.dev/api/admin-rest/2025-07/resources/product-variant#resource-object).
 
 You can get an array of variant objects for a product by accessing `product.variants` or calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants, but you can filter them however you like with Craft’s [`collect()`](https://craftcms.com/docs/5.x/reference/twig/functions.html#collect) Twig function.
 
 Unlike products, variants in Craft…
 
-- …are represented (mostly) as [the API](https://shopify.dev/api/admin-rest/2024-10/resources/product-variant#resource-object) returns them;
+- …are represented (mostly) as [the API](https://shopify.dev/api/admin-rest/2025-07/resources/product-variant#resource-object) returns them;
 - …the `metafields` property is accessible in addition to the API’s returned properties;
 - …use Shopify’s convention of underscores in property names instead of exposing [camel-cased equivalents](#native-attributes);
 - …are plain associative arrays;

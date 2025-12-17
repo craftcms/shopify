@@ -119,7 +119,9 @@ class Install extends Migration
 
         foreach ($boolColumns as $col => $alias) {
             $as = $qb->jsonExtract('data', [$col]);
-            if (!$db->getIsPgsql()) {
+            if ($db->getIsMaria()) {
+                $as = 'CAST(IF(JSON_EXTRACT(`data`, \'$."' . $col . '"\'), 1, 0) as signed)';
+            } elseif ($db->getIsMysql()) {
                 $as = 'CAST(JSON_EXTRACT(`data`, \'$."' . $col . '"\') as signed)';
             } else {
                 $as .= '::boolean';
@@ -136,9 +138,9 @@ class Install extends Migration
      */
     public function createIndexes(): void
     {
-        $this->createIndex(null, Table::PRODUCTS, ['shopifyId'], true);
-        $this->createIndex(null, Table::PRODUCTS, ['shopifyGid'], true);
-        $this->createIndex(null, Table::DATA, ['shopifyId'], true);
+        $this->createIndex(null, Table::PRODUCTS, ['shopifyId'], false);
+        $this->createIndex(null, Table::PRODUCTS, ['shopifyGid'], false);
+        $this->createIndex(null, Table::DATA, ['shopifyId'], false);
         $this->createIndex(null, Table::DATA, ['parentId'], false);
     }
 

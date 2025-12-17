@@ -752,7 +752,7 @@ class Product extends Element
     public function afterDelete(): void
     {
         // Remove all the product shopify data
-        if ($this->shopifyGid) {
+        if ($this->shopifyGid && $this->getIsCanonical()) {
             Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyId($this->shopifyGid);
         }
 
