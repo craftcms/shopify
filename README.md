@@ -1063,3 +1063,71 @@ return [
   ],
 ];
 ```
+
+### Real-Time Pricing Queries
+
+Shopify does not emit webhooks for changes in [price catalogs for different markets](https://shopify.dev/docs/apps/build/markets/catalogs-different-markets#considerations). If you use these features, pricing stored in locally-synchronized product elements may become stale.
+
+To fetch current prices directly from Shopify's API in your Twig templates, use the GraphQL client with a query that includes [contextual pricing](https://shopify.dev/docs/api/admin-graphql/latest/objects/ProductVariantContextualPricing):
+
+```twig
+{# Define the GraphQL query with contextual pricing for a specific country #}
+{% set priceQuery %}
+query getProductPrice($id: ID!) {
+  product(id: $id) {
+    variants(first: 100) {
+      nodes {
+        id
+        title
+        price
+        compareAtPrice
+        gbPricing: contextualPricing(context: {country: GB}) {
+          price {
+            amount
+            currencyCode
+          }
+          compareAtPrice {
+            amount
+            currencyCode
+          }
+        }
+      }
+    }
+  }
+}
+{% endset %}
+
+{# Execute the query #}
+{% set response = craft.shopify.api.query(priceQuery, {
+  id: product.shopifyId
+}) %}
+
+{# Access the pricing data #}
+{% if response %}
+  {% for variant in response.variants.nodes %}
+    {% set pricing = variant.gbPricing %}
+    {% if pricing and pricing.price %}
+      {{ pricing.price.amount|currency(pricing.price.currencyCode) }}
+    {% else %}
+      {{ variant.price|currency }}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+```
+
+Key elements of this approach:
+
+- `contextualPricing(context: {country: XX})` returns market-specific prices (use the country code directly, e.g., `GB`, `US`, `DE`)
+- Use an alias like `gbPricing:` to name the result for easy access in Twig
+- Pass the product's `shopifyId` (already a GID) directly to the query
+- The `query()` method returns the first result directly, so access `response.variants` (not `response.data.product.variants`)
+- Falls back to the default `variant.price` if contextual pricing is not available
+
+> [!WARNING]
+> Real-time API calls add latency to page rendering and count against [rate limits](#rate-limits). If some staleness is acceptable, wrap the query in a [`{% cache %}` tag](https://craftcms.com/docs/5.x/reference/twig/tags.html#cache):
+>
+> ```twig
+> {% cache using key "pricing:#{product.id}:GB" for 5 minutes %}
+>   {# pricing query here #}
+> {% endcache %}
+> ```
