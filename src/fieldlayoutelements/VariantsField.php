@@ -63,7 +63,7 @@ class VariantsField extends BaseNativeField
         ];
 
         foreach ($variants as $variant) {
-            $link = sprintf('%s/variants/%s', $element->getShopifyEditUrl(), str_replace('gid://shopify/ProductVariant/', '', $variant['id']));
+            $link = sprintf('%s/variants/%s', $element->getShopifyEditUrl(), str_replace('gid://shopify/ProductVariant/', '', $variant->shopifyId));
 
             $title = $variant->title;
             $sku = $variant->sku;

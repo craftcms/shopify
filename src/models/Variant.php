@@ -16,6 +16,7 @@ use yii\base\InvalidConfigException;
 /**
  * Variant model.
  *
+ * @property-read string $shopifyId
  * @property-read string $title
  * @property-read string $sku
  * @property-read string $price
