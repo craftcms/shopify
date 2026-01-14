@@ -7,7 +7,6 @@
 
 namespace craft\shopify\models;
 
-use AllowDynamicProperties;
 use craft\base\Model;
 use craft\helpers\Json;
 use craft\shopify\Plugin;
