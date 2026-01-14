@@ -262,6 +262,13 @@ class Products extends Component
         return $this->_eagerLoadTypeOnProducts($products, 'Metafield', function($product, $rows) {
             $metafields = collect($rows)
                 ->mapWithKeys(function($d, $key) {
+                    /** @var ShopifyData $d */
+
+                    // Map if the data has `key` and `value` properties
+                    if (!isset($d->data['key']) || !isset($d->data['value'])) {
+                        return [];
+                    }
+
                     return [
                         $d->data['key'] => Json::decodeIfJson($d->data['value']),
                     ];
@@ -314,7 +321,7 @@ class Products extends Component
             $variants = VariantCollection::make($variantsByProductId[$product->shopifyGid]);
 
             if ($metafieldsData->isNotEmpty()) {
-                $variants?->map(function(Variant$variant) use ($metafieldsData) {
+                $variants->map(function(Variant$variant) use ($metafieldsData) {
                     $metafields = $metafieldsData->get($variant->shopifyId);
                     if (!empty($metafields)) {
                         $variant->setMetafields(collect($metafields)->mapWithKeys(function($d) {

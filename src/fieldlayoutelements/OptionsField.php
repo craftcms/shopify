@@ -70,7 +70,7 @@ class OptionsField extends BaseNativeField
 
         $tableData = [];
         foreach ($options as $opt) {
-            foreach ($opt['optionValues'] as $i =>  $val) {
+            foreach ($opt['optionValues'] as $i => $val) {
                 $tableData[] = [
                     'option' => $i === 0 ? Html::tag('strong', Html::encode($opt['name'])) : '',
                     'values' => Html::encode($val['name']),

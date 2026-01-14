@@ -7,6 +7,7 @@
 
 namespace craft\shopify\models;
 
+use AllowDynamicProperties;
 use craft\base\Model;
 use craft\helpers\Json;
 use craft\shopify\Plugin;
@@ -16,6 +17,9 @@ use yii\base\InvalidConfigException;
 /**
  * Variant model.
  *
+ * @property-read string $title
+ * @property-read string $sku
+ * @property-read string $price
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 7.0.0
  */

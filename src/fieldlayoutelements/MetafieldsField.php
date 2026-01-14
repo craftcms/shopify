@@ -9,7 +9,6 @@ namespace craft\shopify\fieldlayoutelements;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\enums\Color;
 use craft\fieldlayoutelements\BaseNativeField;
 use craft\helpers\Cp;
 use craft\helpers\Html;

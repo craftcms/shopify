@@ -11,7 +11,6 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
-use craft\shopify\helpers\Product as ProductHelper;
 use craft\shopify\Plugin;
 use yii\web\Response;
 

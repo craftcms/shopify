@@ -28,7 +28,6 @@ use craft\shopify\helpers\Product as ProductHelper;
 use craft\shopify\models\Variant;
 use craft\shopify\Plugin;
 use craft\shopify\records\Product as ProductRecord;
-use craft\shopify\records\ShopifyData;
 use craft\shopify\web\assets\shopifycp\ShopifyCpAsset;
 use craft\web\CpScreenResponseBehavior;
 use DateTime;
@@ -409,7 +408,7 @@ class Product extends Element
         if (is_iterable($value)) {
             if (is_array($value)) {
                 $value = VariantCollection::make($value);
-            } else if ($value instanceof Collection && !($value instanceof VariantCollection)) {
+            } elseif ($value instanceof Collection && !($value instanceof VariantCollection)) {
                 $value = VariantCollection::make($value->all());
             }
         }
@@ -427,9 +426,9 @@ class Product extends Element
             return VariantCollection::make();
         }
 
-        if ($this->_variants instanceof VariantCollection){
+        if ($this->_variants instanceof VariantCollection) {
             return $this->_variants;
-        } else if ($this->_variants === null) {
+        } elseif ($this->_variants === null) {
             $variants = Plugin::getInstance()->getApi()->getShopifyDataByType('ProductVariant', $this->shopifyGid, true);
         } else {
             $variants = $this->_variants;
@@ -719,14 +718,14 @@ class Product extends Element
 
         // Conditionally show metadata in the sidebar dependent on the field layout
         $excludeKeys = [];
-        $this->getFieldLayout()->getFields(Function ($field) use (&$excludeKeys) {
+        $this->getFieldLayout()->getFields(function($field) use (&$excludeKeys) {
             if ($field instanceof VariantsField) {
                 $excludeKeys[] = 'Variants';
                 return true;
-            } else if ($field instanceof OptionsField) {
+            } elseif ($field instanceof OptionsField) {
                 $excludeKeys[] = 'Options';
                 return true;
-            } else if ($field instanceof MetafieldsField) {
+            } elseif ($field instanceof MetafieldsField) {
                 $excludeKeys[] = 'Metafields';
                 return true;
             }

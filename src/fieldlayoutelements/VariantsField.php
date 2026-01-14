@@ -54,6 +54,7 @@ class VariantsField extends BaseNativeField
         }
 
         $variants = $element->getVariants();
+        $variantRows = [];
 
         $cols = [
             'title' => ['heading' => Craft::t('shopify', 'Variant'), 'type' => 'html'],
@@ -61,17 +62,25 @@ class VariantsField extends BaseNativeField
             'price' => ['heading' => Craft::t('shopify', 'Price'), 'type' => 'html'],
         ];
 
-        foreach ($variants as &$variant) {
+        foreach ($variants as $variant) {
             $link = sprintf('%s/variants/%s', $element->getShopifyEditUrl(), str_replace('gid://shopify/ProductVariant/', '', $variant['id']));
-            $variant['title'] = Html::a(Html::encode($variant['title']), $link, [
-                'aria-label' => Craft::t('shopify', 'Edit variant {title} on Shopify', ['title' => $variant['title']]),
-                'target' => '_blank',
-                'class' => ''
-            ]);
-            $variant['sku'] = Html::tag('code', $variant['sku']);
+
+            $title = $variant->title;
+            $sku = $variant->sku;
+            $price = $variant->price;
+
+            $variantRows[] = [
+                'title' => Html::a(Html::encode($title), $link, [
+                    'aria-label' => Craft::t('shopify', 'Edit variant {title} on Shopify', ['title' => $title]),
+                    'target' => '_blank',
+                    'class' => '',
+                ]),
+                'sku' => Html::tag('code', $sku),
+                'price' => $price,
+            ];
         }
 
-        if (empty($variants)) {
+        if (empty($variantRows)) {
             return Html::beginTag('div', ['class' => 'zilch']) .
                     Html::tag('p', Craft::t('shopify', 'This product has no variants.')) .
                 Html::endTag('div');
@@ -81,7 +90,7 @@ class VariantsField extends BaseNativeField
             'id' => $this->id(),
             'name' => $this->baseInputName(),
             'cols' => $cols,
-            'rows' => $variants,
+            'rows' => $variantRows,
             'static' => true,
         ]);
     }

@@ -19,7 +19,7 @@ use craft\shopify\db\Table;
  * @property int $id
  * @property string $shopifyId
  * @property string $type
- * @property string $data
+ * @property string|array $data
  * @property string $parentId
  * @property string $dateCreated
  * @property string $dateUpdated

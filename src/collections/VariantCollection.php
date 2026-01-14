@@ -35,10 +35,10 @@ class VariantCollection extends Collection
         foreach ($items as &$item) {
             if ($item instanceof Variant) {
                 continue;
-            } else if (is_array($item)) {
+            } elseif (is_array($item)) {
                 $item += ['class' => Variant::class];
                 $item = \Craft::createObject($item);
-            } else if ($item instanceof ShopifyData) {
+            } elseif ($item instanceof ShopifyData) {
                 $item = Craft::createObject([
                     'class' => Variant::class,
                     'id' => $item->id,
