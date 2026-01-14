@@ -23,6 +23,7 @@ use craft\shopify\db\Table;
  * @property string $parentId
  * @property string $dateCreated
  * @property string $dateUpdated
+ * @property string $uid
  */
 class ShopifyData extends ActiveRecord
 {

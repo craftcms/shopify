@@ -18,18 +18,22 @@ use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
+use craft\shopify\collections\VariantCollection;
 use craft\shopify\elements\conditions\products\ProductCondition;
 use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\fieldlayoutelements\MetafieldsField;
 use craft\shopify\fieldlayoutelements\OptionsField;
 use craft\shopify\fieldlayoutelements\VariantsField;
 use craft\shopify\helpers\Product as ProductHelper;
+use craft\shopify\models\Variant;
 use craft\shopify\Plugin;
 use craft\shopify\records\Product as ProductRecord;
+use craft\shopify\records\ShopifyData;
 use craft\shopify\web\assets\shopifycp\ShopifyCpAsset;
 use craft\web\CpScreenResponseBehavior;
 use DateTime;
 use Exception;
+use Illuminate\Support\Collection;
 use yii\base\InvalidConfigException;
 use yii\helpers\Html as HtmlHelper;
 use yii\web\Response;
@@ -167,9 +171,9 @@ class Product extends Element
     public ?DateTime $updatedAt = null;
 
     /**
-     * @var array|null
+     * @var VariantCollection|null
      */
-    private ?array $_variants = null;
+    private ?VariantCollection $_variants = null;
 
     /**
      * @var string
@@ -393,37 +397,47 @@ class Product extends Element
     }
 
     /**
-     * @param string|array $value
+     * @param string|array|Collection<Variant> $value
      * @return void
      */
-    public function setVariants(string|array $value): void
+    public function setVariants(string|array|Collection $value): void
     {
         if (is_string($value)) {
             $value = Json::decodeIfJson($value);
+        }
+
+        if (is_iterable($value)) {
+            if (is_array($value)) {
+                $value = VariantCollection::make($value);
+            } else if ($value instanceof Collection && !($value instanceof VariantCollection)) {
+                $value = VariantCollection::make($value->all());
+            }
         }
 
         $this->_variants = $value;
     }
 
     /**
-     * @return array
+     * @return VariantCollection
      * @throws InvalidConfigException
      */
-    public function getVariants(): array
+    public function getVariants(): VariantCollection
     {
         if (!$this->shopifyGid) {
-            return [];
+            return VariantCollection::make();
         }
 
-        if ($this->_variants !== null) {
+        if ($this->_variants instanceof VariantCollection){
             return $this->_variants;
+        } else if ($this->_variants === null) {
+            $variants = Plugin::getInstance()->getApi()->getShopifyDataByType('ProductVariant', $this->shopifyGid, true);
+        } else {
+            $variants = $this->_variants;
         }
 
-        $variants = Plugin::getInstance()->getApi()->getShopifyDataByType('ProductVariant', $this->shopifyGid);
+        $this->setVariants($variants);
 
-        $this->setVariants($variants->all());
-
-        return $this->_variants ?? [];
+        return $this->_variants ?? VariantCollection::make();
     }
 
     /**
@@ -443,21 +457,24 @@ class Product extends Element
     /**
      * Gets the cheapest variant.
      *
-     * @return array
+     * @return Variant|null
+     * @throws InvalidConfigException
      */
-    public function getCheapestVariant(): array
+    public function getCheapestVariant(): ?Variant
     {
-        return collect($this->getVariants())->sortBy('price')->first() ?? [];
+        return $this->getVariants()->cheapest();
     }
 
     /**
      * Gets the first variant which is Shopify's default variant.
      *
-     * @return array
+     * @return Variant|null
      */
-    public function getDefaultVariant(): array
+    public function getDefaultVariant(): ?Variant
     {
-        return collect($this->getVariants())->first() ?? [];
+        /** @var Variant|null $variant */
+        $variant = $this->getVariants()->first();
+        return $variant ?? null;
     }
 
     /**
@@ -734,6 +751,19 @@ class Product extends Element
                 'defaultSort' => ['id', 'desc'],
             ],
         ];
+    }
+
+    /**
+     * @inerhitdoc
+     */
+    public function beforeSave(bool $isNew): bool
+    {
+        // Ensure slug and handle match
+        if ($this->handle !== $this->slug) {
+            $this->slug = $this->handle;
+        }
+
+        return parent::beforeSave($isNew);
     }
 
     /**

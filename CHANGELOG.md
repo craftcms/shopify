@@ -8,12 +8,16 @@
 
 - Shopify for Craft now supports version `2025-10` of Shopify’s GraphQL Admin API.
 - It is now possible to configure the webhook URLs using the `SHOPIFY_WEBHOOK_BASE_URL` environment variable. ([#185](https://github.com/craftcms/shopify/issues/185))
-- Added `craft\shopify\services\Api::API_ACCESS_TOKEN_CACHE_KEY`.
+- Fixed a bug where product slugs weren’t syncing correctly.
+- Added `craft\shopify\collections\VariantCollection`.
 - Added `craft\shopify\fieldlayoutelements\MediaField`.
 - Added `craft\shopify\fieldlayoutelements\MetafieldsField`.
 - Added `craft\shopify\fieldlayoutelements\OptionsField`.
 - Added `craft\shopify\fieldlayoutelements\VariantsField`.
+- Added `craft\shopify\models\Variant`.
+- Added `craft\shopify\services\Api::API_ACCESS_TOKEN_CACHE_KEY`.
 - Removed `craft\shopify\controllers\ProductsController::actionRenderCardHtml()`
+- `craft\shopify\elements\Product::getVariants()` now returns a collection.
 
 ## 6.1.1 - 2025-11-06
 
