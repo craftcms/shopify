@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 7.x - WIP
 
 > [!IMPORTANT]
 > After updating, this plugin now requires API version `2025-10` and the creation of an app via the Dev Dashboard.
@@ -18,6 +18,15 @@
 - Added `craft\shopify\services\Api::API_ACCESS_TOKEN_CACHE_KEY`.
 - Removed `craft\shopify\controllers\ProductsController::actionRenderCardHtml()`
 - `craft\shopify\elements\Product::getVariants()` now returns a collection.
+
+## Unreleased
+
+- Fixed a PHP error that could occur when contextual pricing countries aren’t set. ([#191](https://github.com/craftcms/shopify/issues/191))
+
+## 6.1.2 - 2025-12-08
+
+- Fixed a bug where syncing queue jobs could run indefinitely. ([#189](https://github.com/craftcms/shopify/issues/189))
+- Fixed a bug where syncing products could fail if the sync file had downloaded incorrectly.
 
 ## 6.1.1 - 2025-11-06
 
