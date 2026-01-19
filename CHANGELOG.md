@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 6.1.3 - 2026-01-19
 
 - Fixed a PHP error that could occur when contextual pricing countries aren’t set. ([#191](https://github.com/craftcms/shopify/issues/191))
 
