@@ -59,25 +59,24 @@ To perform these steps, you must either be the owner of a store, or a collaborat
 1. In the Dev Dashboard, press **Create app**.
 2. In the first screen, pick an **App name** that identifies the integration, like _Craft CMS_.
 1. Press **Create**, then fill out the following fields to create your first “version”:
-
-  - **App URL**: (Optional) Replace `example.com` with `https://shopify.dev/apps/default-app-home`. This is just a friendlier (but still somewhat confusing) page hosted by Shopify, displayed when your “app” is accessed in the Shopify store’s admin. (If you turn off **Embed app in Shopify admin**, you are redirected to this URL after [installing](#install-in-a-store) the app. Neither is particularly useful; this is a symptom of Shopify’s lack of an API-only integration path.)
-  - **Webhooks API Version**: Choose `2025-10`, and add the same string to your project’s `.env` file:
-    ```bash
-    SHOPIFY_WEBHOOK_VERSION="2025-10"
-    ```
-  - **Access** &rarr; **Scopes**: The following scopes are required for the plugin to function correctly:
-    - `read_inventory`
-    - `read_product_listings`
-    - `read_products`
-    - `unauthenticated_read_product_listings`
-    - Shopify requires these to be in a comma-separated list: `read_inventory,read_product_listings,read_products,unauthenticated_read_product_listings`
-  - Do _not_ enable the **Use legacy install flow** as it can result in mismatched scopes during installation.
+    - **App URL**: (Optional) Replace `example.com` with `https://shopify.dev/apps/default-app-home`. This is just a friendlier (but still somewhat confusing) page hosted by Shopify, displayed when your “app” is accessed in the Shopify store’s admin. (If you turn off **Embed app in Shopify admin**, you are redirected to this URL after [installing](#install-in-a-store) the app. Neither is particularly useful; this is a symptom of Shopify’s lack of an API-only integration path.)
+        - **Webhooks API Version**: Choose `2025-10`, and add the same string to your project’s `.env` file:
+            ```bash
+            SHOPIFY_WEBHOOK_VERSION="2025-10"
+            ```
+    - **Access** &rarr; **Scopes**: The following scopes are required for the plugin to function correctly:
+        - `read_inventory`
+        - `read_product_listings`
+        - `read_products`
+        - `unauthenticated_read_product_listings`
+        - Shopify requires these to be in a comma-separated list: `read_inventory,read_product_listings,read_products,unauthenticated_read_product_listings`
+    - Do _not_ enable the **Use legacy install flow** as it can result in mismatched scopes during installation.
 1. Press **Release** to deploy the configuration. You may give it a name and description, or let Shopify tag it with an incrementing number.
 1. Switch to the **Settings** screen of the new app, and copy the credentials into your `.env` file:
-  ```bash
-  SHOPIFY_CLIENT_ID="..." # Client ID
-  SHOPIFY_CLIENT_SECRET="..." # Secret
-  ```
+    ```bash
+    SHOPIFY_CLIENT_ID="..." # Client ID
+    SHOPIFY_CLIENT_SECRET="..." # Secret
+    ```
 
 #### Install in a Store
 
