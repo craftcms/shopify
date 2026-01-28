@@ -4,7 +4,7 @@
 
 > [!IMPORTANT]
 > After updating, this plugin now requires API version `2025-10` and the creation of an app via the Dev Dashboard.
-> Webhooks will need to be recreated for the new app. Go to **Shopify** → **Webhooks** and create the missing webhooks.
+> Webhooks will need to be recreated for the new app. Go to **Shopify** → **Webhooks** and create the missing webhooks. See the [upgrade notes](https://github.com/craftcms/shopify/blob/7.x/README.md#upgrading) for additional information.
 
 - Shopify for Craft now supports version `2025-10` of Shopify’s GraphQL Admin API.
 - It is now possible to configure the webhook URLs using the `SHOPIFY_WEBHOOK_BASE_URL` environment variable. ([#185](https://github.com/craftcms/shopify/issues/185))

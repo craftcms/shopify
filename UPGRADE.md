@@ -1,6 +1,9 @@
-## Upgrading from 5.x to 6.x
+## Upgrading from 6.x to 7.x
 
-All json based attributes of the product including:
+This version is primarily concerned with Shopify API compatability.
+There is a new process for creating and renewing credentials that work for the Storefront _and_ admin APIs.
+
+
 
 **product.options**
 before

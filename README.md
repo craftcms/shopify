@@ -5,7 +5,8 @@
 Build a content-driven storefront by synchronizing [Shopify](https://shopify.com) products into [Craft CMS](https://craftcms.com/).
 
 > [!IMPORTANT]
-> Version 6.x of the Shopify plugin uses the new [GraphQL Admin API](https://shopify.dev/docs/api/admin-graphql) to [set up webhooks](#set-up-webhooks) and [synchronize](#synchronization) data. Review the [Upgrading](#upgrading) section for more info about the impacts of this change.
+> Version 7.x of the Shopify plugin uses new app-based authorization.
+> Existing integrations and credentials should continue to work with no changes, but the process for creating _new_ credentials has changed significantly in Shopify.
 
 ## Topics
 
@@ -39,127 +40,126 @@ To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/sho
    php craft plugin/install shopify
    ```
 
-### Create a Shopify App
+### Connect to Shopify
 
-The plugin works with Shopify’s [Custom Apps](https://help.shopify.com/en/manual/apps/custom-apps) system.
+The plugin works with Shopify’s [Dev Dashboard](https://shopify.dev/docs/apps/build/dev-dashboard) app system, and is split into three parts: [creating an app](#create-an-app), [installing it into a store](#install-in-a-store), and finally [connecting it to Craft](#connect-to-craft).
 
-> [!NOTE]
-> If you are not the owner of the Shopify store, have the owner add you as a collaborator or staff member with the [_Develop Apps_ permission](https://help.shopify.com/en/manual/apps/custom-apps#api-scope-permissions-for-custom-apps).
+> [!CAUTION]
+> The following process may differ significantly if you are part of a [Partner](https://www.shopify.com/partners) organization or are a collaborator on multiple stores.
+> Shopify implicitly creates an “organization” for each store, and that organization gets a dedicated Dev Dashboard.
+> **You must access the Dev Dashboard via the store you want to create an app for, _not_ via a link in the documentation or by directly navigating to its URL!**
 
-Follow [Shopify’s directions](https://help.shopify.com/en/manual/apps/custom-apps) for creating a private app (through the _Get the API credentials for a custom app_ section), and take these actions when prompted:
+To perform these steps, you must either be the owner of a store, or a collaborator with the [App developer role](https://shopify.dev/docs/apps/build/dev-dashboard/user-permissions).
 
-1. **App Name**: Choose something that identifies the integration, like “Craft CMS.”
-2. **Admin API access scopes**: The following scopes are required for the plugin to function correctly:
+![Adding a collaborator via the Shopify admin](docs/shopify-add-collaborator.png)
 
-   - `read_products`
-   - `read_product_listings`
-   - `read_inventory`
+#### Create an App
 
-   Additionally (at the bottom of this screen), the **Webhook subscriptions** → **Event version** should be `2025-07`.
+1. From a store, open **Settings** &rarr; **Apps**, press **Develop apps** in the toolbar, then follow the **Build apps in Dev Dashboard** link.
+1. In the Dev Dashboard, press **Create app**.
+2. In the first screen, pick an **App name** that identifies the integration, like _Craft CMS_.
+1. Press **Create**, then fill out the following fields to create your first “version”:
 
-3. **Storefront API access scopes**: The following scopes are required for the plugin to function correctly:
+  - **App URL**: (Optional) Replace `example.com` with `https://shopify.dev/apps/default-app-home`. This is just a friendlier (but still somewhat confusing) page hosted by Shopify, displayed when your “app” is accessed in the Shopify store’s admin. (If you turn off **Embed app in Shopify admin**, you are redirected to this URL after [installing](#install-in-a-store) the app. Neither is particularly useful; this is a symptom of Shopify’s lack of an API-only integration path.)
+  - **Webhooks API Version**: Choose `2025-10`, and add the same string to your project’s `.env` file:
+    ```bash
+    SHOPIFY_WEBHOOK_VERSION="2025-10"
+    ```
+  - **Access** &rarr; **Scopes**: The following scopes are required for the plugin to function correctly:
+    - `read_inventory`
+    - `read_product_listings`
+    - `read_products`
+    - `unauthenticated_read_product_listings`
+    - Shopify requires these to be in a comma-separated list: `read_inventory,read_product_listings,read_products,unauthenticated_read_product_listings`
+  - Do _not_ enable the **Use legacy install flow** as it can result in mismatched scopes during installation.
+1. Press **Release** to deploy the configuration. You may give it a name and description, or let Shopify tag it with an incrementing number.
+1. Switch to the **Settings** screen of the new app, and copy the credentials into your `.env` file:
+  ```bash
+  SHOPIFY_CLIENT_ID="..." # Client ID
+  SHOPIFY_CLIENT_SECRET="..." # Secret
+  ```
 
-   - `unauthenticated_read_product_listings`
+#### Install in a Store
 
-4. **Admin API access token**: Reveal and copy this value into your `.env` file, as `SHOPIFY_ADMIN_ACCESS_TOKEN`.
-5. **API key and secret key**: Reveal and/or copy the **API key** and **API secret key** into your `.env` under `SHOPIFY_API_KEY` and `SHOPIFY_API_SECRET_KEY`, respectively.
+> [!WARNING]
+> If you are not the owner of the Shopify store, have the owner add you as a [collaborator](https://help.shopify.com/en/manual/your-account/users/security/collaborator-accounts).
 
-#### Store Hostname
+From your new app’s **Home** screen, press **Install**. A new window will open with the store selector; pick the store you started from. _Your app can only be installed in the store associated with the Dev Dashboard it was created in._
 
-The last piece of info you’ll need on hand is your store’s hostname. This is usually what appears in the browser when using the Shopify admin—it’s also shown if you navigate to the `Settings -> Domains` screen of your store:
+> [!TIP]
+> You may see a warning like “This app hasn't been reviewed.”
+> This is to be expected; your app is not publicly available, and doesn’t need to go through the normal Marketplace approval process.
+> 
+> If you see “This app can't be installed on this store,” it was probably created from the wrong Dev Dashboard, and you’ll need to [start over](#create-an-app).
 
-<img src="./docs/shopify-hostname.png" alt="Screenshot of the settings screen in the Shopify admin, with an arrow pointing to the store’s default hostname in the sidebar.">
-
-Save this value (_without_ the leading `http://` or `https://`) in your `.env` as `SHOPIFY_HOSTNAME`. 
-
-> [!NOTE]
-> The hostname required is the one ending with `myshopify.com` or `myshopify.io`.
-
-At this point, you should have the following Shopify-specific values:
-
-```env
-# ...
-
-SHOPIFY_ADMIN_ACCESS_TOKEN="..."
-SHOPIFY_API_VERSION="2025-07"
-SHOPIFY_API_KEY="..."
-SHOPIFY_API_SECRET_KEY="..."
-SHOPIFY_HOSTNAME="my-storefront.myshopify.com"
-```
+Press **Install** on this screen.
+When Shopify redirects to the generic embedded app view, you’re done!
 
 ### Connect Plugin
 
-Now that you have credentials for your custom app, it’s time to add them to Craft.
+We still need one piece of information from your store—the hostname, or “domain.”
+Visit the **Settings** screen in the Shopify admin, and copy this value from the sidebar:
 
-1. Visit the **Shopify** → **Settings** screen in your project’s control panel.
-2. Assign the four environment variables to the corresponding settings, using the special [config syntax](https://craftcms.com/docs/5.x/configure.html#control-panel-settings):
-   - **API Version**: `$SHOPIFY_API_VERSION`
-   - **API Key**: `$SHOPIFY_API_KEY`
-   - **API Secret Key**: `$SHOPIFY_API_SECRET_KEY`
-   - **Access Token**: `SHOPIFY_ADMIN_ACCESS_TOKEN`
-   - **Host Name**: `$SHOPIFY_HOSTNAME`
-3. Click **Save**.
+![Adding a collaborator via the Shopify admin](docs/shopify-hostname.png)
 
-> [!NOTE]
-> These settings are stored in [Project Config](https://craftcms.com/docs/5.x/system/project-config.html), and will be automatically applied in other environments. [Webhooks](#set-up-webhooks) will still need to be configured for each environment!
+Add this to your `.env`, without any `https://` prefix:
+
+```bash
+SHOPIFY_HOSTNAME="rpfxyv-fk.myshopify.com"
+```
+
+You should now have a total of _four_ `SHOPIFY_*` variables in your `.env` file.
+In your Craft project’s control panel, navigate to **Shopify** &rarr; **Settings** to configure the plugin:
+
+- **API Version**: `$SHOPIFY_WEBHOOKS_VERSION`
+- **API Key**: `$SHOPIFY_CLIENT_ID`
+- **API Secret Key**: `$SHOPIFY_CLIENT_SECRET`
+- **Host Name**: `$SHOPIFY_HOSTNAME`
+
+Save the settings to test the connection; an exception will be thrown if there are issues.
+
+> [!TIP]
+> The temporary session token from Shopify is cached for its expected duration.
+> This _can_ obscure connection issues after changing credentials, so it’s always a good idea to run `craft clear-caches/all`, beforehand. 
 
 ### Set up Webhooks
 
 Once your credentials have been added to Craft, a new **Webhooks** tab will appear in the **Shopify** section of the control panel.
 
-Click **Create** on the Webhooks screen to add the required webhooks to Shopify. The plugin will use the credentials you just configured to perform this operation—so this also serves as an initial communication test.
+Click **Create webhooks** on the Webhooks screen to add the required webhooks to Shopify. The plugin will use the credentials you just configured to perform this operation—so this also serves as an initial communication test.
 
 > [!WARNING]
-> You will need to add webhooks for each environment you deploy the plugin to, because each webhook is tied to a specific URL.
+> You must add webhooks for every environment you deploy the plugin to; webhooks are tied to the specific, registered URL.
+> Be aware that Shopify will continue to attempt delivery to your development webhooks, which may impact the statistics you see in the Dev Dashboard.
 
 > [!NOTE]
-> If you need to test live synchronization in development, we recommend using [ngrok](https://ngrok.com/) to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel, then recreate your webhooks.
+> If you need to test synchronization in development, we recommend using [ngrok](https://ngrok.com/) to create a tunnel to your local environment.
+> DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). 
+> Use the `SHOPIFY_WEBHOOKS_BASE_URL` environment variable to override the base URL used when generating webhook URLs; this allows you to continue using your regular DDEV site URL for control panel and front-end access, rather than overriding the entire project or site’s base URL.
+> This setting may not work if you have set a custom `cpBaseUrl`!
 
 ## Upgrading
 
-To guarantee that the plugin can access all the Shopify resources it needs, review **Admin API access scopes** and **Storefront API access scopes** in the [requirements](#create-a-shopify-app) section _before_ performing an upgrade.
+This release (7.x) is primarily concerned with Shopify API compatability.
 
-_After_ upgrading, check that the required webhooks are in place by visiting **Shopify** → **Webhooks** in the Craft control panel. The plugin will retrieve all the webhooks for your storefront, and display a **Create** button if any are missing for the current environment.
+> [!TIP]
+> We strongly recommend reviewing this same section on the [6.x](https://github.com/craftcms/shopify/blob/6.x/README.md#upgrading) branch, as there were a number of breaking changes and deprecations during the upgrade from 5.x.
 
-> [!NOTE]
-> You must create webhooks for each environment. Repeat this process in your live environment, after deploying.
+After the upgrade, you **must**:
 
-The remainder of this section applies specifically to the 5.x &rarr; 6.x upgrade. Review the [changelog](CHANGELOG.md) for a complete list of added, removed, and deprecated APIs.
+1. Update the webhook version setting to `2025-10` in your app _and_ Craft project
+1. Review the required [access scopes](#create-an-app)
+1. Delete and re-create webhooks for each environment (This is essential! Webhooks are registered and delivered with a specific version, and a mismatch will result in errors.)
 
-### Deprecated Settings
+This ensures that the plugin can properly communicate with the Shopify API.
+If you elect to migrate to the Dev Dashboard during the upgrade, you can leave your “legacy custom app” configuration as-is.
 
-The `syncProductMetafields` and `syncVariantMetafields` are no longer used, and should be removed from your [configuration file](#settings). Meta fields are now automatically loaded alongside product and variant data.
+### Credentials
 
-### Property Names
+At the beginning of 2026, Shopify overhauled how “apps” are created, moving them to the new [Dev Dashboard](https://shopify.dev/docs/apps/build/dev-dashboard).
+_Your existing credentials will continue to work_, but you may find that some features (like webhook delivery logs) are worth making the transition.
 
-Accessors on our [product element](#native-attributes) remain stable, but with the shift to the GraphQL Admin API, many _canonical_ property names on products and variants have changed. If you directly output properties of _variants_ in your templates, they are apt to need updates. The [`ProductVariant` model documentation](https://shopify.dev/docs/api/admin-rest/2025-01/resources/product-variant) shows how to translate old property names (teal) to the new GraphQL schema (magenta).
-
-### Contextual Pricing
-
-Shopify’s “presentment prices” are now referred to as “contextual pricing.” Variant arrays still have the default `price` and `compareAtPrice` fields (previously `price` and `compare_at_price`, respectively), but to fetch context-dependent prices, you must provide a list of [two-letter country codes](https://shopify.dev/docs/api/admin-graphql/latest/enums/CountryCode) via the **Contextual Pricing Countries** setting. _Product data must be [sychronized](#synchronization) after changing this setting._
-
-Contextual prices are stored among other variant properties, with keys corresponding to each country code. For example: `US` pricing would be available as `usContextualPricing`; `DE` pricing would be available as `deContextualPricing`. Each contextual price has this structure:
-
-```php
-[
-    'price' => [
-        'amount' => '50.0',
-        'currencyCode' => 'USD',
-    ],
-    'compareAtPrice' => null,
-]
-```
-
-You can display these prices using Craft’s [built-in currency formatter](https://craftcms.com/docs/5.x/reference/twig/filters.html#currency):
-
-```twig
-{% set usPrice = variant.usContextualPricing.price %}
-{{ usPrice.amount|currency(usPrice.currency) }}
-```
-
-### Resource IDs
-
-The GraphQL API no longer uses numeric IDs to look up objects; instead, it expects a [new `gid://`-prefixed value](https://shopify.dev/docs/api/admin-graphql/latest/scalars/ID). [Product elements](#product-element) expose this as `shopifyId` (so as to avoid conflicts with the internal, Craft-specific _element_ `id` property), but it appears at the top level of other resources, like [options](#using-options), [variants](#variants-and-pricing), and media. 
+You should be able to [create a new app](#create-an-app), [install it](#install-in-a-store), and [replace credentials](#connect-to-shopify) without disruption.
 
 ## Product Element
 
