@@ -178,7 +178,15 @@ JS);
                 $body = $response->getDecodedBody();
 
                 if (array_key_exists('errors', $body)) {
-                    throw new \Exception($body['errors'][0]['message']);
+                    $message = $body['errors'];
+
+                    // Some low-level errors (like an unavailable shop) are reported as a single string.
+                    // Others need to be unpacked from an array:
+                    if (!is_string($message)) {
+                        $message = $message[0]['message'];
+                    }
+
+                    throw new \Exception($message);
                 }
             } catch (\Exception $e) {
                 Craft::error('Could not register webhooks with Shopify API: ' . $e->getMessage(), __METHOD__);
