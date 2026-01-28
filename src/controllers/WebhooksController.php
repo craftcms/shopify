@@ -182,7 +182,7 @@ JS);
 
                     // Some low-level errors (like an unavailable shop) are reported as a single string.
                     // Others need to be unpacked from an array:
-                    if (!is_string($message)) {
+                    if (is_array($message)) {
                         $message = $message[0]['message'];
                     }
 
