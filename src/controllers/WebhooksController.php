@@ -28,6 +28,21 @@ use yii\web\Response as YiiResponse;
 class WebhooksController extends Controller
 {
     /**
+     * @inheritdoc
+     */
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        // All actions in this controller should be restricted to users with explicit plugin permissions:
+        $this->requirePermission('accessPlugin-' . $this->module->id);
+
+        return true;
+    }
+
+    /**
      * Edit page for the webhook management
      *
      * @return YiiResponse
