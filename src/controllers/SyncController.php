@@ -32,6 +32,8 @@ class SyncController extends Controller
      */
     public function actionDelete(): Response
     {
+        // Users must have access to the utility to manage synchronizations:
+        $this->requirePermission('utility:shopify-sync');
         $this->requireAcceptsJson();
         $id = Craft::$app->getRequest()->getBodyParam('id');
 
