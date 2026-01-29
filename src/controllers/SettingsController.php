@@ -25,6 +25,21 @@ use yii\web\Response;
 class SettingsController extends Controller
 {
     /**
+     * @inheritdoc
+     */
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        // Only administrators should be allowed to update plugin settings
+        $this->requireAdmin();
+
+        return true;
+    }
+
+    /**
      * Display a form to allow an administrator to update plugin settings.
      *
      * @return Response
