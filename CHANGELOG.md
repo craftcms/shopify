@@ -17,6 +17,7 @@
 - Added `craft\shopify\models\Variant`.
 - Added `craft\shopify\services\Api::API_ACCESS_TOKEN_CACHE_KEY`.
 - Removed `craft\shopify\controllers\ProductsController::actionRenderCardHtml()`
+- Deprecated the `--throttle` option for `shopify/sync` commands.
 - `craft\shopify\elements\Product::getVariants()` now returns a collection.
 
 ## Unreleased
