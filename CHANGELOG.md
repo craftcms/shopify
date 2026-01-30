@@ -14,9 +14,17 @@
 - Added `craft\shopify\fieldlayoutelements\MetafieldsField`.
 - Added `craft\shopify\fieldlayoutelements\OptionsField`.
 - Added `craft\shopify\fieldlayoutelements\VariantsField`.
+- Added `craft\shopify\models\Settings::getClientId()`.
+- Added `craft\shopify\models\Settings::getClientSecret()`.
+- Added `craft\shopify\models\Settings::setClientId()`.
+- Added `craft\shopify\models\Settings::setClientSecret()`.
 - Added `craft\shopify\models\Variant`.
 - Added `craft\shopify\services\Api::API_ACCESS_TOKEN_CACHE_KEY`.
 - Removed `craft\shopify\controllers\ProductsController::actionRenderCardHtml()`
+- Deprecated `craft\shopify\models\Settings::getApiKey()`. `getClientId()` should be used instead.
+- Deprecated `craft\shopify\models\Settings::getApiSecret()`. `getClientSecret()` should be used instead.
+- Deprecated `craft\shopify\models\Settings::setApiKey()`. `setClientId()` should be used instead.
+- Deprecated `craft\shopify\models\Settings::setApiSecret()`. `setClientSecret()` should be used instead.
 - Deprecated the `--throttle` option for `shopify/sync` commands.
 - `craft\shopify\elements\Product::getVariants()` now returns a collection.
 

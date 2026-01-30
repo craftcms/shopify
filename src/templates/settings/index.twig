@@ -60,7 +60,7 @@
     <div id="api">
         {{ forms.autosuggestField({
             first: true,
-            label: 'API Version'|t('shopify'),
+            label: settings.getAttributeLabel('apiVersion'),
             instructions: 'Supported API versions: {versions}'|t('shopify', {versions: craft.shopify.api.getSupportedApiVersions()|join(', ')}),
             id: 'apiVersion',
             name: 'settings[apiVersion]',
@@ -71,25 +71,25 @@
         }) }}
 
         {{ forms.autosuggestField({
-            label: 'API Key'|t('shopify'),
-            id: 'apiKey',
-            name: 'settings[apiKey]',
-            value: settings.getApiKey(false),
-            errors: settings.getErrors('apiKey'),
+            label: settings.getAttributeLabel('clientId'),
+            id: 'clientId',
+            name: 'settings[clientId]',
+            value: settings.getClientId(false),
+            errors: settings.getErrors('clientId'),
             suggestEnvVars: true,
         }) }}
 
         {{ forms.autosuggestField({
-            label: 'API Secret Key'|t('shopify'),
-            id: 'apiSecretKey',
-            name: 'settings[apiSecretKey]',
-            value: settings.getApiSecretKey(false),
-            errors: settings.getErrors('apiSecretKey'),
+            label: settings.getAttributeLabel('clientSecret'),
+            id: 'clientSecret',
+            name: 'settings[clientSecret]',
+            value: settings.getClientSecret(false),
+            errors: settings.getErrors('clientSecret'),
             suggestEnvVars: true,
         }) }}
 
         {{ forms.autosuggestField({
-            label: 'Host Name'|t('shopify'),
+            label: settings.getAttributeLabel('hostName'),
             instructions: 'The Shopify store hostname.'|t('shopify'),
             id: 'hostName',
             name: 'settings[hostName]',

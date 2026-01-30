@@ -111,8 +111,8 @@ You should now have a total of _four_ `SHOPIFY_*` variables in your `.env` file.
 In your Craft project’s control panel, navigate to **Shopify** &rarr; **Settings** to configure the plugin:
 
 - **API Version**: `$SHOPIFY_WEBHOOKS_VERSION`
-- **API Key**: `$SHOPIFY_CLIENT_ID`
-- **API Secret Key**: `$SHOPIFY_CLIENT_SECRET`
+- **Client ID**: `$SHOPIFY_CLIENT_ID`
+- **Client Secret Key**: `$SHOPIFY_CLIENT_SECRET`
 - **Host Name**: `$SHOPIFY_HOSTNAME`
 
 Save the settings to test the connection; an exception will be thrown if there are issues.
@@ -147,16 +147,16 @@ This release (7.x) is primarily concerned with Shopify API compatability.
 After the upgrade, you **must**:
 
 1. Update the webhook version setting to `2025-10` in your app _and_ Craft project
+1. Update client credentials in your settings
 1. Review the required [access scopes](#create-an-app)
 1. Delete and re-create webhooks for each environment (This is essential! Webhooks are registered and delivered with a specific version, and a mismatch will result in errors.)
 
 This ensures that the plugin can properly communicate with the Shopify API.
-If you elect to migrate to the Dev Dashboard during the upgrade, you can leave your “legacy custom app” configuration as-is.
+When you migrate to the Dev Dashboard custom app during the upgrade, you can leave your “legacy custom app” configuration as-is. This will no longer be used.
 
 ### Credentials
 
 At the beginning of 2026, Shopify overhauled how “apps” are created, moving them to the new [Dev Dashboard](https://shopify.dev/docs/apps/build/dev-dashboard).
-_Your existing credentials will continue to work_, but you may find that some features (like webhook delivery logs) are worth making the transition.
 
 You should be able to [create a new app](#create-an-app), [install it](#install-in-a-store), and [replace credentials](#connect-to-shopify) without disruption.
 

@@ -485,8 +485,8 @@ class Api extends Component
 
         if (
             $this->_session === null &&
-            ($apiKey = $pluginSettings->getApiKey(true)) &&
-            ($apiSecretKey = $pluginSettings->getApiSecretKey(true))
+            ($apiKey = $pluginSettings->getClientId(true)) &&
+            ($apiSecretKey = $pluginSettings->getClientSecret(true))
         ) {
             /** @var MonologTarget $webLogTarget */
             $webLogTarget = Craft::$app->getLog()->targets['web'];
@@ -553,8 +553,8 @@ class Api extends Component
         try {
             $response = $client->post($endpoint, [
                 'form_params' => [
-                    'client_id' => Plugin::getInstance()->getSettings()->getApiKey(true),
-                    'client_secret' => Plugin::getInstance()->getSettings()->getApiSecretKey(true),
+                    'client_id' => Plugin::getInstance()->getSettings()->getClientId(true),
+                    'client_secret' => Plugin::getInstance()->getSettings()->getClientSecret(true),
                     'grant_type' => 'client_credentials',
                 ],
             ]);

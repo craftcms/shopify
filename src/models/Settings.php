@@ -25,8 +25,9 @@ use Shopify\Utils;
  */
 class Settings extends Model
 {
-    private string $_apiKey = '';
-    private string $_apiSecretKey = '';
+    private string $_clientId = '';
+    private string $_clientSecret = '';
+
     private string $_hostName = '';
     public string $uriFormat = '';
     public string $template = '';
@@ -65,7 +66,7 @@ class Settings extends Model
     public function rules(): array
     {
         return [
-            [['apiSecretKey', 'apiKey', 'hostName', 'apiVersion'], 'required'],
+            [['clientSecret', 'clientId', 'hostName', 'apiVersion'], 'required'],
             [['apiVersion'], 'in', 'range' => Plugin::getInstance()->getApi()->getSupportedApiVersions()],
             [['hostName'], function($attribute) {
                 $hostName = $this->$attribute;
@@ -81,8 +82,8 @@ class Settings extends Model
     {
         $names = parent::attributes();
         $names[] = 'apiVersion';
-        $names[] = 'apiKey';
-        $names[] = 'apiSecretKey';
+        $names[] = 'clientId';
+        $names[] = 'clientSecret';
         $names[] = 'contextualPricingCountries';
         $names[] = 'hostName';
         $names[] = 'uriFormat';
@@ -95,8 +96,8 @@ class Settings extends Model
     {
         return [
             'apiVersion' => fn() => $this->getApiVersion(false),
-            'apiKey' => fn() => $this->getApiKey(false),
-            'apiSecretKey' => fn() => $this->getApiSecretKey(false),
+            'clientId' => fn() => $this->getClientId(false),
+            'clientSecret' => fn() => $this->getClientSecret(false),
             'contextualPricingCountries' => fn() => $this->getContextualPricingCountries(false),
             'hostName' => fn() => $this->getHostName(false),
             'uriFormat' => 'uriFormat',
@@ -110,8 +111,8 @@ class Settings extends Model
     public function attributeLabels(): array
     {
         return [
-            'apiKey' => Craft::t('shopify', 'Shopify API Key'),
-            'apiSecretKey' => Craft::t('shopify', 'Shopify API Secret Key'),
+            'clientId' => Craft::t('shopify', 'Shopify Client ID'),
+            'clientSecret' => Craft::t('shopify', 'Shopify Client Secret Key'),
             'apiVersion' => Craft::t('shopify', 'Shopify API Version'),
             'contextualPricingCountries' => Craft::t('shopify', 'Context Pricing Countries'),
             'hostName' => Craft::t('shopify', 'Shopify Host Name'),
@@ -144,41 +145,90 @@ class Settings extends Model
      * @param string $apiKey
      * @return void
      * @since 6.0.0
+     * @deprecated in 7.0.0. Use [[setClientId()]] instead.
      */
     public function setApiKey(string $apiKey): void
     {
-        $this->_apiKey = $apiKey;
+        Craft::$app->getDeprecator()->log(__METHOD__, '`setApiKey()` method has been deprecated. Use `setClientId()` instead.');
+        return;
     }
 
     /**
      * @param bool $parse
      * @return string
      * @since 6.0.0
+     * @deprecated in 7.0.0. Use [[getClientId()]] instead.
      */
     public function getApiKey(bool $parse = true): string
     {
-        return ($parse ? App::parseEnv($this->_apiKey) : $this->_apiKey) ?? '';
+        Craft::$app->getDeprecator()->log(__METHOD__, '`getApiKey()` method has been deprecated. Use `getClientId()` instead.');
+        return $this->getClientId($parse);
+    }
+
+    /**
+     * @param string $clientId
+     * @return void
+     * @since 7.0.0
+     */
+    public function setClientId(string $clientId): void
+    {
+        $this->_clientId = $clientId;
+    }
+
+    /**
+     * @param bool $parse
+     * @return string
+     * @since 7.0.0
+     */
+    public function getClientId(bool $parse = true): string
+    {
+        return ($parse ? App::parseEnv($this->_clientId) : $this->_clientId) ?? '';
     }
 
     /**
      * @param string $apiSecretKey
      * @return void
      * @since 6.0.0
+     * @deprecated in 7.0.0. Use [[setClientSecret()]] instead.
      */
     public function setApiSecretKey(string $apiSecretKey): void
     {
-        $this->_apiSecretKey = $apiSecretKey;
+        Craft::$app->getDeprecator()->log(__METHOD__, '`setApiSecretKey()` method has been deprecated. Use `setClientSecret()` instead.');
+        return;
     }
 
     /**
      * @param bool $parse
      * @return string
      * @since 6.0.0
+     * @deprecated in 7.0.0. Use [[getClientSecret()]] instead.
      */
     public function getApiSecretKey(bool $parse = true): string
     {
-        return ($parse ? App::parseEnv($this->_apiSecretKey) : $this->_apiSecretKey) ?? '';
+        Craft::$app->getDeprecator()->log(__METHOD__, '`getApiSecretKey()` method has been deprecated. Use `getClientSecret()` instead.');
+        return $this->getClientSecret($parse);
     }
+
+    /**
+     * @param string $clientSecret
+     * @return void
+     * @since 7.0.0
+     */
+    public function setClientSecret(string $clientSecret): void
+    {
+        $this->_clientSecret = $clientSecret;
+    }
+
+    /**
+     * @param bool $parse
+     * @return string
+     * @since 7.0.0
+     */
+    public function getClientSecret(bool $parse = true): string
+    {
+        return ($parse ? App::parseEnv($this->_clientSecret) : $this->_clientSecret) ?? '';
+    }
+
 
     /**
      * @param string $hostName
