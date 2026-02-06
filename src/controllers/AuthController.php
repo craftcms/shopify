@@ -53,7 +53,7 @@ class AuthController extends Controller
         $settings = Plugin::getInstance()->getSettings();
 
         $screen = $this->asCpScreen()
-            ->title(Craft::t('shopify', 'Authorize App'));
+            ->title(Craft::t('shopify', 'Authorization'));
 
         $validHmac = Utils::validateHmac(Craft::$app->getRequest()->getQueryParams(), $settings->getClientSecret());
         if (!$validHmac) {
@@ -79,7 +79,18 @@ class AuthController extends Controller
                     throw new InvalidOAuthException('Failed to retrieve access token.');
                 }
 
-                return $screen->contentHtml(Html::tag('p', Craft::t('shopify', 'App authorized successfully.')));
+                return $screen->contentHtml(
+                    Html::beginTag('div', ['class' => 'flex flex-justify-center']) .
+                        Html::beginTag('div', ['class' => 'pane centeralign']) .
+
+                            Html::tag('p',
+                                Html::tag('span', '', ['class' => 'checkmark-icon']) . ' ' .
+                                Craft::t('shopify', 'Your Shopify app has been successfully authorized.')
+                            ) .
+
+                        Html::endTag('div') .
+                    Html::endTag('div')
+                );
             } catch (\Exception $e) {
                 Craft::error($e->getMessage(), __METHOD__);
                 return $screen->contentHtml($this->_errorHtml(Craft::t('shopify', 'Error authorizing app'), $e->getMessage()));
@@ -88,10 +99,21 @@ class AuthController extends Controller
 
         // If no code is present, it means the user is initiating the authorization process.
         $path = Plugin::getInstance()->getSettings()->getAuthPath();
+        $shop = Craft::$app->getRequest()->getQueryParam('shop');
         $authorizeUrl = OAuth::begin($settings->getHostName(), $path, false, fn(OAuthCookie $oauthCookie) => $this->_setCookies($oauthCookie, $screen));
 
         return $screen
-            ->contentHtml(Html::a(Craft::t('shopify', 'Authorize'), $authorizeUrl));
+            ->contentHtml(
+                Html::beginTag('div', ['class' => 'flex flex-justify-center']) .
+                    Html::beginTag('div', ['class' => 'pane centeralign', 'style' => 'max-width: 400px']) .
+
+                        Html::tag('h2', Craft::t('shopify', 'Authorize App')) .
+                        Html::tag('p', Craft::t('shopify', 'The Shopify store {shop} needs to be authorized to connect with this plugin.', ['shop' => Html::tag('strong', $shop)])) .
+                        Html::a(Craft::t('shopify', 'Authorize'), $authorizeUrl, ['class' => 'btn submit']) .
+
+                    Html::endTag('div') .
+                Html::endTag('div')
+            );
     }
 
     /**
@@ -177,23 +199,26 @@ class AuthController extends Controller
      */
     private function _errorHtml(string $heading, string $message): string
     {
-        return Html::beginTag('div', [
-                'class' => ['error-summary'],
-            ]) .
-            Html::beginTag('div') .
-            Html::tag('span', '', [
-                'class' => 'notification-icon',
-                'data-icon' => 'alert',
-                'aria-label' => Craft::t('app', 'Error'),
-                'role' => 'img',
-            ]) .
-            Html::tag('h2', $heading) .
-            Html::endTag('div') .
-            Html::beginTag('ul', [
-                'class' => ['errors'],
-            ]) .
-            Html::tag('li', $message) .
-            Html::endTag('ul') .
+        return Html::beginTag('div', ['class' => 'flex flex-justify-center']) .
+                Html::beginTag('div', [
+                    'class' => ['error-summary fullwidth'],
+                    'style' => 'max-width: 400px',
+                ]) .
+                    Html::beginTag('div') .
+                        Html::tag('span', '', [
+                            'class' => 'notification-icon',
+                            'data-icon' => 'alert',
+                            'aria-label' => Craft::t('app', 'Error'),
+                            'role' => 'img',
+                        ]) .
+                        Html::tag('h2', $heading) .
+                    Html::endTag('div') .
+                    Html::beginTag('ul', [
+                        'class' => ['errors'],
+                    ]) .
+                        Html::tag('li', $message) .
+                    Html::endTag('ul') .
+                Html::endTag('div') .
             Html::endTag('div');
     }
 }
