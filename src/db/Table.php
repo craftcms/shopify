@@ -18,4 +18,5 @@ abstract class Table
     public const DATA = '{{%shopify_data}}';
     public const PRODUCTS = '{{%shopify_products}}';
     public const BULK_OPERATIONS = '{{%shopify_bulkoperations}}';
+    public const ACCESS_TOKENS = '{{%shopify_accesstokens}}';
 }

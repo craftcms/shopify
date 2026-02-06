@@ -61,6 +61,7 @@ class SettingsController extends Controller
             'name' => 'settings[authUrl]',
             'value' => $settings->getAuthUrl(),
             'readonly' => true,
+            'warning' => !Plugin::getInstance()->getApi()->getSession() ? Craft::t('shopify', 'Unable to connect to custom app. Syncing will be unavailable until the app has been authorized.') : null,
         ];
 
         $html = Html::beginTag('div', ['id' => 'products', 'class' => 'hidden']) .
@@ -80,20 +81,20 @@ class SettingsController extends Controller
                         'heading' => Craft::t('shopify', 'Product URI Format'),
                         'info' => Craft::t('shopify', 'What product URIs should look like.'),
                         'placeholder' => Craft::t('shopify', 'Leave blank if products don’t have URLs'),
-                        'code' => true
+                        'code' => true,
                     ],
                     'template' => $headlessMode ? [] : [
                         'type' => 'template',
                         'heading' => Craft::t('app', 'Template'),
                         'info' => Craft::t('shopify', 'Which template should be loaded when a product’s URL is requested.'),
-                        'code' => true
+                        'code' => true,
                     ],
                 ]),
                 'rows' => [
                     'routing' => [
                         'uriFormat' => [
                             'value' => $settings->uriFormat ?? null,
-                            'hasErrors' => $settings->hasErrors('uriFormat') ?? false
+                            'hasErrors' => $settings->hasErrors('uriFormat') ?? false,
                         ],
                         'template' => $headlessMode ? [] : [
                             'value' => $settings->template ?? null,
@@ -118,7 +119,7 @@ class SettingsController extends Controller
                     'value' => $settings->getApiVersion(false),
                     'errors' => $settings->getErrors('apiVersion'),
                     'suggestEnvVars' => true,
-                    'autofocus' => true
+                    'autofocus' => true,
                 ]) .
 
                 Cp::autosuggestFieldHtml([

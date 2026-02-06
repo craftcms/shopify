@@ -13,6 +13,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\log\MonologTarget;
 use craft\shopify\Plugin;
+use craft\shopify\records\AccessToken;
 use craft\shopify\records\ShopifyData;
 use GraphQL\Mutation;
 use GraphQL\Query;
@@ -62,7 +63,7 @@ class Api extends Component
     /**
      * @since 7.0.0
      */
-    public const API_ACCESS_TOKEN_CACHE_KEY = 'shopifyApiAccessToken';
+    public const API_ACCESS_TOKEN_ENV_VAR = 'SHOPIFY_API_ACCESS_TOKEN';
 
     /**
      * @var Session|null
@@ -542,23 +543,23 @@ class Api extends Component
     }
 
     /**
-     * @param string $code
-     * @param string $shop
-     * @return string
-     * @throws \JsonException
+     * @param string|null $code
+     * @param string|null $shop
+     * @return string|null
      * @throws ClientExceptionInterface
      * @throws UninitializedContextException
+     * @throws \JsonException
      * @since 7.0.0
      */
-    public function getAccessToken(?string $code = null, ?string $shop = null): string
+    public function getAccessToken(?string $code = null, ?string $shop = null): ?string
     {
         // Try and retrieve the access token from the cache
-        if ($accessToken = Craft::$app->getCache()->get(self::API_ACCESS_TOKEN_CACHE_KEY)) {
+        if ($accessToken = Plugin::getInstance()->getSettings()->getAccessToken()) {
             return $accessToken;
         }
 
-        if (!$accessToken && !$code || !$shop) {
-            return '';
+        if (!$code || !$shop) {
+            return null;
         }
 
         $client = new Http($shop);
@@ -577,8 +578,21 @@ class Api extends Component
                 throw new \Exception('No access token returned from Shopify.');
             }
 
-            // Cache the access token for its lifetime minus 2 minutes
-            Craft::$app->getCache()->set(self::API_ACCESS_TOKEN_CACHE_KEY, $body['access_token'], 0);
+            $configService = Craft::$app->getConfig();
+            $record = AccessToken::find()->one() ?? new AccessToken();
+
+            $success = true;
+            try {
+                $configService->setDotEnvVar(self::API_ACCESS_TOKEN_ENV_VAR, $body['access_token']);
+            } catch (\Throwable $e) {
+                $success = false;
+                Craft::error('Couldn\'t save the Shopify Access Token in the .env file. ' . $e->getMessage(), __METHOD__);
+            }
+            $record->accessToken = $success ? '$' . self::API_ACCESS_TOKEN_ENV_VAR : Craft::$app->getSecurity()->encryptByKey($body['access_token']);
+
+            if (!$record->save()) {
+                Craft::error('Couldn\'t save the Shopify Access Token in the database. ' . $record->getErrors()[0], __METHOD__);
+            }
 
             return $body['access_token'];
         } catch (\Exception $e) {

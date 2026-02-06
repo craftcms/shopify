@@ -14,6 +14,7 @@ use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
+use craft\shopify\records\AccessToken;
 use Shopify\ApiVersion;
 use Shopify\Utils;
 
@@ -27,6 +28,7 @@ class Settings extends Model
 {
     private string $_clientId = '';
     private string $_clientSecret = '';
+    private string $_accessToken = '';
 
     private string $_hostName = '';
     public string $uriFormat = '';
@@ -249,6 +251,42 @@ class Settings extends Model
     public function getHostName(bool $parse = true): string
     {
         return ($parse ? App::parseEnv($this->_hostName) : $this->_hostName) ?? '';
+    }
+
+    /**
+     * @param string $accessToken
+     * @return void
+     * @since 6.0.0
+     */
+    public function setAccessToken(string $accessToken): void
+    {
+        $this->_accessToken = $accessToken;
+    }
+
+    /**
+     * @param bool $parse
+     * @return string
+     * @since 6.0.0
+     */
+    public function getAccessToken(bool $parse = true): string
+    {
+        if (!$this->_accessToken) {
+            $accessTokenRecord = AccessToken::find()->one() ?? new AccessToken();
+            if (!$accessTokenRecord->accessToken) {
+                return '';
+            }
+
+            $accessToken = $accessTokenRecord->accessToken;
+
+            // If an actual access token, and not a env var, has been stored we need to unencrypt it
+            if (!str_starts_with($accessToken, '$')) {
+                $accessToken = Craft::$app->getSecurity()->decryptByKey($accessToken);
+            }
+
+            $this->setAccessToken($accessToken);
+        }
+
+        return ($parse ? App::parseEnv($this->_accessToken) : $this->_accessToken) ?? '';
     }
 
     /**
