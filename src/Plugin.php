@@ -344,6 +344,7 @@ class Plugin extends BasePlugin
             $event->rules['shopify/products/<elementId:\d+>'] = 'elements/edit';
             $event->rules['shopify/settings'] = 'shopify/settings';
             $event->rules['shopify/webhooks'] = 'shopify/webhooks/edit';
+            $event->rules['shopify/auth'] = 'shopify/auth/index';
         });
     }
 

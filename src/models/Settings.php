@@ -111,6 +111,7 @@ class Settings extends Model
     public function attributeLabels(): array
     {
         return [
+            'authUrl' => Craft::t('shopify', 'Shopify App Auth URL'),
             'clientId' => Craft::t('shopify', 'Shopify Client ID'),
             'clientSecret' => Craft::t('shopify', 'Shopify Client Secret Key'),
             'apiVersion' => Craft::t('shopify', 'Shopify API Version'),
@@ -306,5 +307,29 @@ class Settings extends Model
         }
 
         return $url;
+    }
+
+    /**
+     * @return string
+     * @since 7.0.0
+     */
+    public function getAuthUrl(): string
+    {
+        // Trim CP trigger if it's present.
+        $authPath = $this->getAuthPath();
+        if ($cpTrigger = Craft::$app->getConfig()->getGeneral()->cpTrigger) {
+            $authPath = StringHelper::removeLeft($authPath, $cpTrigger . '/');
+        }
+
+        return UrlHelper::cpUrl($authPath);
+    }
+
+    /**
+     * @return string
+     * @since 7.0.0
+     */
+    public function getAuthPath(): string
+    {
+        return UrlHelper::prependCpTrigger('shopify/auth');
     }
 }

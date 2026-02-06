@@ -8,6 +8,8 @@
 namespace craft\shopify\controllers;
 
 use Craft;
+use craft\helpers\Cp;
+use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use craft\queue\jobs\ResaveElements;
 use craft\shopify\elements\Product;
@@ -50,18 +52,133 @@ class SettingsController extends Controller
             $settings = Plugin::getInstance()->getSettings();
         }
 
-        $tabs = [
-            'apiConnection' => [
-                'label' => Craft::t('shopify', 'API Connection'),
-                'url' => '#api',
-            ],
-            'products' => [
-                'label' => Craft::t('shopify', 'Products'),
-                'url' => '#products',
-            ],
+        $headlessMode = Craft::$app->getConfig()->getGeneral()->headlessMode;
+
+        $authUrlFieldConfig = [
+            'label' => $settings->getAttributeLabel('authUrl'),
+            'instructions' => Craft::t('shopify', 'The URL of your Shopify app in the Dev Dashboard. This is automatically generated from your CP URL.'),
+            'id' => 'authUrl',
+            'name' => 'settings[authUrl]',
+            'value' => $settings->getAuthUrl(),
+            'readonly' => true,
         ];
 
-        return $this->renderTemplate('shopify/settings/index', compact('settings', 'tabs'));
+        $html = Html::beginTag('div', ['id' => 'products', 'class' => 'hidden']) .
+            // Products tab has to go first because the routing table overrides the `settings` key
+            Cp::editableTableFieldHtml([
+                'label' => Craft::t('shopify', 'Routing Settings'),
+                'instructions' => Craft::t('shopify', 'Configure the product’s front-end routing settings.'),
+                'id' => 'routing',
+                'name' => 'settings',
+                'allowAdd' => false,
+                'allowDelete' => false,
+                'allowReorder' => false,
+                'errors' => array_unique($settings->getErrors('routing')),
+                'cols' => array_filter([
+                    'uriFormat' => [
+                        'type' => 'singleline',
+                        'heading' => Craft::t('shopify', 'Product URI Format'),
+                        'info' => Craft::t('shopify', 'What product URIs should look like.'),
+                        'placeholder' => Craft::t('shopify', 'Leave blank if products don’t have URLs'),
+                        'code' => true
+                    ],
+                    'template' => $headlessMode ? [] : [
+                        'type' => 'template',
+                        'heading' => Craft::t('app', 'Template'),
+                        'info' => Craft::t('shopify', 'Which template should be loaded when a product’s URL is requested.'),
+                        'code' => true
+                    ],
+                ]),
+                'rows' => [
+                    'routing' => [
+                        'uriFormat' => [
+                            'value' => $settings->uriFormat ?? null,
+                            'hasErrors' => $settings->hasErrors('uriFormat') ?? false
+                        ],
+                        'template' => $headlessMode ? [] : [
+                            'value' => $settings->template ?? null,
+                            'hasErrors' => $settings->hasErrors('template') ?? false,
+                        ],
+                    ],
+                ],
+            ]) .
+
+            Cp::fieldLayoutDesignerHtml($settings->getProductFieldLayout()) .
+
+            Html::endTag('div') .
+
+            Html::beginTag('div', ['id' => 'api']) .
+
+                Cp::autosuggestFieldHtml([
+                    'first' => true,
+                    'label' => $settings->getAttributeLabel('apiVersion'),
+                    'instructions' => Craft::t('shopify', 'Supported API versions: {versions}', ['versions' => implode(', ', Plugin::getInstance()->getApi()->getSupportedApiVersions())]),
+                    'id' => 'apiVersion',
+                    'name' => 'settings[apiVersion]',
+                    'value' => $settings->getApiVersion(false),
+                    'errors' => $settings->getErrors('apiVersion'),
+                    'suggestEnvVars' => true,
+                    'autofocus' => true
+                ]) .
+
+                Cp::autosuggestFieldHtml([
+                    'label' => $settings->getAttributeLabel('clientId'),
+                    'id' => 'clientId',
+                    'name' => 'settings[clientId]',
+                    'value' => $settings->getClientId(false),
+                    'errors' => $settings->getErrors('clientId'),
+                    'suggestEnvVars' => true,
+                ]) .
+
+                Cp::autosuggestFieldHtml([
+                    'label' => $settings->getAttributeLabel('clientSecret'),
+                    'id' => 'clientSecret',
+                    'name' => 'settings[clientSecret]',
+                    'value' => $settings->getClientSecret(false),
+                    'errors' => $settings->getErrors('clientSecret'),
+                    'suggestEnvVars' => true,
+                ]) .
+
+                Cp::autosuggestFieldHtml([
+                    'label' => $settings->getAttributeLabel('hostName'),
+                    'instructions' => Craft::t('shopify', 'The Shopify store hostname.'),
+                    'id' => 'hostName',
+                    'name' => 'settings[hostName]',
+                    'value' => $settings->getHostName(false),
+                    'errors' => $settings->getErrors('hostName'),
+                    'suggestEnvVars' => true,
+                ]) .
+
+                Cp::autosuggestFieldHtml([
+                    'label' => $settings->getAttributeLabel('contextualPricingCountries'),
+                    'instructions' => Craft::t('shopify', 'A comma separated list of country codes used to return contextual pricing.'),
+                    'id' => 'contextualPricingCountries',
+                    'name' => 'settings[contextualPricingCountries]',
+                    'value' => $settings->getContextualPricingCountries(false),
+                    'errors' => $settings->getErrors('hostName'),
+                    'suggestEnvVars' => true,
+                ]) .
+
+                Html::tag('hr') .
+
+                Cp::fieldHtml(
+                    Cp::renderTemplate('_includes/forms/copytext.twig', $authUrlFieldConfig),
+                    $authUrlFieldConfig
+                ) .
+
+            Html::endTag('div')
+        ;
+
+        return $this->asCpScreen()
+            ->title(Craft::t('shopify', 'Settings'))
+            ->tabs([
+                ['label' => Craft::t('shopify', 'API Connection'), 'url' => '#api'],
+                ['label' => Craft::t('shopify', 'Products'), 'url' => '#products'],
+            ])
+            ->action('shopify/settings/save-settings')
+            ->redirectUrl('shopify/settings')
+            ->selectedSubnavItem('settings')
+            ->contentHtml($html);
     }
 
     /**

@@ -19,26 +19,22 @@ use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
 use GraphQL\Variable;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Collection;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Shopify\ApiVersion;
 use Shopify\Auth\FileSessionStorage;
+use Shopify\Auth\OAuth;
 use Shopify\Auth\Session;
 use Shopify\Clients\Graphql;
+use Shopify\Clients\Http;
 use Shopify\Clients\HttpClientFactory;
 use Shopify\Clients\Rest;
 use Shopify\Context;
 use Shopify\Exception\MissingArgumentException;
-use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
-use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
-use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
-use Shopify\Rest\Admin2024_10\Metafield as ShopifyMetafield2410;
-use Shopify\Rest\Admin2024_10\Product as ShopifyProduct2410;
-use Shopify\Rest\Admin2024_10\Variant as ShopifyVariant2410;
-use Shopify\Rest\Base as ShopifyBaseResource;
-use Shopify\Utils;
+use Shopify\Exception\UninitializedContextException;
 use Shopify\Webhooks\Topics;
+use yii\base\InvalidConfigException;
 
 /**
  * Shopify API service.
@@ -77,11 +73,6 @@ class Api extends Component
      * @var Graphql|null
      */
     private ?Graphql $_gqlClient = null;
-
-    /**
-     * @var Rest|null
-     */
-    private ?Rest $_client = null;
 
     /**
      * @return array
@@ -467,6 +458,11 @@ class Api extends Component
     {
         if ($this->_gqlClient === null) {
             $session = $this->getSession();
+
+            if (!$session) {
+                throw new InvalidConfigException('Unable to initialize API session. Check that your API credentials are correct and that you have authorized the app.');
+            }
+
             $this->_gqlClient = new Graphql($session->getShop(), $session->getAccessToken());
         }
 
@@ -485,88 +481,104 @@ class Api extends Component
 
         if (
             $this->_session === null &&
-            ($apiKey = $pluginSettings->getClientId(true)) &&
-            ($apiSecretKey = $pluginSettings->getClientSecret(true))
+            ($pluginSettings->getClientId(true)) &&
+            ($pluginSettings->getClientSecret(true))
         ) {
-            /** @var MonologTarget $webLogTarget */
-            $webLogTarget = Craft::$app->getLog()->targets['web'];
-
-            Context::initialize(
-                apiKey: $apiKey,
-                apiSecretKey: $apiSecretKey,
-                scopes: ['write_products', 'read_products', 'read_inventory'],
-                // This `hostName` is different from the `shop` value used when creating a Session!
-                // Shopify wants a name for the host/environment that is initiating the connection.
-                hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
-                sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
-                apiVersion: $pluginSettings->getApiVersion(),
-                isEmbeddedApp: false,
-                logger: $webLogTarget->getLogger(),
-            );
-
-            Context::$HTTP_CLIENT_FACTORY = new class() extends HttpClientFactory {
-                public function client(): ClientInterface
-                {
-                    // This is the default client, but we need to add the header for presentment prices
-                    return new Client(['headers' => ['X-Shopify-Api-Features' => 'include-presentment-prices']]);
-                }
-            };
+            $this->initializeContext();
 
             $hostName = $pluginSettings->getHostName(true);
-            $accessToken = $this->getAccessToken();
+            $accessToken = $this->getAccessToken(shop: $hostName);
 
-            $this->_session = new Session(
-                id: 'NA',
-                shop: $hostName,
-                isOnline: false,
-                state: 'NA'
-            );
+            // If there isn't an access token we can't create a session
+            if ($accessToken) {
+                $this->_session = new Session(
+                    id: 'NA',
+                    shop: $hostName,
+                    isOnline: false,
+                    state: 'NA'
+                );
 
-            $this->_session->setAccessToken($accessToken); // this is the most important part of the authentication
+                $this->_session->setAccessToken($accessToken); // this is the most important part of the authentication
+            }
         }
 
         return $this->_session;
     }
 
-
     /**
-     * @return string
-     * @throws GuzzleException
+     * @return void
+     * @throws MissingArgumentException
+     * @throws \yii\base\Exception
      * @since 7.0.0
      */
-    public function getAccessToken(): string
+    public function initializeContext(): void
+    {
+        $pluginSettings = Plugin::getInstance()->getSettings();
+        /** @var MonologTarget $webLogTarget */
+        $webLogTarget = Craft::$app->getLog()->targets['web'];
+
+        Context::initialize(
+            apiKey: $pluginSettings->getClientId(),
+            apiSecretKey: $pluginSettings->getClientSecret(),
+            scopes: ['write_products', 'read_products', 'read_inventory'],
+            // This `hostName` is different from the `shop` value used when creating a Session!
+            // Shopify wants a name for the host/environment that is initiating the connection.
+            hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
+            sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
+            apiVersion: $pluginSettings->getApiVersion(),
+            isEmbeddedApp: false,
+            logger: $webLogTarget->getLogger(),
+        );
+
+        Context::$HTTP_CLIENT_FACTORY = new class() extends HttpClientFactory {
+            public function client(): ClientInterface
+            {
+                // This is the default client, but we need to add the header for presentment prices
+                return new Client(['headers' => ['X-Shopify-Api-Features' => 'include-presentment-prices']]);
+            }
+
+
+        };
+    }
+
+    /**
+     * @param string $code
+     * @param string $shop
+     * @return string
+     * @throws \JsonException
+     * @throws ClientExceptionInterface
+     * @throws UninitializedContextException
+     * @since 7.0.0
+     */
+    public function getAccessToken(?string $code = null, ?string $shop = null): string
     {
         // Try and retrieve the access token from the cache
         if ($accessToken = Craft::$app->getCache()->get(self::API_ACCESS_TOKEN_CACHE_KEY)) {
             return $accessToken;
         }
 
-        $client = Craft::createGuzzleClient([
-            'headers' => [
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ],
-        ]);
+        if (!$accessToken && !$code || !$shop) {
+            return '';
+        }
 
-        $shopDomain = Utils::sanitizeShopDomain(Plugin::getInstance()->getSettings()->getHostName());
-        $endpoint = 'https://' . $shopDomain . '/admin/oauth/access_token';
+        $client = new Http($shop);
 
         try {
-            $response = $client->post($endpoint, [
-                'form_params' => [
-                    'client_id' => Plugin::getInstance()->getSettings()->getClientId(true),
-                    'client_secret' => Plugin::getInstance()->getSettings()->getClientSecret(true),
-                    'grant_type' => 'client_credentials',
-                ],
+            $response = $client->post(OAuth::ACCESS_TOKEN_POST_PATH, [
+                'client_id' => Plugin::getInstance()->getSettings()->getClientId(true),
+                'client_secret' => Plugin::getInstance()->getSettings()->getClientSecret(true),
+                'code' => $code,
+                'expiring' => 0,
             ]);
 
-            $body = Json::decodeIfJson((string)$response->getBody());
+            $body = $response->getDecodedBody();
 
             if (!isset($body['access_token'])) {
                 throw new \Exception('No access token returned from Shopify.');
             }
 
             // Cache the access token for its lifetime minus 2 minutes
-            Craft::$app->getCache()->set(self::API_ACCESS_TOKEN_CACHE_KEY, $body['access_token'], $body['expires_in'] - 120);
+            Craft::$app->getCache()->set(self::API_ACCESS_TOKEN_CACHE_KEY, $body['access_token'], 0);
 
             return $body['access_token'];
         } catch (\Exception $e) {
@@ -651,235 +663,5 @@ class Api extends Component
             $error = Craft::t('shopify', 'Webhook could not be deleted');
             return false;
         }
-    }
-
-    // Old REST methods
-    // =========================================================================
-
-    /**
-     * Retrieve all a shop’s products.
-     *
-     * @return ShopifyProduct[]|ShopifyProduct2410[]
-     * @deprecated in 6.0.0
-     */
-    public function getAllProducts(): array
-    {
-        /** @var ShopifyProduct[]|ShopifyProduct2410[] $all */
-        $all = $this->getAll($this->getProductClass());
-
-        return $all;
-    }
-
-    /**
-     * Retrieve a single product by its Shopify ID.
-     *
-     * @return ShopifyProduct|ShopifyProduct2410
-     * @deprecated in 6.0.0
-     */
-    public function getProductByShopifyId($id): ShopifyProduct|ShopifyProduct2410
-    {
-        return $this->getProductClass()::find($this->getSession(), $id);
-    }
-
-    /**
-     * Retrieve a product ID by a variant's inventory item ID.
-     *
-     * @return ?int The product Shopify ID
-     * @deprecated in 6.0.0
-     */
-    public function getProductIdByInventoryItemId($id): ?int
-    {
-        $variant = Plugin::getInstance()->getApi()->get('variants', [
-            'inventory_item_id' => $id,
-        ]);
-
-        if (isset($variant['variants'])) {
-            return $variant['variants'][0]['product_id'];
-        }
-
-        return null;
-    }
-
-    /**
-     * Retrieves "metafields" for the provided Shopify product ID.
-     *
-     * @param int $id Shopify Product ID
-     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
-     * @deprecated in 6.0.0
-     */
-    public function getMetafieldsByProductId(int $id): array
-    {
-        if (!Plugin::getInstance()->getSettings()->syncProductMetafields) {
-            return [];
-        }
-
-        return $this->getMetafieldsByIdAndOwnerResource($id, 'products');
-    }
-
-    /**
-     * @param int $id
-     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
-     * @since 4.1.0
-     * @deprecated in 6.0.0
-     */
-    public function getMetafieldsByVariantId(int $id): array
-    {
-        if (!Plugin::getInstance()->getSettings()->syncVariantMetafields) {
-            return [];
-        }
-
-        return $this->getMetafieldsByIdAndOwnerResource($id, 'variants');
-    }
-
-    /**
-     * @param int $id
-     * @param string $ownerResource
-     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
-     * @since 4.1.0
-     * @deprecated in 6.0.0
-     */
-    public function getMetafieldsByIdAndOwnerResource(int $id, string $ownerResource): array
-    {
-        /** @var array $metafields */
-        $metafields = $this->get("{$ownerResource}/{$id}/metafields", [
-            'metafield' => [
-                'owner_id' => $id,
-                'owner_resource' => $ownerResource,
-            ],
-        ]);
-
-        if (empty($metafields) || !isset($metafields['metafields'])) {
-            return [];
-        }
-
-        $return = [];
-
-        foreach ($metafields['metafields'] as $metafield) {
-            $metafieldClass = $this->getMetaFieldClass();
-            $return[] = new $metafieldClass($this->getSession(), $metafield);
-        }
-
-        return $return;
-    }
-
-    /**
-     * Retrieves "variants" for the provided Shopify product ID.
-     *
-     * @param int $id Shopify Product ID
-     * @deprecated in 6.0.0
-     */
-    public function getVariantsByProductId(int $id): array
-    {
-        $resources = [];
-        $params = ['limit' => 250];
-
-        do {
-            $resources = array_merge($resources, $this->getVariantClass()::all(
-                $this->getSession(),
-                ['product_id' => $id],
-                $this->getVariantClass()::$NEXT_PAGE_QUERY ?: $params,
-            ));
-        } while ($this->getVariantClass()::$NEXT_PAGE_QUERY);
-
-        $variants = [];
-        foreach ($resources as $resource) {
-            $variants[] = $resource->toArray();
-        }
-
-        return $variants;
-    }
-
-    /**
-     * Shortcut for retrieving arbitrary API resources. A plain (parsed) response body is returned, so it’s the caller’s responsibility for unpacking it properly.
-     *
-     * @see Rest::get();
-     * @deprecated in 6.0.0. Use [[query()]] instead.
-     */
-    public function get($path, array $query = [])
-    {
-        $response = $this->getClient()->get($path, [], $query, 5);
-
-        return $response->getDecodedBody();
-    }
-
-    /**
-     * Iteratively retrieves a paginated collection of API resources.
-     *
-     * @param string $type Stripe API resource class
-     * @param array $params
-     * @return ShopifyBaseResource[]
-     * @deprecated in 6.0.0. Use [[query()]] instead.
-     */
-    public function getAll(string $type, array $params = []): array
-    {
-        $resources = [];
-
-        // Force maximum page size:
-        $params['limit'] = 250;
-
-        do {
-            $resources = array_merge($resources, $type::all(
-                $this->getSession(),
-                [],
-                $type::$NEXT_PAGE_QUERY ?: $params,
-            ));
-        } while ($type::$NEXT_PAGE_QUERY);
-
-        return $resources;
-    }
-
-    /**
-     * Returns or sets up a Rest API client.
-     *
-     * @return Rest
-     * @throws MissingArgumentException
-     * @deprecated in 6.0.0. Use [[getGqlClient()]] instead.
-     */
-    public function getClient(): Rest
-    {
-        if ($this->_client === null) {
-            $session = $this->getSession();
-            $this->_client = new Rest($session->getShop(), $session->getAccessToken());
-        }
-
-        return $this->_client;
-    }
-
-    /**
-     * @return string
-     * @since 5.3.0
-     * @phpstan-return class-string<ShopifyProduct|ShopifyProduct2410>
-     */
-    public function getProductClass(): string
-    {
-        return $this->_apiNamespace() . '\Product';
-    }
-
-    /**
-     * @return string
-     * @since 5.3.0
-     * @phpstan-return class-string<ShopifyVariant|ShopifyVariant2410>
-     */
-    public function getVariantClass(): string
-    {
-        return $this->_apiNamespace() . '\Variant';
-    }
-
-    /**
-     * @return string
-     * @since 5.3.0
-     * @phpstan-return class-string<ShopifyMetafield|ShopifyMetafield2410>
-     */
-    public function getMetaFieldClass(): string
-    {
-        return $this->_apiNamespace() . '\Metafield';
-    }
-
-    /**
-     * @return string
-     */
-    private function _apiNamespace(): string
-    {
-        return 'Shopify\Rest\Admin' . str_replace('-', '_', Plugin::getInstance()->getSettings()->getApiVersion());
     }
 }
