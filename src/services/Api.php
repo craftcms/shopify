@@ -537,8 +537,6 @@ class Api extends Component
                 // This is the default client, but we need to add the header for presentment prices
                 return new Client(['headers' => ['X-Shopify-Api-Features' => 'include-presentment-prices']]);
             }
-
-
         };
     }
 
