@@ -549,10 +549,10 @@ class Api extends Component
      * @throws \JsonException
      * @since 7.0.0
      */
-    public function getAccessToken(?string $code = null, ?string $shop = null): ?string
+    public function getAccessToken(?string $code = null, ?string $shop = null, bool $forceRefresh = false): ?string
     {
         // Try and retrieve the access token from the cache
-        if ($accessToken = Plugin::getInstance()->getSettings()->getAccessToken()) {
+        if (!$forceRefresh && $accessToken = Plugin::getInstance()->getSettings()->getAccessToken()) {
             return $accessToken;
         }
 

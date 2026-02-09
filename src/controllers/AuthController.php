@@ -149,7 +149,7 @@ class AuthController extends Controller
         }
 
         $sanitizedShop = Utils::sanitizeShopDomain($query['shop'] ?? '');
-        return Plugin::getInstance()->getApi()->getAccessToken($query['code'], $sanitizedShop);
+        return Plugin::getInstance()->getApi()->getAccessToken($query['code'], $sanitizedShop, true);
     }
 
     /**
