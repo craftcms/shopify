@@ -16,6 +16,7 @@ use craft\shopify\db\Table;
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 7.0.0
  *
+ *
  * @property int $id
  * @property string $accessToken
  * @property string $dateCreated

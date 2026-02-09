@@ -10,6 +10,7 @@ namespace craft\shopify\models;
 use Craft;
 use craft\base\Model;
 use craft\helpers\App;
+use craft\helpers\Cp;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
@@ -271,6 +272,7 @@ class Settings extends Model
     public function getAccessToken(bool $parse = true): string
     {
         if (!$this->_accessToken) {
+            /** @var AccessToken $accessTokenRecord */
             $accessTokenRecord = AccessToken::find()->one() ?? new AccessToken();
             if (!$accessTokenRecord->accessToken) {
                 return '';
@@ -359,7 +361,15 @@ class Settings extends Model
             $authPath = StringHelper::removeLeft($authPath, $cpTrigger . '/');
         }
 
-        return UrlHelper::cpUrl($authPath);
+        $url = UrlHelper::cpUrl($authPath);
+        $requestedSite = Cp::requestedSite()?->handle ?? null;
+
+        if ($requestedSite && strpos($url, 'site=' . $requestedSite) > -1) {
+            $url = str_replace("site={$requestedSite}", '', $url);
+            $url = StringHelper::removeRight($url, '?');
+        }
+
+        return $url;
     }
 
     /**

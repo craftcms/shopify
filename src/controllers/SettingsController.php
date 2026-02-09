@@ -94,11 +94,11 @@ class SettingsController extends Controller
                     'routing' => [
                         'uriFormat' => [
                             'value' => $settings->uriFormat ?? null,
-                            'hasErrors' => $settings->hasErrors('uriFormat') ?? false,
+                            'hasErrors' => $settings->hasErrors('uriFormat'),
                         ],
                         'template' => $headlessMode ? [] : [
                             'value' => $settings->template ?? null,
-                            'hasErrors' => $settings->hasErrors('template') ?? false,
+                            'hasErrors' => $settings->hasErrors('template'),
                         ],
                     ],
                 ],

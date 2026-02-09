@@ -577,6 +577,7 @@ class Api extends Component
             }
 
             $configService = Craft::$app->getConfig();
+            /** @var AccessToken $record */
             $record = AccessToken::find()->one() ?? new AccessToken();
 
             $success = true;
