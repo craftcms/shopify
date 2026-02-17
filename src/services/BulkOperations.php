@@ -185,69 +185,75 @@ class BulkOperations extends Component
     }
 
     /**
-     * @param array $data
+     * Processes an incoming bulk operation webhook.
+     *
+     * The only topic that Shopify supports is {@see Topics::BULK_OPERATIONS_FINISH}, which covers both successes and failures.
+     * This method runs synchronously, *during the webhook delivery*, which means it should return as early as possible.
+     *
+     * When we receive a webhook indicating that a bulk operation has finished successfully, the next operation should be queued.
+     *
+     * @param array $payload
      * @return void
      * @since 6.0.0
      */
-    public function handleBulkOperationFinished(array $data): void
+    public function handleBulkOperationFinished(array $payload): void
     {
-        // Exit out if we don't have the necessary data
-        if (!isset($data['admin_graphql_api_id']) || !isset($data['status'])) {
+        // An API ID must be present in order to do anything:
+        if (!isset($payload['admin_graphql_api_id'])) {
             return;
         }
 
-        $bulkOperation = $this->getBulkOperationByShopifyId($data['admin_graphql_api_id']);
+        // Load our local record of the bulk op:
+        $bulkOperation = $this->getBulkOperationByShopifyId($payload['admin_graphql_api_id']);
+
         if (!$bulkOperation) {
+            // Ok... maybe it was initiated for a different environment?
             return;
         }
 
-        // If it isn't a completed status we need to update the queue
-        if ($data['status'] !== 'completed') {
-            $deletableStatuses = [
+        // Load the complete bulk operation object from the API:
+        // (The schema of the webhook payload and the actual object are different in subtle ways—like the casing of statuses.)
+        $query = $this->_createBulkOperationGqlQuery()
+            ->setArguments(['id' => $payload['admin_graphql_api_id']]);
+
+        try {
+            $apiObject = Plugin::getInstance()->getApi()->query($query);
+        } catch (\Exception $e) {
+            Craft::error('Could not get bulk operation data: ' . $e->getMessage(), __METHOD__);
+            return;
+        }
+
+        Craft::info(sprintf('Shopify bulk data op finished with status %s! (Error code: %s)', $apiObject['status'], $apiObject['errorCode'] ?? 'none'));
+
+        // If it isn't “completed,” the only action we need to take is updating our record:
+        if ($apiObject['status'] !== 'COMPLETED') {
+            $terminalStatuses = [
                 'CANCELED',
                 'EXPIRED',
                 'FAILED',
             ];
-            if (in_array($data['status'], $deletableStatuses)) {
+
+            // Our similarly-named “complete” status is mostly an indication about whether we expect further activity from the operation.
+            // Moving it out of the “processing” status also allows a user to delete/purge it from the sync history. {@see craft\shopify\controllers\SyncController::actionDelete()}
+            if (in_array($apiObject['status'], $terminalStatuses)) {
                 $bulkOperation->setStatus(BulkOperationStatus::Completed);
             }
 
-            $bulkOperation->shopifyStatus = $data['status'];
+            // Save the “real” Shopify status, whatever it was:
+            $bulkOperation->shopifyStatus = $apiObject['status'];
             $this->saveBulkOperation($bulkOperation, false);
+
             return;
         }
 
-        $query = (new \GraphQL\Query('node'))
-            ->setArguments(['id' => $data['admin_graphql_api_id']])
-            ->setSelectionSet([
-                (new InlineFragment('BulkOperation'))
-                    ->setSelectionSet([
-                        'status',
-                        'url',
-                        'partialDataUrl',
-                        'objectCount',
-                    ]),
-            ]);
+        // At this point, we know the status is `COMPLETED` and it’s safe to process!
+        // Store the new status, and a reference to the external JSONL file:
+        $bulkOperation->shopifyStatus = $apiObject['status'];
+        $bulkOperation->url = $apiObject['url'];
+        $bulkOperation->objectCount = $apiObject['objectCount'];
 
-        try {
-            $response = Plugin::getInstance()->getApi()->getGqlClient()->query(['query' => (string)$query]);
-            $body = $response->getDecodedBody();
-
-            if (!isset($body['data']['node'])) {
-                return;
-            }
-
-            // Store the data from the `$body['data']['url'] and start the queue job to process it
-            $bulkOperation->shopifyStatus = $body['data']['node']['status'];
-            $bulkOperation->url = $body['data']['node']['url'];
-            $bulkOperation->objectCount = $body['data']['node']['objectCount'];
-
-            if (!$this->saveBulkOperation($bulkOperation)) {
-                Craft::error('Could not save bulk operation data.', __METHOD__);
-                return;
-            }
-        } catch (\Exception $e) {
-            Craft::error('Could not get bulk operation data: ' . $e->getMessage(), __METHOD__);
+        if (!$this->saveBulkOperation($bulkOperation)) {
+            Craft::error('Could not save bulk operation data.', __METHOD__);
         }
 
         $this->queueNextBulkOperation();
@@ -413,5 +419,23 @@ class BulkOperations extends Component
             ])
             ->from([Table::BULK_OPERATIONS])
             ->orderBy(['id' => SORT_DESC]);
+    }
+
+    /**
+     * Creates a GQL query for retrieving BulkOperation objects.
+     */
+    private function _createBulkOperationGqlQuery(): \GraphQL\Query
+    {
+        return (new \GraphQL\Query('node'))
+            ->setSelectionSet([
+                (new InlineFragment('BulkOperation'))
+                    ->setSelectionSet([
+                        'status',
+                        'errorCode',
+                        'url',
+                        'partialDataUrl',
+                        'objectCount',
+                    ]),
+            ]);
     }
 }
