@@ -84,6 +84,7 @@ return [
     'Sync deleted' => 'Sync deleted',
     'Tags' => 'Tags',
     'Template Suffix' => 'Template Suffix',
+    'There was a problem deleting the {topic} webhook' => 'There was a problem deleting the {topic} webhook',
     'This product has no media.' => 'This product has no media.',
     'This product has no meta fields.' => 'This product has no meta fields.',
     'This product has no options.' => 'This product has no options.',

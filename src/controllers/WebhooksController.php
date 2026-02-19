@@ -8,6 +8,7 @@
 namespace craft\shopify\controllers;
 
 use Craft;
+use craft\helpers\Html;
 use craft\shopify\Plugin;
 use craft\web\Controller;
 use GraphQL\Query;
@@ -68,15 +69,104 @@ class WebhooksController extends Controller
         // (We use this later to decide whether the "Create webhooks" button should be shown)
         $hasAllHooks = count($requiredTopics) === 0;
 
-        $screen = $this->asCpScreen()
+        $html = '';
+
+        if ($webhooks->isNotEmpty() && !$hasAllHooks) {
+            $html .= Html::beginTag('div', ['class' => 'pane warning']) .
+                    Html::tag('p', Craft::t('shopify', 'This environment is not subscribed to all the required webhook topics.')) .
+                    Html::beginForm() .
+                        Html::actionInput('shopify/webhooks/create') .
+                        Html::submitButton(Craft::t('shopify', 'Create missing webhooks'), [
+                            'class' => ['btn', 'submit'],
+                        ]) .
+                    Html::endForm() .
+                Html::endTag('div');
+        }
+
+        if ($hasAllHooks) {
+            $html .= Html::beginTag('div', ['class' => 'pane']) .
+                Html::beginTag('p') .
+                    Html::tag('span', '', ['class' => 'checkmark-icon']) . ' ' .
+                    Craft::t('shopify', 'This environment is subscribed to all the required webhook topics!') .
+                Html::endTag('p') .
+            Html::endTag('div');
+        }
+
+        if ($webhooks->isEmpty()) {
+            $html .= Html::beginTag('div', ['class' => 'zilch']) .
+                    Html::tag('p', Craft::t('shopify', 'No webhooks exist for this environment.')) .
+                Html::endTag('div') .
+                Html::beginForm() .
+                    Html::actionInput('shopify/webhooks/create') .
+                    Html::submitButton(Craft::t('shopify', 'Create all webhooks'), [
+                        'class' => ['btn', 'submit'],
+                    ]) .
+                Html::endForm();
+        } else {
+            $html .= Html::beginTag('table', ['class' => 'data fullwidth']) .
+                Html::beginTag('thead') .
+                Html::beginTag('tr') .
+                Html::tag('th', Craft::t('shopify', 'Topic')) .
+                Html::tag('th', Craft::t('app', 'URI')) .
+                Html::tag('th', '') .
+                Html::endTag('tr') .
+                Html::endTag('thead') .
+                Html::beginTag('tbody');
+
+            $webhooks->each(function($hook) use (&$html) {
+                $html .= Html::beginTag('tr') .
+                    Html::tag('td', $hook['topic']) .
+                    Html::tag('td', $hook['uri']) .
+                    Html::beginTag('td', ['class' => 'rightalign']) .
+                        Html::beginForm() .
+                            Html::actionInput('shopify/webhooks/delete') .
+                            Html::hiddenInput('id', $hook['id']) .
+                            Html::tag('a', '', [
+                                'class' => 'delete icon',
+                                'href' => '#',
+                                'title' => Craft::t('shopify', 'Delete {topic} webhook', ['topic' => $hook['topic']]), 'role' => 'button',
+                                'data-confirm' => Craft::t('shopify', 'Are you sure you want to delete the {topic} webhook?', ['topic' => $hook['topic']]),
+                                'data-error' => Craft::t('shopify', 'There was a problem deleting the {topic} webhook', ['topic' => $hook['topic']]),
+                            ]) .
+                        Html::endForm() .
+                    Html::endTag('td') .
+                    Html::endTag('tr');
+            });
+
+            $html .= Html::endTag('tbody') .
+                Html::endTag('table');
+
+            $js = <<<JS
+                (() => {
+                    const table = document.querySelector('table.data');
+                    const deleteButtons = table.querySelectorAll('.delete');
+                    if (!table || deleteButtons.length == 0) return;
+
+                    deleteButtons.forEach(button => {
+                        button.addEventListener('click', async (e) => {
+                            e.preventDefault();
+                            
+                            if (!confirm(button.dataset.confirm)) {
+                                return;
+                            }
+
+                            try {
+                              const deleteForm = button.closest('form');
+                              deleteForm.submit();
+                            } catch (error) {
+                              Craft.cp.displayError(button.dataset.error)
+                            }
+                        });
+                    });
+                })();
+            JS;
+            $this->getView()->registerJs($js);
+        }
+
+        return $this->asCpScreen()
             ->title(Craft::t('shopify', 'Webhooks'))
             ->selectedSubnavItem('webhooks')
-            ->contentTemplate('shopify/_webhooks', [
-                'webhooks' => $webhooks,
-                'hasAllHooks' => $hasAllHooks,
-            ]);
-
-        return $screen;
+            ->contentHtml($html);
     }
 
     /**
