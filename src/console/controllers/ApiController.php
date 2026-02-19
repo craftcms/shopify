@@ -37,6 +37,7 @@ class ApiController extends Controller
         $start = microtime(true);
 
         $err = null;
+        $data = null;
 
         try {
             $this->stdout("Running query... ");

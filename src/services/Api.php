@@ -671,7 +671,6 @@ class Api extends Component
 
     /**
      * @param string $id
-     * @param string|null $error
      * @return bool
      * @throws MissingArgumentException
      * @throws ShopifyException
