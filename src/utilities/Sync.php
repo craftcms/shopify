@@ -78,7 +78,7 @@ class Sync extends Utility
             return [
                 'id' => $bo->id,
                 'status' => $bo->statusLabelHtml(),
-                'shopifyStatus' => StringHelper::toTitleCase($bo->shopifyStatus),
+                'shopifyStatus' => $bo->shopifyStatus ? StringHelper::toTitleCase($bo->shopifyStatus) : null,
                 'objects' => $bo->objectCount ? $formatter->asInteger($bo->objectCount) : '',
                 'dateCreated' => $formatter->asDatetime($bo->dateCreated),
                 'dateUpdated' => $formatter->asDatetime($bo->dateUpdated),
