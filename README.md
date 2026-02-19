@@ -4,7 +4,7 @@
 
 Build a content-driven storefront by synchronizing [Shopify](https://shopify.com) products into [Craft CMS](https://craftcms.com/).
 
-> [!IMPORTANT]
+> [!IMPORTANT]  
 > Version 7.x of the Shopify plugin uses new app-based authorization.
 > Existing integrations and credentials should continue to work with no changes, but the process for creating _new_ credentials has changed significantly in Shopify.
 
@@ -40,26 +40,32 @@ To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/sho
    php craft plugin/install shopify
    ```
 
-### Connect to Shopify
+## Connect to Shopify
 
-The plugin works with Shopify’s [Dev Dashboard](https://shopify.dev/docs/apps/build/dev-dashboard) app system, and is split into three parts: [creating an app](#create-an-app), [installing it into a store](#install-in-a-store), and finally [connecting it to Craft](#connect-to-craft).
+The plugin works with Shopify’s [Dev Dashboard](https://shopify.dev/docs/apps/build/dev-dashboard) app system, and is split into two primary parts: [creating an app](#create-an-app) and [performing authorization](#).
 
-> [!CAUTION]
-> The following process may differ significantly if you are part of a [Partner](https://www.shopify.com/partners) organization or are a collaborator on multiple stores.
-> Shopify implicitly creates an “organization” for each store, and that organization gets a dedicated Dev Dashboard.
-> **You must access the Dev Dashboard via the store you want to create an app for, _not_ via a link in the documentation or by directly navigating to its URL!**
-
-To perform these steps, you must either be the owner of a store, or a collaborator with the [App developer role](https://shopify.dev/docs/apps/build/dev-dashboard/user-permissions).
+To install an app into a store, one of these statements must describe your account’s relationship with it:
+- You are the owner of the store;
+- You have been added as a collaborator on the store, with the [App developer role](https://shopify.dev/docs/apps/build/dev-dashboard/user-permissions) (see screenshot, below);
+- You are working with a [dev store](https://shopify.dev/docs/apps/build/dev-dashboard/development-stores) or [client transfer store](https://help.shopify.com/en/partners/manage-clients-stores/client-transfer-stores/create-client-transfer-stores) belonging to your Partner organization;
 
 ![Adding a collaborator via the Shopify admin](docs/shopify-add-collaborator.png)
 
-#### Create an App
+> [!CAUTION]  
+> The new OAuth-based API connection requires that apps are created from an “organization” that has access to the [Partner Dashboard](https://www.shopify.com/partners).
+> Standalone stores (like the one created when you sign up for a Shopify account) belong to their own organization.
+> If you are working with a store or account that has never accessed a Partner Dashboard, you may need to create a Partner profile before proceeding.
+> When working from an account that has access to multiple organizations, **it is generally safest to access the new Dev Dashboard via the Partner Dashboard you want the app associated with.**
 
-1. From a store, open **Settings** &rarr; **Apps**, press **Develop apps** in the toolbar, then follow the **Build apps in Dev Dashboard** link.
+### Create an App
+
+1. Navigate to your **Dev Dashboard**:
+   - From a store, open the account context menu (upper-right corner) and select **Dev Dashboard**;
+   - From the Partner Dashboard, open the account context menu (upper-right corner) and select **Dev Dashboard**;
 1. In the Dev Dashboard, press **Create app**.
 1. In the first screen, pick an **App name** that identifies the integration, like _Craft CMS_.
 1. Press **Create**, then fill out the following fields to create your first “version”:
-    - **App URL**: (Optional) Replace `example.com` with `https://shopify.dev/apps/default-app-home`. This is just a friendlier (but still somewhat confusing) page hosted by Shopify, displayed when your “app” is accessed in the Shopify store’s admin. (If you turn off **Embed app in Shopify admin**, you are redirected to this URL after [installing](#install-in-a-store) the app. Neither is particularly useful; this is a symptom of Shopify’s lack of an API-only integration path.)
+    - **App URL**: Retrieve the **Shopify App Auth URL** value from the plugin’s setting screen in the Craft control panel. (This will always be your project’s URL, followed by the [cpTrigger](https://craftcms.com/docs/5.x/reference/config/general.html#cptrigger), then the action `shopify/auth`: `https://my-project.com/admin/shopify/auth`.)
     - **Webhooks API Version**: Choose `2025-10`, and add the same string to your project’s `.env` file:
         ```bash
         SHOPIFY_WEBHOOK_VERSION="2025-10"
@@ -78,68 +84,106 @@ To perform these steps, you must either be the owner of a store, or a collaborat
     SHOPIFY_CLIENT_SECRET="..." # Secret
     ```
 
-#### Install in a Store
+Next, you’ll configure the app’s _distribution_ scheme.
 
-> [!WARNING]
-> If you are not the owner of the Shopify store, have the owner add you as a [collaborator](https://help.shopify.com/en/manual/your-account/users/security/collaborator-accounts).
+1. From the new app’s **Home** screen in the Dev Dashboard, follow the **Select distribution method** link, within the **Distribution** widget.
+1. The Partner Dashboard will open, with your app selected. Choose **Custom distribution**, press **Select**, then confirm in the dialog box.
+1. Locate your store’s _hostname_ (see screenshot, below), and paste it into the **Store domain** field, then press **Generate link**.
+    - _Once you choose a hostname, the app is permanently locked to that store. If you do not provide the correct hostname at this stage, you’ll need to delete the app and start over._
+    - If you want to use the same connection across multiple related stores, check **Allow multi-store install for one Plus organization**.
+    - Take this opportunity to add the hostname to your `.env` file:
+    ```bash
+    SHOPIFY_HOSTNAME="my-store-name.myshopify.com"
+    ```
+1. Switch to the **API access requests** screen and press **Enable Storefront API**.
+1. Return to the **Distribution** screen and press **Copy link**.
 
-From your new app’s **Home** screen, press **Install**. A new window will open with the store selector; pick the store you started from. _Your app can only be installed in the store associated with the Dev Dashboard it was created in._
+![Identifying your store’s hostname, used when creating a distribution](docs/shopify-hostname.png)
 
-> [!TIP]
-> You may see a warning like “This app hasn't been reviewed.”
-> This is to be expected; your app is not publicly available, and doesn’t need to go through the normal Marketplace approval process.
-> 
-> If you see “This app can't be installed on this store,” it was probably created from the wrong Dev Dashboard, and you’ll need to [start over](#create-an-app).
-
-Press **Install** on this screen.
-When Shopify redirects to the generic embedded app view, you’re done!
-
-### Connect Plugin
-
-We still need one piece of information from your store—the hostname, or “domain.”
-Visit the **Settings** screen in the Shopify admin, and copy this value from the sidebar:
-
-![Adding a collaborator via the Shopify admin](docs/shopify-hostname.png)
-
-Add this to your `.env`, without any `https://` prefix:
+You should now have a total of _four_ `SHOPIFY_*` variables in your `.env` file:
 
 ```bash
-SHOPIFY_HOSTNAME="rpfxyv-fk.myshopify.com"
+# 1. Webhook API Version
+#    This is tied to your app’s release, and should not change (except potentially during a future plugin upgrade).
+SHOPIFY_WEBHOOK_VERSION="2025-10"
+
+# 2. Client ID
+#    This can be found in your Shopify app’s Settings screen.
+SHOPIFY_CLIENT_ID="..."
+
+# 3. Secret
+#    This can be found in your Shopify app’s Settings screen.
+SHOPIFY_CLIENT_SECRET="..."
+
+# 4. Hostname
+#    Found in your store’s settings screen. Include only the domain (no leading `https://`)
+SHOPIFY_HOSTNAME="my-store-name.myshopify.com"
 ```
 
-You should now have a total of _four_ `SHOPIFY_*` variables in your `.env` file.
-In your Craft project’s control panel, navigate to **Shopify** &rarr; **Settings** to configure the plugin:
+In the Craft control panel, navigate to **Shopify** &rarr; **Settings** to configure the plugin:
 
 - **API Version**: `$SHOPIFY_WEBHOOKS_VERSION`
 - **Client ID**: `$SHOPIFY_CLIENT_ID`
 - **Client Secret Key**: `$SHOPIFY_CLIENT_SECRET`
 - **Host Name**: `$SHOPIFY_HOSTNAME`
 
-Save the settings to test the connection; an exception will be thrown if there are issues.
+Use these literal strings in the corresponding fields.
+As you type the `$`-prefixed value into an input, Craft will [suggest](https://craftcms.com/docs/5.x/system/project-config.html#secrets-and-the-environment) matching variables.
 
-> [!TIP]
-> The temporary session token from Shopify is cached for its expected duration.
-> This _can_ obscure connection issues after changing credentials, so it’s always a good idea to run `craft clear-caches/all`, beforehand. 
+Press **Save** to commit the settings to [project config](https://craftcms.com/docs/5.x/system/project-config.html).
+
+> [!TIP]  
+> You may see a warning below the read-only **Shopify App Auth URL** field.
+> This is expected, until you’ve completed the OAuth flow!
+
+### Install in a Store
+
+In this step, we’ll perform the [authorization code grant](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/authorization-code-grant) or _OAuth_ flow, during which Craft and Shopify negotiate a long-lived access token.
+
+> [!TIP]  
+> Whoever installs the app must be able to access to the store _and_ the Craft project from the same browser.
+> Shopify does _not_ need to directly contact the Craft, so you may do this from your local development machine!
+
+1. Visit the installation URL you copied from the **Distribution** screen in the Partner Dashboard. You must be logged in to a Shopify account with access to the target store (but it does not need to be the same account that created the app).
+1. Select the store in Shopify’s context picker.
+1. On the **Install app** screen within the store’s admin, review the permissions and press **Install**.
+   > [!WARNING]  
+   > If you do not see a blue banner confirming **This app is exclusive to your store**, _do not proceed_!
+   > A banner saying **This app can’t be installed on this store** (or landing on a generic Shopify error page) usually means that the hostname is not valid for the distribution.
+1. You will be redirected to the Craft control panel “auth” URL you used when creating the Shopify app. (If you were not already logged in, Craft will ask for your username and password; your user must have the **Access Shopify** permission or be an administrator to complete the authorization flow.)
+1. Press **Authorize** in the dialog.
+1. Craft and Shopify will perform the OAuth handshake, and you should land on a confirmation screen in the Craft control panel saying **Your Shopify app has been successfully authorized**.
+
+🎊 Congratulations! Your Craft project can now communicate with the Shopify API. Let’s take it for a spin by importing your store’s products.
 
 ### Set up Webhooks
 
-Once your credentials have been added to Craft, a new **Webhooks** tab will appear in the **Shopify** section of the control panel.
+A new **Webhooks** tab will appear in the **Shopify** section of the control panel once you’ve completed the authorization flow.
 
-Click **Create webhooks** on the Webhooks screen to add the required webhooks to Shopify. The plugin will use the credentials you just configured to perform this operation—so this also serves as an initial communication test.
+Click **Create webhooks** on the Webhooks screen to add the required webhooks to Shopify.
+The plugin will use your newly-issued access token to perform this operation, so this also serves as an initial communication test.
 
 > [!WARNING]
 > You must add webhooks for every environment you deploy the plugin to; webhooks are tied to the specific, registered URL.
-> Be aware that Shopify will continue to attempt delivery to your development webhooks, which may impact the statistics you see in the Dev Dashboard.
+> Be aware that Shopify will continue to attempt delivery to your development environment’s subscriptions, which may impact the statistics you see in the Dev Dashboard.
 
 > [!NOTE]
 > If you need to test synchronization in development, we recommend using [ngrok](https://ngrok.com/) to create a tunnel to your local environment.
 > DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). 
-> Use the `SHOPIFY_WEBHOOKS_BASE_URL` environment variable to override the base URL used when generating webhook URLs; this allows you to continue using your regular DDEV site URL for control panel and front-end access, rather than overriding the entire project or site’s base URL.
+> Use the `SHOPIFY_WEBHOOKS_BASE_URL` environment variable to override your project’s base URL when creating webhooks; this allows you to continue using your regular DDEV site URL for control panel and front-end access, rather than overriding the entire project or site’s base URL.
 > This setting may not work if you have set a custom `cpBaseUrl`!
+
+#### Cleanup
+
+Each time you open an `ngrok` tunnel, you get a new public URL.
+This means that you may accumulate broken webhook subscriptions over the course of development.
+In the control panel, we only display the webhooks relevant to the _current_ environment, or more accurately, when the webhook’s `uri` matches the resolved webhook URL (which can be influenced by the `SHOPIFY_WEBHOOKS_BASE_URL` variable).
+
+
 
 ## Upgrading
 
-This release (7.x) is primarily concerned with Shopify API compatability.
+This release (7.x) is primarily concerned with Shopify API compatability, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the 
 
 > [!TIP]
 > We strongly recommend reviewing this same section on the [6.x](https://github.com/craftcms/shopify/blob/6.x/README.md#upgrading) branch, as there were a number of breaking changes and deprecations during the upgrade from 5.x.
