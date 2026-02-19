@@ -7,9 +7,11 @@
 
 namespace craft\shopify\console\controllers;
 
+use Craft;
 use craft\console\Controller;
 use craft\helpers\Console;
 use craft\shopify\Plugin;
+use Shopify\Exception\ShopifyException;
 use yii\console\ExitCode;
 
 /**
@@ -34,21 +36,35 @@ class ApiController extends Controller
         // Record how long the API service is:
         $start = microtime(true);
 
-        $this->stdout("Running query... ");
-        $data = Plugin::getInstance()->getApi()->query($gql);
-        $this->stdout("done!", Console::FG_GREEN);
+        $err = null;
+
+        try {
+            $this->stdout("Running query... ");
+
+            $data = Plugin::getInstance()->getApi()->query($gql);
+        } catch (ShopifyException $e) {
+            $err = $e->getMessage();
+        }
+
+        $this->stdout("done!", $err ? Console::FG_RED : Console::FG_GREEN);
 
         // Report timing:
         $this->stdout(sprintf(' (%fs)', microtime(true) - $start), Console::FG_GREY);
         $this->stdout(PHP_EOL);
 
-        if (!$data) {
-            $this->stderr('The response was empty or had an unexpected structure. Check your console logs for more information!' . PHP_EOL);
+        if ($err) {
+            $this->failure("There was a problem with the query: " . $err);
 
             return ExitCode::UNAVAILABLE;
         }
 
-        $this->stdout('Response:' . PHP_EOL . print_r($data, true) . PHP_EOL);
+        $print = Craft::dump(
+            $data,
+            highlight: false,
+            return: true,
+        );
+
+        $this->stdout('Response:' . PHP_EOL . $print . PHP_EOL);
 
         return ExitCode::OK;
     }

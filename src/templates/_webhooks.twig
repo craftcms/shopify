@@ -1,0 +1,63 @@
+{# Report partial webhook configuration: #}
+{% if not webhooks is empty and not hasAllHooks %}
+    <div class="pane warning">
+        <p>{{ 'This environment is not subscribed to all the required webhook topics.'|t('shopify') }}</p>
+        <form method="post">
+            {{ csrfInput() }}
+            {{ actionInput('shopify/webhooks/create') }}
+
+            <button class="btn submit">{{ 'Create missing webhooks'|t('shopify') }}</button>
+        </form>
+    </div>
+{% endif %}
+
+{# Confirm correct configuration: #}
+{% if hasAllHooks %}
+    <div class="pane">
+        <p><span class="checkmark-icon"></span> {{ 'This environment is subscribed to all the required webhook topics!'|t('shopify') }}</p>
+    </div>
+{% endif %}
+
+{# Display existing webhooks: #}
+{% if webhooks is not empty %}
+    <table class="data fullwidth">
+        <thead>
+            <tr>
+                <th>{{ 'Topic'|t('shopify') }}</th>
+                <th>{{ 'URI'|t('app') }}</th>
+                <th>{{ 'Actions'|t('app') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for webhook in webhooks %}
+                <tr>
+                    <td>{{ webhook.topic }}</td>
+                    <td><code>{{ webhook.uri }}</code></td>
+                    <td>
+                        <form method="post" onsubmit="confirm(this.dataset.confirmDeleteMessage)" data-confirm-delete-message="{{ 'Are you sure you want to delete the {topic} webhook?'|t('shopify', { topic: webhook.topic}) }}">
+                            {{ csrfInput() }}
+                            {{ actionInput('shopify/webhooks/delete') }}
+                            {{ hiddenInput('id', webhook.id) }}
+                            <button
+                                class="btn delete small"
+                                title="{{ 'Delete {topic} webhook'|t('shopify', { topic: webhook.topic }) }}">
+                                {{ 'Delete'|t('app') }}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    {# Initial/onboarding state (no webhooks present): #}
+    <div class="zilch">
+        <p>{{ 'No webhooks exist for this environment.'|t('shopify') }}</p>
+    </div>
+    <form method="post">
+        {{ csrfInput() }}
+        {{ actionInput('shopify/webhooks/create') }}
+
+        <button class="btn submit">{{ 'Create all webhooks'|t('shopify') }}</button>
+    </form>
+{% endif %}

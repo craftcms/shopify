@@ -23,6 +23,7 @@ use GraphQL\InlineFragment;
 use GraphQL\Mutation;
 use GraphQL\Variable;
 use Illuminate\Support\Collection;
+use Shopify\Exception\ShopifyException;
 use yii\base\InvalidConfigException;
 use yii\db\Exception;
 use yii\db\StaleObjectException;
@@ -120,25 +121,38 @@ class BulkOperations extends Component
             ->one();
 
         if (!$result) {
-            // There isn't any queued bulk operations
+            // We don’t have any queued bulk operations, locally
             return true;
         }
 
         /** @var BulkOperation $bulkOperation */
         $bulkOperation = Craft::createObject(array_merge($result, ['class' => BulkOperation::class]));
 
-        // Before trying to create a new bulk op in shopify, we should call their API to see if there is one running
+        // Before trying to create a new bulk op in Shopify, we should check if there is one running
         // This will ensure we don't cause any issue with other processes
 
+        // @todo This procedure is deprecated in 2025-10, and Shopify suggests moving to the generic bulkOperations() query.
+        // @see https://shopify.dev/docs/api/admin-graphql/latest/queries/bulkOperations
         $bulkOpsStatusQuery = (new \GraphQL\Query('currentBulkOperation'))
+            ->setOperationName('currentBulkOperation')
+            ->setVariables([new Variable('bulkOpType', 'BulkOperationType')])
+            ->setArguments([
+                'type' => '$bulkOpType',
+            ])
             ->setSelectionSet([
                 'id',
                 'type',
                 'status',
             ]);
-        $bulkOpStatusResponse = Plugin::getInstance()->getApi()->query($bulkOpsStatusQuery);
 
-        if ($bulkOpStatusResponse === false || ($bulkOpStatusResponse !== null && in_array($bulkOpStatusResponse['status'], ['RUNNING', 'CREATED']))) {
+        try {
+            $bulkOpStatusResponse = Plugin::getInstance()->getApi()->query($bulkOpsStatusQuery, ['bulkOpType' => 'QUERY']);
+        } catch (ShopifyException $e) {
+            return false;
+        }
+
+        // If there is a bulk operation in progress, we should bail before trying to start another:
+        if ($bulkOpStatusResponse && in_array($bulkOpStatusResponse['status'], ['RUNNING', 'CREATED'])) {
             return false;
         }
 
@@ -161,26 +175,28 @@ class BulkOperations extends Component
                     ]),
             ]);
 
-        $response = Plugin::getInstance()->getApi()->query($mutation, ['query' => $bulkOperation->query]);
+        try {
+            $data = Plugin::getInstance()->getApi()->query($mutation, ['query' => $bulkOperation->query]);
+        } catch (ShopifyException $e) {
+            // If there was an issue creating the operation that we haven’t accounted for, just mark it as completed:
+            Craft::error('Could not start bulk operation: ' . $e->getMessage(), __METHOD__);
 
-        if (!$response) {
             $bulkOperation->setStatus(BulkOperationStatus::Completed);
             $this->saveBulkOperation($bulkOperation, false);
+
             return false;
         }
 
-        if (isset($response['bulkOperation']['userErrors']) && !empty($response['bulkOperation']['userErrors'])) {
-            Craft::error('Could not start bulk operation: ' . $response['bulkOperation']['userErrors'][0]['message'], __METHOD__);
-            return false;
-        }
+        $op = $data['bulkOperation'];
 
-        if ($response['bulkOperation']['status'] === 'CREATED') {
+        if ($op['status'] === 'CREATED') {
             $bulkOperation->setStatus(BulkOperationStatus::Created);
         }
 
-        $bulkOperation->shopifyStatus = $response['bulkOperation']['status'];
-        $bulkOperation->shopifyId = $response['bulkOperation']['id'];
+        $bulkOperation->shopifyStatus = $op['status'];
+        $bulkOperation->shopifyId = $op['id'];
         $this->saveBulkOperation($bulkOperation);
+
         return true;
     }
 

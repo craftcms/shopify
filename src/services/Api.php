@@ -30,9 +30,10 @@ use Shopify\Auth\Session;
 use Shopify\Clients\Graphql;
 use Shopify\Clients\Http;
 use Shopify\Clients\HttpClientFactory;
-use Shopify\Clients\Rest;
 use Shopify\Context;
 use Shopify\Exception\MissingArgumentException;
+use Shopify\Exception\SessionNotFoundException;
+use Shopify\Exception\ShopifyException;
 use Shopify\Exception\UninitializedContextException;
 use Shopify\Webhooks\Topics;
 use yii\base\InvalidConfigException;
@@ -383,39 +384,78 @@ class Api extends Component
     }
 
     /**
-     * Run a Shopify GraphQL query.
+     * Run a GraphQL query against the Shopify API.
+     *
+     * If you need to control how a response is unpacked, use {@see getGqlClient()} directly.
+     *
+     * Under normal circumstances, the selected fields (including `userErrors`, when requested) are returned as an array.
+     * A `false` return value indicates a low-level communication failure.
+     *
+     * All other issues should trigger a {@see ShopifyException}.
      *
      * @param Query|string $query
      * @param array|null $variables
-     * @return mixed
+     * @return mixed Typically an array with the same structure as the selection, or `null` for nonexistent nodes.
+     * @throws ShopifyException when the response looks unusual (i.e. an `errors` key is present, or a `data` key was not returned)
+     * @throws SessionNotFoundException if a session can’t be established
      * @since 6.0.0
      */
     public function query(Query|string $query, ?array $variables = null): mixed
     {
-        $data = ['query' => (string)$query];
+        // An invalid session will cause everything to fail:
+        if ($this->getSession() === null) {
+            throw new SessionNotFoundException(Craft::t('shopify', 'No Shopify session available. Please check your credentials and re-authorize the application, if necessary.'));
+        }
+
+        $payload = ['query' => (string)$query];
+
         if ($variables) {
-            $data['variables'] = $variables;
+            $payload['variables'] = $variables;
         }
 
         try {
-            $response = $this->getGqlClient()->query($data);
+            $response = $this->getGqlClient()->query($payload);
             $body = $response->getDecodedBody();
 
+            if (array_key_exists('errors', $body)) {
+                $message = $body['errors'];
+
+                // https://shopify.dev/docs/api/admin-graphql/2025-10#status-and-error-codes
+                // Some low-level errors (like an unavailable shop) are reported as a single string.
+                // Others need to be unpacked from an array:
+                if (is_array($message)) {
+                    $message = $message[0]['message'];
+                    // (Shopify also suggests that 400 errors may have a key like `query`, but we haven’t observed this!)
+                }
+
+                throw new ShopifyException($message);
+            }
+
+            // GraphQL responses are always nested inside a `data` key:
             if (!isset($body['data'])) {
-                throw new \Exception('No data returned from GraphQL query.');
+                throw new ShopifyException('No data was returned from the GraphQL query.');
             }
 
             $data = $body['data'];
+
+            // Queries and mutations have implicit “names” based on the procedure, which is where our data will be in the response.
+            // The name itself doesn’t matter (we are only sending one query or mutation at a time), so we can just unwrap the “first” item:
             $data = ArrayHelper::firstValue($data);
+
+            // The query may have selected `userErrors`, so we should check and throw:
             if (!empty($data['userErrors'])) {
-                throw new \Exception($data['userErrors'][0]['message']);
+                Craft::error('A GraphQL response included `userErrors`: ' . join(', ', array_column($data['userErrors'], 'message')), __METHOD__);
+                throw new ShopifyException($data['userErrors'][0]['message']);
             }
 
             return $data;
-        } catch (\Exception $e) {
+        } catch (ClientExceptionInterface $e) {
+            // We only intercept communication-related exceptions, here.
+            // Everything else (like a query or mutation issue) is allowed to bubble out so it can be reported to the user.
             Craft::error('Could not run GraphQL query: ' . $e->getMessage(), __METHOD__);
 
-            return false;
+            // Re-throw as an API error:
+            throw new ShopifyException('An issue occurred while communicating with the Shopify API. Check the logs for more information.');
         }
     }
 
@@ -449,8 +489,9 @@ class Api extends Component
     }
 
     /**
-     * Returns or sets up a Rest API client.
+     * Returns or sets up a GraphQL API client.
      *
+     * @see query()
      * @return Graphql
      * @throws MissingArgumentException
      * @since 6.0.0
@@ -523,7 +564,8 @@ class Api extends Component
             apiSecretKey: $pluginSettings->getClientSecret(),
             scopes: ['write_products', 'read_products', 'read_inventory'],
             // This `hostName` is different from the `shop` value used when creating a Session!
-            // Shopify wants a name for the host/environment that is initiating the connection.
+            // Shopify wants a name for the host/environment that is *initiating* the API connection.
+            // Internally, they appear to use this for starting OAuth flows and creating webhooks (but we handle the latter, manually).
             hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
             sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
             apiVersion: $pluginSettings->getApiVersion(),
@@ -611,14 +653,11 @@ class Api extends Component
             'nodes' => [
                 'id',
                 'topic',
-                'endpoint' => [
-                    '... on WebhookHttpEndpoint' => [
-                        'callbackUrl',
-                    ],
-                ],
+                'uri',
             ],
         ], function(QueryBuilder $builder) {
             $builder->setArgument('first', 100);
+            $builder->setArgument('uri', Plugin::getInstance()->getSettings()->getWebhookUrl());
         });
 
         $response = $this->query($query);
@@ -635,15 +674,11 @@ class Api extends Component
      * @param string|null $error
      * @return bool
      * @throws MissingArgumentException
+     * @throws ShopifyException
      * @since 6.0.0
      */
-    public function deleteWebhookById(string $id, ?string &$error = null): bool
+    public function deleteWebhookById(string $id): bool
     {
-        if ($this->getSession() === null) {
-            $error = Craft::t('shopify', 'No Shopify session available.');
-            return false;
-        }
-
         $mutation = (new Mutation('webhookSubscriptionDelete'))
             ->setOperationName('webhookSubscriptionDelete')
             ->setVariables([
@@ -661,20 +696,15 @@ class Api extends Component
                 'deletedWebhookSubscriptionId',
             ]);
 
-        try {
-            Plugin::getInstance()->getApi()->getGqlClient()->query([
-                'query' => (string)$mutation,
-                'variables' => [
-                    'id' => $id,
-                ],
-            ]);
+        $variables = [
+            'id' => $id,
+        ];
 
-            return true;
-        } catch (\Exception $e) {
-            Craft::error('Could not delete webhook with Shopify API: ' . $e->getMessage(), __METHOD__);
-
-            $error = Craft::t('shopify', 'Webhook could not be deleted');
-            return false;
+        if (!$this->query($mutation, $variables)) {
+            Craft::error(sprintf('No data was returned while deleting webhook %s', $id), __METHOD__);
+            throw new ShopifyException('The webhook may not have been deleted.');
         }
+
+        return true;
     }
 }
