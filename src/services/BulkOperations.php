@@ -29,8 +29,22 @@ use yii\db\Exception;
 use yii\db\StaleObjectException;
 
 /**
- *
  * BulkOperations service.
+ *
+ * This service is responsible for creating a local queue of “bulk” synchronization tasks, which are later dispatched to Shopify. The process looks something like this:
+ *
+ * 1. Most “bulk” operations are created in response to webhooks, but a user may also request a full synchronization via the Utility or CLI.
+ * 2. A local record is created to track pending synchronizations
+ * 3. The plugin checks to see if Shopify is currently processing another bulk operation. If not, we push the query to the API.
+ * 4. When a bulk query finishes running on Shopify’s infrastructure, they issue a webhook.
+ * 5. In response to the webhook, we store the URL to the operation’s JSONL results and push a {@see ProcessBulkOperationData} to the Craft queue. That job is responsible for actually updating our local {@see craft\shopify\elements\Product} records.
+ * 6. After processing a bulk operation, we return to step #3.
+ *
+ * The system goes “idle” if there are no operations in our queue, or after adding an operation to the local queue while Shopfiy is still processing a prior one.
+ *
+ * Complete, failed, or otherwise “terminal” bulk operations can be deleted from the queue.
+ *
+ * @link https://shopify.dev/docs/api/usage/bulk-operations/queries
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 6.0.0
@@ -128,7 +142,9 @@ class BulkOperations extends Component
         /** @var BulkOperation $bulkOperation */
         $bulkOperation = Craft::createObject(array_merge($result, ['class' => BulkOperation::class]));
 
-        // Before trying to create a new bulk op in Shopify, we should check if there is one running
+        // @todo API version 2026-01 will allow concurrent bulk operations, but 2025-10 and earlier are limited to a single
+        // https://shopify.dev/docs/api/usage/bulk-operations/queries#limitations
+        // Before trying to create a new bulk operation in Shopify, we should check if there is one running
         // This will ensure we don't cause any issue with other processes
 
         // @todo This procedure is deprecated in 2025-10, and Shopify suggests moving to the generic bulkOperations() query.
