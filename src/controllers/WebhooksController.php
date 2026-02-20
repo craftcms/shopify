@@ -118,15 +118,16 @@ class WebhooksController extends Controller
                     Html::tag('td', $hook['topic']) .
                     Html::tag('td', $hook['uri']) .
                     Html::beginTag('td', ['class' => 'rightalign']) .
-                        Html::beginForm() .
+                        Html::beginForm(options: [
+                            'class' => 'shopify-webhook-delete',
+                            'data-confirm' => Craft::t('shopify', 'Are you sure you want to delete the {topic} webhook?', ['topic' => $hook['topic']]),
+                        ]) .
                             Html::actionInput('shopify/webhooks/delete') .
                             Html::hiddenInput('id', $hook['id']) .
-                            Html::tag('a', '', [
+                            Html::submitButton('', [
                                 'class' => 'delete icon',
                                 'href' => '#',
                                 'title' => Craft::t('shopify', 'Delete {topic} webhook', ['topic' => $hook['topic']]), 'role' => 'button',
-                                'data-confirm' => Craft::t('shopify', 'Are you sure you want to delete the {topic} webhook?', ['topic' => $hook['topic']]),
-                                'data-error' => Craft::t('shopify', 'There was a problem deleting the {topic} webhook', ['topic' => $hook['topic']]),
                             ]) .
                         Html::endForm() .
                     Html::endTag('td') .
@@ -139,23 +140,18 @@ class WebhooksController extends Controller
             $js = <<<JS
                 (() => {
                     const table = document.querySelector('table.data');
-                    const deleteButtons = table.querySelectorAll('.delete');
-                    if (!table || deleteButtons.length == 0) return;
+                    const deleteForms = table.querySelectorAll('.shopify-webhook-delete');
+                    if (!table || deleteForms.length == 0) return;
 
-                    deleteButtons.forEach(button => {
-                        button.addEventListener('click', async (e) => {
+                    deleteForms.forEach(deleteForm => {
+                        deleteForm.addEventListener('submit', async (e) => {
                             e.preventDefault();
                             
-                            if (!confirm(button.dataset.confirm)) {
+                            if (!confirm(deleteForm.dataset.confirm)) {
                                 return;
                             }
-
-                            try {
-                              const deleteForm = button.closest('form');
-                              deleteForm.submit();
-                            } catch (error) {
-                              Craft.cp.displayError(button.dataset.error)
-                            }
+                            
+                            deleteForm.submit();
                         });
                     });
                 })();
