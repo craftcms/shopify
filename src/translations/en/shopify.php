@@ -83,7 +83,7 @@ return [
     'Sync could not be deleted' => 'Sync could not be deleted',
     'Sync deleted' => 'Sync deleted',
     'Tags' => 'Tags',
-    'Template Suffix' => 'Template Suffix',
+    'Template suffix' => 'Template suffix',
     'This product has no media.' => 'This product has no media.',
     'This product has no meta fields.' => 'This product has no meta fields.',
     'This product has no options.' => 'This product has no options.',

@@ -825,6 +825,7 @@ class Product extends Element
             'updatedAt' => Craft::t('shopify', 'Updated At'),
             'variants' => Craft::t('shopify', 'Variants'),
             'vendor' => Craft::t('shopify', 'Vendor'),
+            'templateSuffix' => Craft::t('shopify', 'Template suffix'),
             'shopifyEdit' => Craft::t('shopify', 'Shopify Edit'),
         ];
     }
@@ -922,6 +923,8 @@ class Product extends Element
                 })->join('&nbsp;');
             case 'variants':
                 return collect($this->getVariants())->pluck('title')->map(fn($title) => StringHelper::toTitleCase($title))->join(',&nbsp;');
+            case 'templateSuffix':
+                return HtmlHelper::tag('code', $this->templateSuffix);
             default:
             {
                 return parent::attributeHtml($attribute);
