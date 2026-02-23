@@ -527,7 +527,7 @@ class Api extends Component
      * Returns or initializes a context + session.
      *
      * @return Session|null
-     * @throws \Shopify\Exception\MissingArgumentException
+     * @throws MissingArgumentException
      */
     public function getSession(): ?Session
     {
