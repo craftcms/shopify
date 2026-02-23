@@ -682,7 +682,7 @@ class Api extends Component
     }
 
     /**
-     * @param string $id
+     * @param string $id Shopify webhook subscription GID
      * @return bool
      * @throws MissingArgumentException
      * @throws ShopifyException
