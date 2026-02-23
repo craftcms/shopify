@@ -1023,7 +1023,7 @@ class Product extends Element
         $labels['publishedAt'] = Craft::t('shopify', 'Published at');
         $labels['tags'] = Craft::t('shopify', 'Tags');
         $labels['shopifyStatus'] = Craft::t('shopify', 'Status');
-        $labels['templateSuffix'] = Craft::t('shopify', 'Template Suffix');
+        $labels['templateSuffix'] = Craft::t('shopify', 'Template suffix');
         $labels['updatedAt'] = Craft::t('shopify', 'Updated at');
         $labels['variants'] = Craft::t('shopify', 'Variants');
         $labels['vendor'] = Craft::t('shopify', 'Vendor');
