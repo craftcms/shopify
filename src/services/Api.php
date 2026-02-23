@@ -12,6 +12,7 @@ use craft\base\Component;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\log\MonologTarget;
+use craft\shopify\events\DefineGqlFieldsEvent;
 use craft\shopify\Plugin;
 use craft\shopify\records\AccessToken;
 use craft\shopify\records\ShopifyData;
@@ -65,6 +66,12 @@ class Api extends Component
      * @since 7.0.0
      */
     public const API_ACCESS_TOKEN_ENV_VAR = 'SHOPIFY_API_ACCESS_TOKEN';
+
+    /**
+     * @event DefineGqlFieldsEvent Triggered while building a GraphQL query for retrieving Product resources from Shopify.
+     * @since 7.0.0
+     */
+    public const EVENT_DEFINE_PRODUCT_GQL_FIELDS = 'defineProductGqlFields';
 
     /**
      * @var Session|null
@@ -331,7 +338,12 @@ class Api extends Component
             ],
         ];
 
-        return $this->createQuery('products', $fields, function(QueryBuilder $builder) use ($id) {
+        $event = new DefineGqlFieldsEvent([
+            'fields' => $fields,
+        ]);
+        $this->trigger(self::EVENT_DEFINE_PRODUCT_GQL_FIELDS, $event);
+
+        return $this->createQuery('products', $event->fields, function(QueryBuilder $builder) use ($id) {
             if ($id) {
                 // Strip Shopify prefix if it exists
                 $id = str_replace('gid://shopify/Product/', '', $id);

@@ -244,7 +244,9 @@ In addition to the standard element attributes like `id`, `title`, and `status`,
 All of these properties are available when working with a product element [in your templates](#templating).
 
 > [!IMPORTANT]  
-> See the Shopify documentation on the [product resource](https://shopify.dev/docs/api/admin-graphql/latest/objects/Product) for more information about what kinds of values to expect from these properties.
+> See the Shopify documentation on the [product resource](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/Product) for more information about what kinds of values to expect from these properties.
+> The nature of GraphQL (and API versioning) means that we may not be capturing 100% of the available data.
+> To select additional fields, you can intercept the `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS` [event](https://craftcms.com/docs/5.x/extend/events.html).
 
 A complete copy of the Shopify API data used to populate a product element is available under its `data` property. Wherever possible, we have used Shopify’s native property names—but by virtue of fetching products via GraphQL, there may be differences between the structure of this object and the API documentation, especially as it relates to nested objects. Use the following [methods](#methods) to access related or nested data!
 
