@@ -152,7 +152,7 @@ class Product extends Element
     /**
      * @var string
      */
-    public string $shopifyStatus = 'ACTIVE';
+    public string $shopifyStatus = self::SHOPIFY_STATUS_ACTIVE;
 
     /**
      * @var array
