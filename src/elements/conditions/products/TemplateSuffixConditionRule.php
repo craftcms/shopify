@@ -16,7 +16,7 @@ class TemplateSuffixConditionRule extends BaseTextConditionRule implements Eleme
      */
     public function getLabel(): string
     {
-        return \Craft::t('shopify', 'Template Suffix');
+        return \Craft::t('shopify', 'Template suffix');
     }
 
     /**
