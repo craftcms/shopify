@@ -226,6 +226,7 @@ class Product extends Element
     {
         return array_merge(parent::searchableAttributes(), [
             'bodyHtml',
+            'descriptionHtml',
             'handle',
             'vendor',
             'productType',
