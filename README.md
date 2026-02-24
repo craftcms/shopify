@@ -212,9 +212,9 @@ Due to significant shifts in Shopify’s developer ecosystem, many of the [front
 > [!TIP]
 > We strongly recommend reviewing this same section on the [6.x](https://github.com/craftcms/shopify/blob/6.x/README.md#upgrading) branch, as there were a number of breaking changes and deprecations during the upgrade from 5.x.
 
-After the upgrade, you **must** delete and re-create webhooks for each environment. Webhooks are registered and delivered with a specific version, and a mismatch will result in errors.
+After the upgrade, you **must** [delete and re-create](#set-up-webhooks) webhooks for each environment. Webhooks are registered and delivered with a specific version, and a mismatch will result in errors.
 
-When you migrate to the Dev Dashboard custom app during the upgrade, you can leave your “legacy custom app” configuration as-is. The plugin will no longer use these credentials, but .
+Your “legacy custom app” can be left as-is or deleted, once all your environments have been migrated to the Dev Dashboard connection. While this plugin has no need for those credentials, confirm with the store owner that no other external services depend on them!
 
 ### Credentials
 
