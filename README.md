@@ -398,7 +398,8 @@ You can give synchronized products their own on-site URLs. To set up the URI for
 products/{handle}
 ```
 
-Any [native attribute](#native-attributes), [custom field](#custom-fields) handle, or base element property can be used in this template to construct a URL.
+Any [native attribute](#native-attributes), [custom field](#custom-fields) handle, or other base element property can be used in this template to construct a URL.
+Product elements’ slugs are automatically synchronized with the `handle` set in Shopify, so `{slug}` (as you might use in an entry’s URI format) is equivalent to `{handle}`.
 
 If you would prefer your customers to view individual products on Shopify, clear out the **Product URI Format** field on the settings page, and use [`product.shopifyUrl`](#productgetshopifyurl) instead of `product.url` in your templates.
 
