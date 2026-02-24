@@ -249,7 +249,7 @@ This adds a [bulk operation](https://shopify.dev/docs/api/usage/bulk-operations/
 Going forward, your products are automatically kept in sync via [webhooks](#set-up-webhooks). You can view a history of synchronization operations by visiting the **Shopify Sync** utility.
 
 > [!WARNING]  
-> We do out best to capture native Shopify resources that are attached to a product (like variants, media, and options), but cannot dynamically discover relationships with other content via `Metafield`s, or data from third-party apps.
+> We do our best to capture native Shopify resources that are attached to a product (like variants, media, and options), but cannot dynamically discover relationships with other content via `Metafield`s, or data from third-party apps.
 
 ### Native Attributes
 
