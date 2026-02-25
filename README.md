@@ -176,7 +176,7 @@ To test synchronization in development, we recommend using [ngrok](https://ngrok
 DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). 
 
 > [!TIP]  
-> Use the `SHOPIFY_WEBHOOKS_BASE_URL` environment variable to override your project’s base URL when creating webhooks; this allows you to continue using your regular DDEV site URL for control panel and front-end access, rather than overriding the entire project or site’s base URL.
+> Use the `SHOPIFY_PUBLIC_DEV_URL` environment variable to override your project’s base URL when creating webhooks; this allows you to continue using your regular DDEV site URL for control panel and front-end access, rather than overriding the entire project or site’s base URL.
 >
 > This setting may not work if you have set a custom `cpBaseUrl`!
 
@@ -184,7 +184,7 @@ DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs
 
 Each time you open an `ngrok` tunnel, you get a new public URL, and Shopify will be unable to deliver webhooks.
 This means that you may accumulate broken subscriptions over the course of development.
-In the control panel, we only display the webhooks relevant to the _current_ environment—or, more accurately, those with a `uri` matching the resolved webhook URL (which can be influenced by the `SHOPIFY_WEBHOOKS_BASE_URL` variable).
+In the control panel, we only display the webhooks relevant to the _current_ environment—or, more accurately, those with a `uri` matching the resolved webhook URL (which can be influenced by the `SHOPIFY_PUBLIC_DEV_URL` variable).
 
 You can delete individual webhooks from the control panel, or by using the [CLI GraphQL playground](#graphql-playground)…
 
