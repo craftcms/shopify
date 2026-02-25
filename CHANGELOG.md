@@ -14,6 +14,7 @@
 - Added `craft\shopify\fieldlayoutelements\MetafieldsField`.
 - Added `craft\shopify\fieldlayoutelements\OptionsField`.
 - Added `craft\shopify\fieldlayoutelements\VariantsField`.
+- Added `craft\shopify\models\Settings::getAuthUrl()`
 - Added `craft\shopify\models\Settings::getClientId()`.
 - Added `craft\shopify\models\Settings::getClientSecret()`.
 - Added `craft\shopify\models\Settings::setClientId()`.
