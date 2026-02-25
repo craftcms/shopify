@@ -152,7 +152,7 @@ class Product extends Element
     /**
      * @var string
      */
-    public string $shopifyStatus = 'ACTIVE';
+    public string $shopifyStatus = self::SHOPIFY_STATUS_ACTIVE;
 
     /**
      * @var array
@@ -226,6 +226,7 @@ class Product extends Element
     {
         return array_merge(parent::searchableAttributes(), [
             'bodyHtml',
+            'descriptionHtml',
             'handle',
             'vendor',
             'productType',
@@ -825,6 +826,7 @@ class Product extends Element
             'updatedAt' => Craft::t('shopify', 'Updated At'),
             'variants' => Craft::t('shopify', 'Variants'),
             'vendor' => Craft::t('shopify', 'Vendor'),
+            'templateSuffix' => Craft::t('shopify', 'Template suffix'),
             'shopifyEdit' => Craft::t('shopify', 'Shopify Edit'),
         ];
     }
@@ -922,6 +924,8 @@ class Product extends Element
                 })->join('&nbsp;');
             case 'variants':
                 return collect($this->getVariants())->pluck('title')->map(fn($title) => StringHelper::toTitleCase($title))->join(',&nbsp;');
+            case 'templateSuffix':
+                return HtmlHelper::tag('code', $this->templateSuffix);
             default:
             {
                 return parent::attributeHtml($attribute);
@@ -1019,7 +1023,7 @@ class Product extends Element
         $labels['publishedAt'] = Craft::t('shopify', 'Published at');
         $labels['tags'] = Craft::t('shopify', 'Tags');
         $labels['shopifyStatus'] = Craft::t('shopify', 'Status');
-        $labels['templateSuffix'] = Craft::t('shopify', 'Template Suffix');
+        $labels['templateSuffix'] = Craft::t('shopify', 'Template suffix');
         $labels['updatedAt'] = Craft::t('shopify', 'Updated at');
         $labels['variants'] = Craft::t('shopify', 'Variants');
         $labels['vendor'] = Craft::t('shopify', 'Vendor');

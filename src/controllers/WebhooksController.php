@@ -9,13 +9,11 @@ namespace craft\shopify\controllers;
 
 use Craft;
 use craft\helpers\Html;
-use craft\helpers\Json;
 use craft\shopify\Plugin;
-use craft\web\assets\admintable\AdminTableAsset;
 use craft\web\Controller;
-use GraphQL\InlineFragment;
 use GraphQL\Query;
 use GraphQL\Variable;
+use Shopify\Exception\ShopifyException;
 use yii\web\ConflictHttpException;
 use yii\web\Response as YiiResponse;
 
@@ -50,73 +48,121 @@ class WebhooksController extends Controller
     public function actionEdit(): YiiResponse
     {
         $view = $this->getView();
-        $view->registerAssetBundle(AdminTableAsset::class);
         $api = Plugin::getInstance()->getApi();
 
-        if (!$session = $api->getSession()) {
-            throw new ConflictHttpException('No Shopify API session found, check credentials in settings.');
+        try {
+            $webhooks = $api->getWebhooks();
+        } catch (ShopifyException $e) {
+            throw new ConflictHttpException('There was an issue connecting to the Shopify API. Please check your credentials.');
         }
 
-        $webhooks = $api->getWebhooks();
-        $tableData = [];
+        $requiredTopics = array_flip($api::WEBHOOK_TOPICS);
 
-        // If we don't have all webhooks needed for the current environment show the create button
-        $containsAllWebhooks = $webhooks->filter(function($item) use ($api, &$tableData) {
-            $tableData[] = [
-                    'id' => $item['id'],
-                    'title' => $item['topic'],
-                    'callbackUrl' => $item['endpoint']['callbackUrl'],
-                ];
-            return in_array($item['topic'], $api::WEBHOOK_TOPICS) && $item['endpoint']['callbackUrl'] == Plugin::getInstance()->getSettings()->getWebhookUrl();
-        })->count() === count($api::WEBHOOK_TOPICS);
-
-        $view->registerTranslations('shopify', [
-            'Are you sure you want to delete this webhook?',
-            'No webhooks exist yet.',
-            'Topic',
-            'URL',
-            'Webhook could not be deleted',
-            'Webhook deleted',
-        ]);
-
-        $tableData = Json::encode($tableData);
-
-        $view->registerJs(<<<JS
-var columns = [
-            { name: '__slot:title', title: Craft.t('shopify', 'Topic') },
-            { name: 'callbackUrl', title: Craft.t('shopify', 'URL') }
-        ];
-
-        new Craft.VueAdminTable({
-            fullPane: false,
-            columns: columns,
-            container: '#webhooks-container',
-            deleteAction: 'shopify/webhooks/delete',
-            deleteConfirmationMessage: Craft.t('shopify', "Are you sure you want to delete this webhook?"),
-            deleteFailMessage: Craft.t('shopify', "Webhook could not be deleted"),
-            deleteSuccessMessage: Craft.t('shopify', "Webhook deleted"),
-            emptyMessage: Craft.t('shopify', 'No webhooks exist yet.'),
-            tableData: $tableData,
-            deleteCallback: function(){
-                window.location.reload(); // We need to reload to get the create button showing again
+        foreach ($webhooks as $hook) {
+            // When we discover a new topic, yank from the “required” array:
+            if (array_key_exists($hook['topic'], $requiredTopics)) {
+                unset($requiredTopics[$hook['topic']]);
             }
-        });
-JS);
+        }
 
-        $screen = $this->asCpScreen()
+        // If we saw a hook for every required topic, set a flag:
+        // (We use this later to decide whether the "Create webhooks" button should be shown)
+        $hasAllHooks = count($requiredTopics) === 0;
+
+        $html = '';
+
+        if ($webhooks->isNotEmpty() && !$hasAllHooks) {
+            $html .= Html::beginTag('div', ['class' => 'pane warning']) .
+                    Html::tag('p', Craft::t('shopify', 'This environment is not subscribed to all the required webhook topics.')) .
+                    Html::beginForm() .
+                        Html::actionInput('shopify/webhooks/create') .
+                        Html::submitButton(Craft::t('shopify', 'Create missing webhooks'), [
+                            'class' => ['btn', 'submit'],
+                        ]) .
+                    Html::endForm() .
+                Html::endTag('div');
+        }
+
+        if ($hasAllHooks) {
+            $html .= Html::beginTag('div', ['class' => 'pane']) .
+                Html::beginTag('p') .
+                    Html::tag('span', '', ['class' => 'checkmark-icon']) . ' ' .
+                    Craft::t('shopify', 'This environment is subscribed to all the required webhook topics!') .
+                Html::endTag('p') .
+            Html::endTag('div');
+        }
+
+        if ($webhooks->isEmpty()) {
+            $html .= Html::beginTag('div', ['class' => 'zilch']) .
+                    Html::tag('p', Craft::t('shopify', 'No webhooks exist for this environment.')) .
+                Html::endTag('div') .
+                Html::beginForm() .
+                    Html::actionInput('shopify/webhooks/create') .
+                    Html::submitButton(Craft::t('shopify', 'Create all webhooks'), [
+                        'class' => ['btn', 'submit'],
+                    ]) .
+                Html::endForm();
+        } else {
+            $html .= Html::beginTag('table', ['class' => 'data fullwidth']) .
+                Html::beginTag('thead') .
+                Html::beginTag('tr') .
+                Html::tag('th', Craft::t('shopify', 'Topic')) .
+                Html::tag('th', Craft::t('app', 'URI')) .
+                Html::tag('th', '') .
+                Html::endTag('tr') .
+                Html::endTag('thead') .
+                Html::beginTag('tbody');
+
+            $webhooks->each(function($hook) use (&$html) {
+                $html .= Html::beginTag('tr') .
+                    Html::tag('td', $hook['topic']) .
+                    Html::tag('td', $hook['uri']) .
+                    Html::beginTag('td', ['class' => 'rightalign']) .
+                        Html::beginForm(options: [
+                            'class' => 'shopify-webhook-delete',
+                            'data-confirm' => Craft::t('shopify', 'Are you sure you want to delete the {topic} webhook?', ['topic' => $hook['topic']]),
+                        ]) .
+                            Html::actionInput('shopify/webhooks/delete') .
+                            Html::hiddenInput('id', $hook['id']) .
+                            Html::submitButton('', [
+                                'class' => 'delete icon',
+                                'href' => '#',
+                                'title' => Craft::t('shopify', 'Delete {topic} webhook', ['topic' => $hook['topic']]), 'role' => 'button',
+                            ]) .
+                        Html::endForm() .
+                    Html::endTag('td') .
+                    Html::endTag('tr');
+            });
+
+            $html .= Html::endTag('tbody') .
+                Html::endTag('table');
+
+            $js = <<<JS
+                (() => {
+                    const table = document.querySelector('table.data');
+                    const deleteForms = table.querySelectorAll('.shopify-webhook-delete');
+                    if (!table || deleteForms.length == 0) return;
+
+                    deleteForms.forEach(deleteForm => {
+                        deleteForm.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            
+                            if (!confirm(deleteForm.dataset.confirm)) {
+                                return;
+                            }
+                            
+                            deleteForm.submit();
+                        });
+                    });
+                })();
+            JS;
+            $this->getView()->registerJs($js);
+        }
+
+        return $this->asCpScreen()
             ->title(Craft::t('shopify', 'Webhooks'))
             ->selectedSubnavItem('webhooks')
-            ->contentHtml(
-                Html::tag('p', Craft::t('shopify', 'Webhooks for the current environment.')) .
-                Html::tag('div', Html::tag('div', '', ['id' => 'webhooks-container']), ['class' => 'field'])
-            );
-
-        if (!$containsAllWebhooks) {
-            $screen->action('shopify/webhooks/create')
-                ->submitButtonLabel(Craft::t('shopify', 'Create webhooks'));
-        }
-
-        return $screen;
+            ->contentHtml($html);
     }
 
     /**
@@ -124,30 +170,27 @@ JS);
      *
      * @return YiiResponse
      */
-    public function actionCreate(): YiiResponse
+    public function actionCreate(): ?YiiResponse
     {
         $this->requirePostRequest();
-
-        $view = $this->getView();
-        $view->registerAssetBundle(AdminTableAsset::class);
         $api = Plugin::getInstance()->getApi();
 
-        if (!$session = $api->getSession()) {
-            throw new ConflictHttpException('No Shopify API session found, check credentials in settings.');
+        try {
+            $webhooks = $api->getWebhooks();
+        } catch (ShopifyException $e) {
+            throw new ConflictHttpException('There was an issue connecting to the Shopify API. Please check your credentials.');
         }
 
-        $webhooks = $api->getWebhooks();
         $errors = [];
 
-        // If we don't have all the webhooks loop through the topics and create them if they don't exist
+        // Check each required topic and create missing subscriptions:
         foreach ($api::WEBHOOK_TOPICS as $topic) {
-            // If the webhook already exists skip
-            if ($webhooks->filter(function($item) use ($topic) {
-                return $item['topic'] === $topic && $item['endpoint']['callbackUrl'] == Plugin::getInstance()->getSettings()->getWebhookUrl();
-            })->count() > 0) {
+            // Is there at least one webhook with this topic?
+            if ($webhooks->contains('topic', $topic)) {
                 continue;
             }
 
+            // Ok, we need to create a subscription with the API:
             $query = (new \GraphQL\Mutation('webhookSubscriptionCreate'))
                 ->setOperationName('webhookSubscriptionCreate')
                 ->setVariables([
@@ -164,14 +207,7 @@ JS);
                             'id',
                             'topic',
                             'format',
-                            (new Query('endpoint'))
-                                ->setSelectionSet([
-                                    '__typename',
-                                    (new InlineFragment('WebhookHttpEndpoint'))
-                                        ->setSelectionSet([
-                                            'callbackUrl',
-                                        ]),
-                                ]),
+                            'uri',
                         ]),
                     (new Query('userErrors'))
                         ->setSelectionSet([
@@ -184,38 +220,24 @@ JS);
                 'topic' => $topic,
                 'webhookSubscription' => [
                     'format' => 'JSON',
-                    'callbackUrl' => Plugin::getInstance()->getSettings()->getWebhookUrl(),
+                    'uri' => Plugin::getInstance()->getSettings()->getWebhookUrl(),
                 ],
             ];
 
             try {
-                $response = $api->getGqlClient()->query(['query' => $query->__toString(), 'variables' => $variables]);
-                $body = $response->getDecodedBody();
-
-                if (array_key_exists('errors', $body)) {
-                    $message = $body['errors'];
-
-                    // Some low-level errors (like an unavailable shop) are reported as a single string.
-                    // Others need to be unpacked from an array:
-                    if (is_array($message)) {
-                        $message = $message[0]['message'];
-                    }
-
-                    throw new \Exception($message);
-                }
-            } catch (\Exception $e) {
+                // Fire it off; if anything goes wrong, we’ll just catch + log it.
+                $api->query($query, $variables);
+            } catch (ShopifyException $e) {
                 Craft::error('Could not register webhooks with Shopify API: ' . $e->getMessage(), __METHOD__);
                 $errors[] = $e->getMessage();
             }
         }
 
         if (!empty($errors)) {
-            $this->setFailFlash(Craft::t('shopify', 'Webhooks could not be registered.'));
-        } else {
-            $this->setSuccessFlash(Craft::t('shopify', 'Webhooks registered.'));
+            return $this->asFailure(Craft::t('shopify', 'Webhooks could not be registered.'));
         }
 
-        return $this->redirectToPostedUrl();
+        return $this->asSuccess(Craft::t('shopify', 'Webhooks registered.'));
     }
 
     /**
@@ -225,14 +247,15 @@ JS);
      */
     public function actionDelete(): YiiResponse
     {
-        $this->requireAcceptsJson();
-        $id = Craft::$app->getRequest()->getBodyParam('id');
+        $this->requirePostRequest();
+        $id = Craft::$app->getRequest()->getRequiredBodyParam('id');
 
-        $error = null;
-        if (Plugin::getInstance()->getApi()->deleteWebhookById($id, $error)) {
-            return $this->asSuccess(Craft::t('shopify', 'Webhook deleted'));
+        try {
+            Plugin::getInstance()->getApi()->deleteWebhookById($id);
+        } catch (ShopifyException $e) {
+            return $this->asFailure(Craft::t('shopify', 'Webhook could not be deleted'));
         }
 
-        return $this->asFailure($error);
+        return $this->asSuccess(Craft::t('shopify', 'Webhook deleted'));
     }
 }

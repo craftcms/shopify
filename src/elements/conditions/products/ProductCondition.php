@@ -39,6 +39,7 @@ class ProductCondition extends ElementCondition
             VendorConditionRule::class,
             HandleConditionRule::class,
             TagsConditionRule::class,
+            TemplateSuffixConditionRule::class,
         ]);
     }
 }

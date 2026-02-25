@@ -30,7 +30,7 @@ class Webhook implements Handler
                 Plugin::getInstance()->getProducts()->deleteProductByShopifyId($body['id']);
                 break;
             case Topics::INVENTORY_ITEMS_UPDATE:
-                Plugin::getInstance()->getProducts()->syncProductByInventoryItemId($body['inventory_item_id']);
+                Plugin::getInstance()->getProducts()->syncProductByInventoryItemId($body['admin_graphql_api_id']);
                 break;
             case Topics::BULK_OPERATIONS_FINISH:
                 Plugin::getInstance()->getBulkOperations()->handleBulkOperationFinished($body);

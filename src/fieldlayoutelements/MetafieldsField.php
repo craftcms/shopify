@@ -70,7 +70,7 @@ class MetafieldsField extends BaseNativeField
         foreach ($metafields as $key => $value) {
             $tableData[] = [
                 'key' => Html::tag('code', Html::encode($key)),
-                'value' => Html::encode($value),
+                'value' => Html::tag('code', json_encode($value)),
             ];
         }
 

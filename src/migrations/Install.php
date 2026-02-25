@@ -34,6 +34,15 @@ class Install extends Migration
      */
     public function createTables(): void
     {
+        $this->archiveTableIfExists(Table::ACCESS_TOKENS);
+        $this->createTable(Table::ACCESS_TOKENS, [
+            'id' => $this->primaryKey(),
+            'accessToken' => $this->string(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists(Table::PRODUCTS);
         $this->createTable(Table::PRODUCTS, [
             'id' => $this->integer()->notNull(),

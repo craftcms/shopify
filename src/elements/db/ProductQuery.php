@@ -60,6 +60,11 @@ class ProductQuery extends ElementQuery
     /**
      * @var mixed|null
      */
+    public mixed $templateSuffix = null;
+
+    /**
+     * @var mixed|null
+     */
     public mixed $vendor = null;
 
     /**
@@ -263,6 +268,15 @@ class ProductQuery extends ElementQuery
     }
 
     /**
+     * Narrows the query results based on the “template suffix” selected in Shopify.
+     */
+    public function templateSuffix(mixed $value): ProductQuery
+    {
+        $this->templateSuffix = $value;
+        return $this;
+    }
+
+    /**
      * Narrows the query results based on the Shopify product ID
      */
     public function shopifyId(mixed $value): ProductQuery
@@ -434,6 +448,10 @@ class ProductQuery extends ElementQuery
 
         if (isset($this->tags)) {
             $this->subQuery->andWhere(Db::parseParam('data.tags', $this->tags));
+        }
+
+        if (isset($this->templateSuffix)) {
+            $this->subQuery->andWhere(Db::parseParam('data.templateSuffix', $this->templateSuffix));
         }
 
         return parent::beforePrepare();

@@ -10,10 +10,12 @@ namespace craft\shopify\models;
 use Craft;
 use craft\base\Model;
 use craft\helpers\App;
+use craft\helpers\Cp;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
+use craft\shopify\records\AccessToken;
 use Shopify\ApiVersion;
 use Shopify\Utils;
 
@@ -27,6 +29,7 @@ class Settings extends Model
 {
     private string $_clientId = '';
     private string $_clientSecret = '';
+    private string $_accessToken = '';
 
     private string $_hostName = '';
     public string $uriFormat = '';
@@ -111,6 +114,7 @@ class Settings extends Model
     public function attributeLabels(): array
     {
         return [
+            'authUrl' => Craft::t('shopify', 'Shopify App Auth URL'),
             'clientId' => Craft::t('shopify', 'Shopify Client ID'),
             'clientSecret' => Craft::t('shopify', 'Shopify Client Secret Key'),
             'apiVersion' => Craft::t('shopify', 'Shopify API Version'),
@@ -251,6 +255,43 @@ class Settings extends Model
     }
 
     /**
+     * @param string $accessToken
+     * @return void
+     * @since 6.0.0
+     */
+    public function setAccessToken(string $accessToken): void
+    {
+        $this->_accessToken = $accessToken;
+    }
+
+    /**
+     * @param bool $parse
+     * @return string
+     * @since 6.0.0
+     */
+    public function getAccessToken(bool $parse = true): string
+    {
+        if (!$this->_accessToken) {
+            /** @var AccessToken $accessTokenRecord */
+            $accessTokenRecord = AccessToken::find()->one() ?? new AccessToken();
+            if (!$accessTokenRecord->accessToken) {
+                return '';
+            }
+
+            $accessToken = $accessTokenRecord->accessToken;
+
+            // If an actual access token, and not a env var, has been stored we need to unencrypt it
+            if (!str_starts_with($accessToken, '$')) {
+                $accessToken = Craft::$app->getSecurity()->decryptByKey($accessToken);
+            }
+
+            $this->setAccessToken($accessToken);
+        }
+
+        return ($parse ? App::parseEnv($this->_accessToken) : $this->_accessToken) ?? '';
+    }
+
+    /**
      * @param string $contextualPricingCountries
      * @return void
      * @since 6.0.0
@@ -306,5 +347,37 @@ class Settings extends Model
         }
 
         return $url;
+    }
+
+    /**
+     * @return string
+     * @since 7.0.0
+     */
+    public function getAuthUrl(): string
+    {
+        // Trim CP trigger if it's present.
+        $authPath = $this->getAuthPath();
+        if ($cpTrigger = Craft::$app->getConfig()->getGeneral()->cpTrigger) {
+            $authPath = StringHelper::removeLeft($authPath, $cpTrigger . '/');
+        }
+
+        $url = UrlHelper::cpUrl($authPath);
+        $requestedSite = Cp::requestedSite()?->handle ?? null;
+
+        if ($requestedSite && strpos($url, 'site=' . $requestedSite) > -1) {
+            $url = str_replace("site={$requestedSite}", '', $url);
+            $url = StringHelper::removeRight($url, '?');
+        }
+
+        return $url;
+    }
+
+    /**
+     * @return string
+     * @since 7.0.0
+     */
+    public function getAuthPath(): string
+    {
+        return UrlHelper::prependCpTrigger('shopify/auth');
     }
 }

@@ -9,6 +9,7 @@ namespace craft\shopify\utilities;
 
 use Craft;
 use craft\base\Utility;
+use craft\helpers\StringHelper;
 use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\models\BulkOperation;
 use craft\shopify\Plugin;
@@ -77,7 +78,7 @@ class Sync extends Utility
             return [
                 'id' => $bo->id,
                 'status' => $bo->statusLabelHtml(),
-                'shopifyStatus' => $bo->shopifyStatus,
+                'shopifyStatus' => $bo->shopifyStatus ? StringHelper::toTitleCase($bo->shopifyStatus) : null,
                 'objects' => $bo->objectCount ? $formatter->asInteger($bo->objectCount) : '',
                 'dateCreated' => $formatter->asDatetime($bo->dateCreated),
                 'dateUpdated' => $formatter->asDatetime($bo->dateUpdated),

@@ -104,13 +104,13 @@ class Products extends Component
             $builder->setArgument('id', $id);
         });
 
-        $response = Plugin::getInstance()->getApi()->query($query);
+        $item = Plugin::getInstance()->getApi()->query($query);
 
-        if (empty($response) || empty($response['data']['inventoryItem']['variant']['product']['id'])) {
+        if (!$item) {
             return;
         }
 
-        $productId = $response['data']['inventoryItem']['variant']['product']['id'];
+        $productId = $item['variant']['product']['id'];
 
         $this->syncProductByShopifyId($productId);
     }

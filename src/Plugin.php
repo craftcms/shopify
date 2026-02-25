@@ -73,7 +73,7 @@ class Plugin extends BasePlugin
     /**
      * @var string
      */
-    public string $schemaVersion = '6.0.5.0';
+    public string $schemaVersion = '7.0.0.0';
 
     /**
      * @inheritdoc
@@ -344,6 +344,7 @@ class Plugin extends BasePlugin
             $event->rules['shopify/products/<elementId:\d+>'] = 'elements/edit';
             $event->rules['shopify/settings'] = 'shopify/settings';
             $event->rules['shopify/webhooks'] = 'shopify/webhooks/edit';
+            $event->rules['shopify/auth'] = 'shopify/auth/index';
         });
     }
 
@@ -474,12 +475,10 @@ class Plugin extends BasePlugin
 
         $session = Plugin::getInstance()->getApi()->getSession();
 
-        if ($session) {
-            $ret['subnav']['products'] = [
-                'label' => Craft::t('shopify', 'Products'),
-                'url' => 'shopify/products',
-            ];
-        }
+        $ret['subnav']['products'] = [
+            'label' => Craft::t('shopify', 'Products'),
+            'url' => 'shopify/products',
+        ];
 
         if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $ret['subnav']['settings'] = [
