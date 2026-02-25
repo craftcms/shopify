@@ -15,6 +15,7 @@ use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use craft\i18n\Formatter;
 use craft\shopify\elements\Product as ProductElement;
+use craft\shopify\models\Variant;
 use craft\shopify\records\ShopifyData;
 use yii\base\InvalidConfigException;
 
@@ -99,7 +100,7 @@ class Product
             $meta[Craft::t('shopify', 'Total variants')] = Craft::$app->getFormatter()->asInteger(count($variants));
 
             $meta[Craft::t('shopify', 'Variants')] = collect($variants)
-                ->pluck('title')
+                ->map(fn(Variant $variant) => Html::encode($variant->title))
                 ->join(', ');
         }
 
