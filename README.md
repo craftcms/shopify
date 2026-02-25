@@ -170,14 +170,14 @@ The plugin will use your newly-issued access token to perform this operation, so
 > [!NOTE]
 > If you need to test synchronization in development, we recommend using [ngrok](https://ngrok.com/) to create a tunnel to your local environment.
 > DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). 
-> Use the `SHOPIFY_WEBHOOKS_BASE_URL` environment variable to override your project’s base URL when creating webhooks; this allows you to continue using your regular DDEV site URL for control panel and front-end access, rather than overriding the entire project or site’s base URL.
+> Use the `SHOPIFY_PUBLIC_DEV_URL` environment variable to override your project’s base URL when creating webhooks; this allows you to continue using your regular DDEV site URL for control panel and front-end access, rather than overriding the entire project or site’s base URL.
 > This setting may not work if you have set a custom `cpBaseUrl`!
 
 #### Cleanup
 
 Each time you open an `ngrok` tunnel, you get a new public URL.
 This means that you may accumulate broken webhook subscriptions over the course of development.
-In the control panel, we only display the webhooks relevant to the _current_ environment, or more accurately, when the webhook’s `uri` matches the resolved webhook URL (which can be influenced by the `SHOPIFY_WEBHOOKS_BASE_URL` variable).
+In the control panel, we only display the webhooks relevant to the _current_ environment, or more accurately, when the webhook’s `uri` matches the resolved webhook URL (which can be influenced by the `SHOPIFY_PUBLIC_DEV_URL` variable).
 
 
 

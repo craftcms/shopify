@@ -7,7 +7,7 @@
 > Webhooks will need to be recreated for the new app. Go to **Shopify** → **Webhooks** and create the missing webhooks. See the [upgrade notes](https://github.com/craftcms/shopify/blob/7.x/README.md#upgrading) for additional information.
 
 - Shopify for Craft now supports version `2025-10` of Shopify’s GraphQL Admin API.
-- It is now possible to configure the webhook URLs using the `SHOPIFY_WEBHOOK_BASE_URL` environment variable. ([#185](https://github.com/craftcms/shopify/issues/185))
+- It is now possible to configure the webhook and auth URLs using the `SHOPIFY_PUBLIC_DEV_URL` environment variable. ([#185](https://github.com/craftcms/shopify/issues/185))
 - Fixed a bug where product slugs weren’t syncing correctly.
 - Added `craft\shopify\collections\VariantCollection`.
 - Added `craft\shopify\fieldlayoutelements\MediaField`.

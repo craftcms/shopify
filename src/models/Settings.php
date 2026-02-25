@@ -340,13 +340,24 @@ class Settings extends Model
     public function getWebhookUrl(): string
     {
         $url = UrlHelper::actionUrl('shopify/webhook/handle');
-        $webhookBaseUrl = App::env('SHOPIFY_WEBHOOK_BASE_URL');
 
-        if ($webhookBaseUrl) {
-            $url = StringHelper::replaceFirst($url, rtrim(UrlHelper::baseUrl(), '/'), rtrim($webhookBaseUrl, '/'));
+        return $this->_normalizePublicDevUrl($url);
+    }
+
+    /**
+     * @param string $url
+     * @return string
+     * @throws \craft\errors\SiteNotFoundException
+     * @throws \yii\base\Exception
+     */
+    private function _normalizePublicDevUrl(string $url): string
+    {
+        $publicDevUrl = App::env('SHOPIFY_PUBLIC_DEV_URL');
+        if (!$publicDevUrl) {
+            return $url;
         }
 
-        return $url;
+        return StringHelper::replaceFirst($url, rtrim(UrlHelper::baseUrl(), '/'), rtrim($publicDevUrl, '/'));
     }
 
     /**
@@ -369,7 +380,7 @@ class Settings extends Model
             $url = StringHelper::removeRight($url, '?');
         }
 
-        return $url;
+        return $this->_normalizePublicDevUrl($url);
     }
 
     /**
