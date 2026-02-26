@@ -6,7 +6,7 @@ Build a content-driven storefront by synchronizing [Shopify](https://shopify.com
 
 > [!IMPORTANT]  
 > Version 7.x of the Shopify plugin uses new app-based authorization.
-> Existing integrations and credentials should continue to work with no changes, but the process for creating _new_ credentials has changed significantly in Shopify.
+> You must follow the [upgrade instructions](#upgrading) to get new credentials.
 
 ## Topics
 
