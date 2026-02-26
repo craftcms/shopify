@@ -5,7 +5,7 @@
 Build a content-driven storefront by synchronizing [Shopify](https://shopify.com) products into [Craft CMS](https://craftcms.com/).
 
 > [!IMPORTANT]  
-> Version 7.x of the Shopify plugin uses new app-based authorization.
+> Version 7.x of the Shopify plugin uses a new app-based authorization system.
 > You must follow the [upgrade instructions](#upgrading) to get new credentials.
 
 ## Topics
