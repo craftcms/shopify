@@ -173,7 +173,11 @@ class Api extends Component
             $shopRecord->data = $response;
 
             if (!$shopRecord->save()) {
-                throw new \Exception('Failed to save shop data: ' . $shopRecord->getErrors()[0]);
+                // Get the first error message from the record, if available:
+                $errors = $shopRecord->getErrors();
+                $firstError = array_shift($errors)[0] ?? ['Unknown error'];
+
+                throw new \Exception('Failed to save shop data: ' . implode(', ', $firstError));
             }
 
             $shop = $shopRecord->data;
@@ -644,7 +648,11 @@ class Api extends Component
             $record->accessToken = $success ? '$' . self::API_ACCESS_TOKEN_ENV_VAR : Craft::$app->getSecurity()->encryptByKey($body['access_token']);
 
             if (!$record->save()) {
-                Craft::error('Couldn\'t save the Shopify Access Token in the database. ' . $record->getErrors()[0], __METHOD__);
+                // Get the first error message from the record, if available:
+                $errors = $record->getErrors();
+                $firstError = array_shift($errors)[0] ?? ['Unknown error'];
+
+                Craft::error('Couldn\'t save the Shopify Access Token in the database. ' . implode(', ', $firstError), __METHOD__);
             }
 
             return $body['access_token'];
