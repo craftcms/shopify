@@ -66,6 +66,7 @@ To install an app into a store, one of these statements must describe your accou
 1. In the first screen, pick an **App name** that identifies the integration, like _Craft CMS_.
 1. Press **Create**, then fill out the following fields to create your first “version”:
     - **App URL**: Retrieve the **Shopify App Auth URL** value from the plugin’s setting screen in the Craft control panel. (This will always be your project’s URL, followed by the [cpTrigger](https://craftcms.com/docs/5.x/reference/config/general.html#cptrigger), then the action `shopify/auth`: `https://my-project.com/admin/shopify/auth`.)
+    - **Embed app in Shopify admin**: Make sure this is _unchecked_, as the plugin does not support embedded apps.
     - **Webhooks API Version**: Choose `2025-10`, and add the same string to your project’s `.env` file:
         ```bash
         SHOPIFY_WEBHOOK_VERSION="2025-10"
