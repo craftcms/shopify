@@ -123,7 +123,7 @@ SHOPIFY_HOSTNAME="my-store-name.myshopify.com"
 
 In the Craft control panel, navigate to **Shopify** &rarr; **Settings** to configure the plugin:
 
-- **API Version**: `$SHOPIFY_WEBHOOKS_VERSION`
+- **API Version**: `$SHOPIFY_WEBHOOK_VERSION`
 - **Client ID**: `$SHOPIFY_CLIENT_ID`
 - **Client Secret Key**: `$SHOPIFY_CLIENT_SECRET`
 - **Host Name**: `$SHOPIFY_HOSTNAME`
