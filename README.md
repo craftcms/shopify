@@ -593,8 +593,8 @@ Products behave just like any other [element](https://craftcms.com/docs/5.x/syst
 {% endfor %}
 
 {# Images: #}
-{% for image in product.images %}
-  <img src="{{ image.src }}" alt="{{ image.alt }}">
+{% for media in product.images %}
+  <img src="{{ media.image.url }}" alt="{{ media.image.altText }}">
     {# -> <img src="https://cdn.shopify.com/..." alt="Bubbly Soda"> #}
 {% endfor %}
 
