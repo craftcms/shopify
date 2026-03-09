@@ -54,8 +54,9 @@ To install an app into a store, one of these statements must describe your accou
 > [!CAUTION]  
 > The new OAuth-based API connection requires that apps are created from an “organization” that has access to the [Partner Dashboard](https://www.shopify.com/partners).
 > Standalone stores (like the one created when you sign up for a Shopify account) belong to their own organization.
-> If you are working with a store or account that has never accessed a Partner Dashboard, you may need to create a Partner profile before proceeding.
-> When working from an account that has access to multiple organizations, **it is generally safest to access the new Dev Dashboard via the Partner Dashboard you want the app associated with.**
+> 
+> - If you are working with a store or account that has never accessed a Partner Dashboard, **you must create a Partner profile before proceeding**.
+> - When working from an account that has access to multiple organizations, **it is generally safest to access the new Dev Dashboard _via_ the Partner Dashboard you want the app associated with.**
 
 ### Create an App
 
