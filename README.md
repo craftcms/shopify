@@ -949,16 +949,32 @@ You can make arbitrary GraphQL queries against the GraphQL Admin API with `craft
 {% endif %}
 ```
 
-The Shopify GraphQL client is also available if you need to safely pass variables (like pagination offsets or search strings), or make mutations:
+This method accepts a second argument, allowing you to safely pass variables (like pagination offsets or search strings that might come from user input):
 
 ```twig
-{% set response = craft.shopify.api.gqlClient.query({
-  query: gql,
-  variables: {
-    num: 10,
-  },
+{% set gql %}
+  {
+    articles(last: $limit, query: $search) {
+      nodes {
+        id
+        title
+        summary
+        body
+        image {
+          url
+        }
+      }
+    }
+  }
+{% endset %}
+
+{% set response = craft.shopify.api.query(gql, {
+  limit: entry.shopifyArticleLimit ?? 10,
+  search: "blog_id:#{entry.shopifyArticleSourceBlogId}",
 }) %}
 ```
+
+Refer to the [Shopify API search syntax](https://shopify.dev/docs/api/usage/search-syntax) documentation for details on the `query` argument.
 
 #### Store Service
 
