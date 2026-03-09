@@ -42,7 +42,7 @@ To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/sho
 
 ## Connect to Shopify
 
-The plugin works with Shopify’s [Dev Dashboard](https://shopify.dev/docs/apps/build/dev-dashboard) app system, and is split into two primary parts: [creating an app](#create-an-app) and [performing authorization](#).
+The plugin works with Shopify’s [Dev Dashboard](https://shopify.dev/docs/apps/build/dev-dashboard) app system, and is split into two primary parts: [creating an app](#create-an-app) and [performing authorization](#install-in-a-store).
 
 To install an app into a store, one of these statements must describe your account’s relationship with it:
 - You are the owner of the store;
