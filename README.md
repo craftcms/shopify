@@ -283,7 +283,7 @@ Yii and Twig also allow you to access some values via magic getters—any [metho
 > [!IMPORTANT]  
 > See the Shopify documentation on the [product resource](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/Product) for more information about what kinds of values to expect from these properties.
 > The nature of GraphQL (and API versioning) means that we may not be capturing 100% of the available data.
-> To select additional fields, you can intercept the `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS` [event](https://craftcms.com/docs/5.x/extend/events.html).
+> To select additional fields, you can intercept the [event](#events) emitted just before a product GraphQL query is sent.
 
 A complete copy of the requested Shopify API data used to populate a `Product` element is available under its `data` property. Wherever possible, we have used Shopify’s native property names—but by virtue of fetching products via GraphQL, there may be differences between the structure of this object and the API documentation, especially as it relates to nested objects. Use the following [methods](#methods) to access related or nested data!
 
@@ -1061,6 +1061,37 @@ Event::on(
 
 > [!WARNING]
 > Do not manually save changes made in this event handler. The plugin will take care of this for you!
+
+#### `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`
+
+Emitted as we build a [`products()`](https://shopify.dev/docs/api/admin-graphql/latest/queries/products) GraphQL query to be executed within a bulk operation.
+
+```php
+use craft\base\Event;
+use craft\shopify\events\DefineGqlFieldsEvent;
+use craft\shopify\services\Api;
+
+Event::on(
+    Api::class,
+    Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS,
+    function(DefineGqlFieldsEvent $event) {
+        // Select data for Shopify's Standard Product Taxonomy
+        // https://shopify.github.io/product-taxonomy/releases/2026-02/
+        $event->fields['edges']['node']['category'] = [
+            'fullName',
+            'id',
+            'name',
+        ];
+    }
+);
+```
+
+Due to the way Shopify has structured its API, the main product field selections are always nested within `edges.nodes`.
+This is also the case when crossing relationships or “connections” to other API resources (like `metafields`).
+
+We do not recommend trying to reduce selection sets, as it can interfere with the plugin’s basic functions.
+While the entire selection will be saved in the `shopify_data` table, we only split out specific objects.
+If you add nested selections (like [`combinedListings`](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/Product#field-Product.fields.combinedListing)), they will not be unpacked into additional records.
 
 ### GraphQL Playground
 
