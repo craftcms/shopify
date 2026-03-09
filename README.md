@@ -1038,9 +1038,9 @@ The event object has three properties:
 - `source`: The Shopify product object that was applied.
 
 ```php
+use craft\base\Event;
 use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\services\Products;
-use yii\base\Event;
 
 Event::on(
   Products::class,
