@@ -68,16 +68,18 @@ To install an app into a store, one of these statements must describe your accou
 1. Press **Create**, then fill out the following fields to create your first “version”:
     - **App URL**: Retrieve the **Shopify App Auth URL** value from the plugin’s setting screen in the Craft control panel. (This will always be your project’s URL, followed by the [cpTrigger](https://craftcms.com/docs/5.x/reference/config/general.html#cptrigger), then the action `shopify/auth`: `https://my-project.com/admin/shopify/auth`.)
     - **Embed app in Shopify admin**: Make sure this is _unchecked_, as the plugin does not support embedded apps.
-    - **Webhooks API Version**: Choose `2025-10`, and add the same string to your project’s `.env` file:
+    - **Webhooks API Version**: Choose `2026-01`, and add the same string to your project’s `.env` file:
         ```bash
-        SHOPIFY_WEBHOOK_VERSION="2025-10"
+        SHOPIFY_WEBHOOK_VERSION="2026-01"
         ```
     - **Access** &rarr; **Scopes**: The following scopes are required for the plugin to function correctly:
         - `read_inventory`
         - `read_product_listings`
         - `read_products`
-        - `unauthenticated_read_product_listings`
-        - Shopify requires these to be in a comma-separated list: `read_inventory,read_product_listings,read_products,unauthenticated_read_product_listings`
+        - Shopify requires these to be in a comma-separated list: 
+        ```
+        read_inventory,read_product_listings,read_products
+        ```
     - Do _not_ enable the **Use legacy install flow** as it can result in mismatched scopes during installation.
 1. Press **Release** to deploy the configuration. You may give it a name and description, or let Shopify tag it with an incrementing number.
 1. Switch to the **Settings** screen of the new app, and copy the credentials into your `.env` file:
@@ -97,7 +99,6 @@ Next, you’ll configure the app’s _distribution_ scheme.
     ```bash
     SHOPIFY_HOSTNAME="my-store-name.myshopify.com"
     ```
-1. Switch to the **API access requests** screen and press **Enable Storefront API**.
 1. Return to the **Distribution** screen and press **Copy link**.
 
 ![Identifying your store’s hostname, used when creating a distribution](docs/shopify-hostname.png)
@@ -107,7 +108,7 @@ You should now have a total of _four_ `SHOPIFY_*` variables in your `.env` file:
 ```bash
 # 1. Webhook API Version
 #    This is tied to your app’s release, and should not change (except potentially during a future plugin upgrade).
-SHOPIFY_WEBHOOK_VERSION="2025-10"
+SHOPIFY_WEBHOOK_VERSION="2026-01"
 
 # 2. Client ID
 #    This can be found in your Shopify app’s Settings screen.
@@ -192,7 +193,7 @@ You can delete individual webhooks from the control panel, or by using the [CLI 
 
 ```bash
 php craft shopify/api/query 'mutation deleteWebhook {
-  webhookSubscriptionDelete(id: "gid://shopify/WebhookSubscription/525699895") {
+  webhookSubscriptionDelete(id: "gid://shopify/WebhookSubscription/123456789") {
     userErrors {
       field
       message
@@ -255,12 +256,12 @@ Going forward, your products are automatically kept in sync via [webhooks](#set-
 
 ### Native Attributes
 
-In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains direct accessors for these canonical Shopify [Product attributes](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/Product):
+In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains direct accessors for these canonical Shopify [Product attributes](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product):
 
 | Attribute                                | Description                                                                                                                                                                                           | Type      |
 |------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
 | `shopifyId`                              | The integer product ID from Shopify.                                                                                                                                                                  | `Integer` |
-| `shopifyGid`                             | The [unique resource identifier](https://shopify.dev/docs/api/admin-graphql/2025-10/scalars/ID) (“GID”) from Shopify. This should always be the `shopifyId`, prepended with `gid://shopify/Product/`. | `String`  |
+| `shopifyGid`                             | The [unique resource identifier](https://shopify.dev/docs/api/admin-graphql/2026-01/scalars/ID) (“GID”) from Shopify. This should always be the `shopifyId`, prepended with `gid://shopify/Product/`. | `String`  |
 | `shopifyStatus`                          | The status of the product in Shopify. Values can be `active`, `draft`, or `archived`.                                                                                                                 | `String`  |
 | `handle`                                 | The product’s “URL handle” in Shopify, equivalent to a “slug” in Craft. For existing products, this is visible under the **Search engine listing** section of the edit screen.                        | `String`  |
 | `productType`                            | The product type of the product in your Shopify store.                                                                                                                                                | `String`  |
@@ -269,9 +270,9 @@ In addition to the standard element attributes like `id`, `title`, and `status`,
 | `templateSuffix`                         | [Liquid template suffix](https://shopify.dev/themes/architecture/templates#name-structure) used for the product page in Shopify.                                                                      | `String`  |
 | `vendor`                                 | Vendor of the product.                                                                                                                                                                                | `String`  |
 | `data`                                   | The raw API response data from Shopify. (See below)                                                                                                                                                   | `Array`   |
-| `metaFields`                             | [Metafields](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/Metafield) associated with the product.                                                                                       | `Array`   |
-| `images`                                 | Images (or “Media”) attached to the product in Shopify. The complete [MediaImage](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/MediaImage) objects are stored in Craft.                 | `Array`   |
-| `options`                                | [ProductOption](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/ProductOption) objects, as configured in Shopify. Each option has a `name`, `position`, and an array of in-use `values`.   | `Array`   |
+| `metaFields`                             | [Metafields](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Metafield) associated with the product.                                                                                       | `Array`   |
+| `images`                                 | Images (or “Media”) attached to the product in Shopify. The complete [MediaImage](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/MediaImage) objects are stored in Craft.                 | `Array`   |
+| `options`                                | [ProductOption](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/ProductOption) objects, as configured in Shopify. Each option has a `name`, `position`, and an array of in-use `values`.   | `Array`   |
 | `defaultVariant` (and `cheapestVariant`) | The first known (or cheapest) variant belonging to the product. This is one of the few ancillary resources that we make available as a model (`craft\shopify\models\Variant`).                        | `Variant` |
 | `createdAt`                              | When the product was created in your Shopify store. (This will almost always be different from the element’s native `dateCreated` property.)                                                          | `DateTime` |
 | `publishedAt`                            | When the product was published in your Shopify store.                                                                                                                                                 | `DateTime` |
@@ -281,7 +282,7 @@ All of these properties are available when working with a product element [in yo
 Yii and Twig also allow you to access some values via magic getters—any [method](#methods) beginning with `get` (like `product.getDefaultVariant()`) can also be treated like a property (`product.defaultVariant`).
 
 > [!IMPORTANT]  
-> See the Shopify documentation on the [product resource](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/Product) for more information about what kinds of values to expect from these properties.
+> See the Shopify documentation on the [product resource](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product) for more information about what kinds of values to expect from these properties.
 > The nature of GraphQL (and API versioning) means that we may not be capturing 100% of the available data.
 > To select additional fields, you can intercept the [event](#events) emitted just before a product GraphQL query is sent.
 
@@ -610,12 +611,12 @@ Products behave just like any other [element](https://craftcms.com/docs/5.x/syst
 ### Variants and Pricing
 
 Products don’t have a price, despite what the Shopify UI might imply—instead, every product has at least one
-[Variant](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/ProductVariant).
+[Variant](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/ProductVariant).
 
 You can get an array (or, more accurately, a [collection](https://craftcms.com/docs/5.x/development/collections.html)) of variant objects for a product by accessing `product.variants` or calling [`product.getVariants()`](#productgetvariants). The product element also provides convenience methods for getting the [default](#productgetdefaultvariant) and [cheapest](#productgetcheapestvariant) variants.
 
 - Variants are represented by a _model_ (`craft\shopify\models\Variant`), not an element.
-- Their native attributes reflect most of what is available via their corresponding [API object](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/ProductVariant); additional fields may be available within their `data` attribute.
+- Their native attributes reflect most of what is available via their corresponding [API object](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/ProductVariant); additional fields may be available within their `data` attribute.
 - Like products, a `metafields` attribute provides access to additional store-defined data;
 
 Once you have a reference to a variant, you can output any of its properties:
@@ -858,7 +859,7 @@ async function getCartId() {
         variables: {
             input: {
                 // Accepted parameters are available in the documentation:
-                // https://shopify.dev/docs/api/storefront/2025-10/mutations/cartCreate
+                // https://shopify.dev/docs/api/storefront/2026-01/mutations/cartCreate
             },
         },
     });
@@ -1032,7 +1033,7 @@ The following settings can also be set via a `shopify.php` file in your `config/
 | `apiSecretKey`               | `string` | — | Shopify API secret key.                                                                                                                                                                                        |
 | `apiVersion`                 | `string` | — | Shopify [API version](https://shopify.dev/docs/api/usage/versioning) description.                                                                                                                              |
 | `accessToken`                | `string` | — | Shopify API access token.                                                                                                                                                                                      |
-| `contextualPricingCountries` | `string` | — | Comma-separated list of [two-letter country codes](https://shopify.dev/docs/api/admin-graphql/2025-10/enums/CountryCode) that determine which [contextual prices](#contextual-pricing) are loaded via the API. |
+| `contextualPricingCountries` | `string` | — | Comma-separated list of [two-letter country codes](https://shopify.dev/docs/api/admin-graphql/2026-01/enums/CountryCode) that determine which [contextual prices](#contextual-pricing) are loaded via the API. |
 | `hostName`                   | `string` | — | Shopify [host name](#store-hostname).                                                                                                                                                                          |
 | `uriFormat`                  | `string` | — | Product element URI format.                                                                                                                                                                                    |
 | `template`                   | `string` | — | Product element template path.                                                                                                                                                                                 |
@@ -1107,7 +1108,37 @@ This is also the case when crossing relationships or “connections” to other 
 
 We do not recommend trying to reduce selection sets, as it can interfere with the plugin’s basic functions.
 While the entire selection will be saved in the `shopify_data` table, we only split out specific objects.
-If you add nested selections (like [`combinedListings`](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/Product#field-Product.fields.combinedListing)), they will not be unpacked into additional records.
+If you add nested selections (like [`combinedListings`](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product#field-Product.fields.combinedListing)), they will not be unpacked into additional records.
+
+#### `craft\shopify\services\Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS`
+
+Emitted as we build a GraphQL query to be executed within a bulk operation.
+
+```php
+use craft\base\Event;
+use craft\shopify\events\DefineGqlQueryArgumentsEvent;
+use craft\shopify\services\Api;
+
+Event::on(
+    Api::class,
+    Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS,
+    function(DefineGqlQueryArgumentsEvent $event) {
+        if ($event->fieldName !== 'products') {
+            return;
+        }
+        
+        // For product queries only sync products that belong to a specific collection:
+        $syncCollectionId = 'collection_id:108179161409';
+        if (array_key_exists('query', $event->arguments)) {
+            $event->arguments['query'] .= ", {$syncCollectionId}";
+        } else {
+            $event->arguments['query'] = $syncCollectionId;
+        }
+    }
+);
+```
+
+Using this event, after the queries have been built, you have the opportunity to add custom arguments to the main query. For example, you can tailor a query for products using the [ProductConnection arguments](https://shopify.dev/docs/api/admin-graphql/latest/queries/products#arguments) (like `query`, `reverse` or `savedSearchId`).
 
 ### GraphQL Playground
 
@@ -1123,7 +1154,7 @@ php craft shopify/api/query 'query { app { title } }'
 ```
 
 GraphQL only accepts double quotes (`"`) for string literals, so you must use single quotes (`'`) around your query, or escape double quotes with a backslash (`\\"`).
-Introspection is not currently available via the CLI; refer to the [documentation](https://shopify.dev/docs/api/admin-graphql/2025-10/) for the expected structure of objects.
+Introspection is not currently available via the CLI; refer to the [documentation](https://shopify.dev/docs/api/admin-graphql/2026-01/) for the expected structure of objects.
 Errors from the API are printed to `stdout`.
 
 ### Element API
@@ -1163,7 +1194,7 @@ return [
 
 Shopify does not emit webhooks for changes in [price catalogs for different markets](https://shopify.dev/docs/apps/build/markets/catalogs-different-markets#considerations). If you use these features, pricing stored in locally-synchronized product elements may become stale.
 
-To fetch current prices directly from Shopify's API in your Twig templates, use the GraphQL client with a query that includes [contextual pricing](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/ProductVariantContextualPricing):
+To fetch current prices directly from Shopify's API in your Twig templates, use the GraphQL client with a query that includes [contextual pricing](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/ProductVariantContextualPricing):
 
 ```twig
 {# Define the GraphQL query with contextual pricing for a specific country #}

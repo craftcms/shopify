@@ -10,6 +10,8 @@
 - It is now possible to configure the webhook and auth URLs using the `SHOPIFY_PUBLIC_DEV_URL` environment variable. ([#185](https://github.com/craftcms/shopify/issues/185))
 - Fixed a bug where product slugs weren’t syncing correctly.
 - Added `craft\shopify\collections\VariantCollection`.
+- Added `craft\shopify\events\DefineGqlFieldsEvent`.
+- Added `craft\shopify\events\DefineGqlQueryArgumentsEvent`.
 - Added `craft\shopify\fieldlayoutelements\MediaField`.
 - Added `craft\shopify\fieldlayoutelements\MetafieldsField`.
 - Added `craft\shopify\fieldlayoutelements\OptionsField`.
@@ -21,6 +23,8 @@
 - Added `craft\shopify\models\Settings::setClientSecret()`.
 - Added `craft\shopify\models\Variant`.
 - Added `craft\shopify\services\Api::API_ACCESS_TOKEN_CACHE_KEY`.
+- Added `craft\shopify\services\Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS`.
+- Added `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`.
 - Removed `craft\shopify\controllers\ProductsController::actionRenderCardHtml()`
 - Removed `craft\shopify\elements\Product::$publishedOnCurrentPublication`.
 - Removed `craft\shopify\elements\db\ProductQuery::$publishedOnCurrentPublication`.
