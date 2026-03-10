@@ -13,6 +13,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\log\MonologTarget;
 use craft\shopify\events\DefineGqlFieldsEvent;
+use craft\shopify\events\DefineGqlQueryArgumentsEvent;
 use craft\shopify\Plugin;
 use craft\shopify\records\AccessToken;
 use craft\shopify\records\ShopifyData;
@@ -74,6 +75,12 @@ class Api extends Component
     public const EVENT_DEFINE_PRODUCT_GQL_FIELDS = 'defineProductGqlFields';
 
     /**
+     * @event DefineGqlQueryArgumentsEvent Triggered while building a GraphQL query's arguments for resources from Shopify.
+     * @since 7.0.0
+     */
+    public const EVENT_DEFINE_GQL_QUERY_ARGUMENTS = 'defineGqlQueryArguments';
+
+    /**
      * @var Session|null
      */
     private ?Session $_session = null;
@@ -90,7 +97,7 @@ class Api extends Component
     public function getSupportedApiVersions(): array
     {
         return [
-            ApiVersion::OCTOBER_2025,
+            ApiVersion::JANUARY_2026,
         ];
     }
 
@@ -341,12 +348,15 @@ class Api extends Component
             ],
         ];
 
-        $event = new DefineGqlFieldsEvent([
-            'fields' => $fields,
-        ]);
-        $this->trigger(self::EVENT_DEFINE_PRODUCT_GQL_FIELDS, $event);
+        if ($this->hasEventHandlers(self::EVENT_DEFINE_PRODUCT_GQL_FIELDS)) {
+            $event = new DefineGqlFieldsEvent([
+                'fields' => $fields,
+            ]);
+            $this->trigger(self::EVENT_DEFINE_PRODUCT_GQL_FIELDS, $event);
+            $fields = $event->fields;
+        }
 
-        return $this->createQuery('products', $event->fields, function(QueryBuilder $builder) use ($id) {
+        return $this->createQuery('products', $fields, function(QueryBuilder $builder) use ($id) {
             if ($id) {
                 // Strip Shopify prefix if it exists
                 $id = str_replace('gid://shopify/Product/', '', $id);
@@ -395,7 +405,18 @@ class Api extends Component
             $this->_prepQueryBuilder($key, $value, $builder);
         }
 
-        return $builder->getQuery();
+        $query = $builder->getQuery();
+
+        if ($this->hasEventHandlers(self::EVENT_DEFINE_GQL_QUERY_ARGUMENTS)) {
+            $event = new DefineGqlQueryArgumentsEvent([
+                'fieldName' => $query->getFieldName(),
+                'arguments' => $query->getArguments(),
+            ]);
+            $this->trigger(self::EVENT_DEFINE_GQL_QUERY_ARGUMENTS, $event);
+            $query->setArguments($event->arguments);
+        }
+
+        return $query;
     }
 
     /**

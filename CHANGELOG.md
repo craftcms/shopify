@@ -3,7 +3,7 @@
 ## 7.x - WIP
 
 > [!IMPORTANT]
-> After updating, this plugin now requires API version `2025-10` and the creation of an app via the Dev Dashboard.
+> After updating, this plugin now requires API version `2026-01` and the creation of an app via the Dev Dashboard.
 > Webhooks will need to be recreated for the new app. Go to **Shopify** → **Webhooks** and create the missing webhooks. See the [upgrade notes](https://github.com/craftcms/shopify/blob/7.x/README.md#upgrading) for additional information.
 
 - Shopify for Craft now supports version `2025-10` of Shopify’s GraphQL Admin API.
@@ -22,6 +22,9 @@
 - Added `craft\shopify\models\Variant`.
 - Added `craft\shopify\services\Api::API_ACCESS_TOKEN_CACHE_KEY`.
 - Removed `craft\shopify\controllers\ProductsController::actionRenderCardHtml()`
+- Removed `craft\shopify\elements\Product::$publishedOnCurrentPublication`.
+- Removed `craft\shopify\elements\db\ProductQuery::$publishedOnCurrentPublication`.
+- Removed `craft\shopify\elements\db\ProductQuery::publishedOnCurrentPublication()`.
 - Deprecated `craft\shopify\models\Settings::getApiKey()`. `getClientId()` should be used instead.
 - Deprecated `craft\shopify\models\Settings::getApiSecret()`. `getClientSecret()` should be used instead.
 - Deprecated `craft\shopify\models\Settings::setApiKey()`. `setClientId()` should be used instead.
