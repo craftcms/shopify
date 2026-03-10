@@ -48,24 +48,6 @@ class Settings extends Model
      */
     private string $_apiVersion = ApiVersion::JANUARY_2026;
 
-    /**
-     * Whether product metafields should be included when syncing products. This adds an extra API request per product.
-     *
-     * @var bool
-     * @since 4.1.0
-     * @deprecated in 6.0.0.
-     */
-    public bool $syncProductMetafields = true;
-
-    /**
-     * Whether variant metafields should be included when syncing products. This adds an extra API request per variant.
-     *
-     * @var bool
-     * @since 4.1.0
-     * @deprecated in 6.0.0.
-     */
-    public bool $syncVariantMetafields = false;
-
     public function rules(): array
     {
         return [

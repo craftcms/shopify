@@ -27,8 +27,15 @@
 - Added `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`.
 - Removed `craft\shopify\controllers\ProductsController::actionRenderCardHtml()`
 - Removed `craft\shopify\elements\Product::$publishedOnCurrentPublication`.
+- Removed `craft\shopify\elements\Product::getBodyHtml()`.
+- Removed `craft\shopify\elements\Product::setBodyHtml()`.
 - Removed `craft\shopify\elements\db\ProductQuery::$publishedOnCurrentPublication`.
 - Removed `craft\shopify\elements\db\ProductQuery::publishedOnCurrentPublication()`.
+- Removed `craft\shopify\handlers\Product`.
+- Removed `craft\shopify\helpers\Metafields`.
+- Removed `craft\shopify\models\Settings::$syncProductMetafields`.
+- Removed `craft\shopify\models\Settings::$syncVariantMetafields`.
+- Removed `craft\shopify\services\Products::syncAllProducts()`.
 - Deprecated `craft\shopify\models\Settings::getApiKey()`. `getClientId()` should be used instead.
 - Deprecated `craft\shopify\models\Settings::getApiSecretKey()`. `getClientSecret()` should be used instead.
 - Deprecated `craft\shopify\models\Settings::setApiKey()`. `setClientId()` should be used instead.

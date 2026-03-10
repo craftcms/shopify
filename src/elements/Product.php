@@ -64,26 +64,6 @@ class Product extends Element
     public const SHOPIFY_STATUS_ARCHIVED = 'archived';
 
     /**
-     * @param string|null $bodyHtml
-     * @return void
-     * @throws DeprecationException
-     * @deprecated in 6.0.0. Use [[setDescriptionHtml()]] instead.
-     */
-    public function setBodyHtml(?string $bodyHtml): void
-    {
-        // Craft::$app->getDeprecator()->log(__METHOD__, 'Product::setBodyHtml() has been deprecated. Use setDescriptionHtml() instead.');
-    }
-
-    /**
-     * @return string|null
-     * @deprecated in 6.0.0. Use [[getDescriptionHtml()]] instead.
-     */
-    public function getBodyHtml(): ?string
-    {
-        return $this->getDescriptionHtml();
-    }
-
-    /**
      * @return string|null
      * @since 6.0.0
      */

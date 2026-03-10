@@ -59,18 +59,6 @@ class Products extends Component
     public const EVENT_BEFORE_SYNCHRONIZE_PRODUCT = 'beforeSynchronizeProduct';
 
     /**
-     * @return void
-     * @throws \Throwable
-     * @throws \yii\base\InvalidConfigException
-     * @deprecated in 6.0.0. Use [[BulkOperations::createProductsBulkOperation()]] instead.
-     */
-    public function syncAllProducts(): void
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Products::syncAllProducts() has been deprecated. Use BulkOperations::createProductsBulkOperation() instead.');
-        Plugin::getInstance()->getBulkOperations()->createProductsBulkOperation();
-    }
-
-    /**
      * @param string $id
      * @return void
      * @throws InvalidConfigException
