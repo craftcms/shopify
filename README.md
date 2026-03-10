@@ -42,7 +42,7 @@ To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/sho
 
 ## Connect to Shopify
 
-The plugin works with Shopify’s [Dev Dashboard](https://shopify.dev/docs/apps/build/dev-dashboard) app system, and is split into two primary parts: [creating an app](#create-an-app) and [performing authorization](#).
+The plugin works with Shopify’s [Dev Dashboard](https://shopify.dev/docs/apps/build/dev-dashboard) app system, and is split into two primary parts: [creating an app](#create-an-app) and [performing authorization](#install-in-a-store).
 
 To install an app into a store, one of these statements must describe your account’s relationship with it:
 - You are the owner of the store;
@@ -54,8 +54,9 @@ To install an app into a store, one of these statements must describe your accou
 > [!CAUTION]  
 > The new OAuth-based API connection requires that apps are created from an “organization” that has access to the [Partner Dashboard](https://www.shopify.com/partners).
 > Standalone stores (like the one created when you sign up for a Shopify account) belong to their own organization.
-> If you are working with a store or account that has never accessed a Partner Dashboard, you may need to create a Partner profile before proceeding.
-> When working from an account that has access to multiple organizations, **it is generally safest to access the new Dev Dashboard via the Partner Dashboard you want the app associated with.**
+> 
+> - If you are working with a store or account that has never accessed a Partner Dashboard, **you must create a Partner profile before proceeding**.
+> - When working from an account that has access to multiple organizations, **it is generally safest to access the new Dev Dashboard _via_ the Partner Dashboard you want the app associated with.**
 
 ### Create an App
 
@@ -123,7 +124,7 @@ SHOPIFY_HOSTNAME="my-store-name.myshopify.com"
 
 In the Craft control panel, navigate to **Shopify** &rarr; **Settings** to configure the plugin:
 
-- **API Version**: `$SHOPIFY_WEBHOOKS_VERSION`
+- **API Version**: `$SHOPIFY_WEBHOOK_VERSION`
 - **Client ID**: `$SHOPIFY_CLIENT_ID`
 - **Client Secret Key**: `$SHOPIFY_CLIENT_SECRET`
 - **Host Name**: `$SHOPIFY_HOSTNAME`
@@ -269,8 +270,8 @@ In addition to the standard element attributes like `id`, `title`, and `status`,
 | `vendor`                                 | Vendor of the product.                                                                                                                                                                                | `String`  |
 | `data`                                   | The raw API response data from Shopify. (See below)                                                                                                                                                   | `Array`   |
 | `metaFields`                             | [Metafields](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/Metafield) associated with the product.                                                                                       | `Array`   |
-| `images`                                 | Images attached to the product in Shopify. The complete [ProductImage resource](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/MediaImage) are stored in Craft.                           | `Array`   |
-| `options`                                | [ProductOption](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/ProductOption) objects, as configured in Shopify. Each option has a `name`, `position`, and an array of in-use `values`.    | `Array`   |
+| `images`                                 | Images (or “Media”) attached to the product in Shopify. The complete [MediaImage](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/MediaImage) objects are stored in Craft.                 | `Array`   |
+| `options`                                | [ProductOption](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/ProductOption) objects, as configured in Shopify. Each option has a `name`, `position`, and an array of in-use `values`.   | `Array`   |
 | `defaultVariant` (and `cheapestVariant`) | The first known (or cheapest) variant belonging to the product. This is one of the few ancillary resources that we make available as a model (`craft\shopify\models\Variant`).                        | `Variant` |
 | `createdAt`                              | When the product was created in your Shopify store. (This will almost always be different from the element’s native `dateCreated` property.)                                                          | `DateTime` |
 | `publishedAt`                            | When the product was published in your Shopify store.                                                                                                                                                 | `DateTime` |
@@ -282,7 +283,7 @@ Yii and Twig also allow you to access some values via magic getters—any [metho
 > [!IMPORTANT]  
 > See the Shopify documentation on the [product resource](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/Product) for more information about what kinds of values to expect from these properties.
 > The nature of GraphQL (and API versioning) means that we may not be capturing 100% of the available data.
-> To select additional fields, you can intercept the `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS` [event](https://craftcms.com/docs/5.x/extend/events.html).
+> To select additional fields, you can intercept the [event](#events) emitted just before a product GraphQL query is sent.
 
 A complete copy of the requested Shopify API data used to populate a `Product` element is available under its `data` property. Wherever possible, we have used Shopify’s native property names—but by virtue of fetching products via GraphQL, there may be differences between the structure of this object and the API documentation, especially as it relates to nested objects. Use the following [methods](#methods) to access related or nested data!
 
@@ -593,8 +594,8 @@ Products behave just like any other [element](https://craftcms.com/docs/5.x/syst
 {% endfor %}
 
 {# Images: #}
-{% for image in product.images %}
-  <img src="{{ image.src }}" alt="{{ image.alt }}">
+{% for media in product.images %}
+  <img src="{{ media.image.url }}" alt="{{ media.image.altText }}">
     {# -> <img src="https://cdn.shopify.com/..." alt="Bubbly Soda"> #}
 {% endfor %}
 
@@ -948,16 +949,32 @@ You can make arbitrary GraphQL queries against the GraphQL Admin API with `craft
 {% endif %}
 ```
 
-The Shopify GraphQL client is also available if you need to safely pass variables (like pagination offsets or search strings), or make mutations:
+This method accepts a second argument, allowing you to safely pass variables (like pagination offsets or search strings that might come from user input):
 
 ```twig
-{% set response = craft.shopify.api.gqlClient.query({
-  query: gql,
-  variables: {
-    num: 10,
-  },
+{% set gql %}
+  {
+    articles(last: $limit, query: $search) {
+      nodes {
+        id
+        title
+        summary
+        body
+        image {
+          url
+        }
+      }
+    }
+  }
+{% endset %}
+
+{% set response = craft.shopify.api.query(gql, {
+  limit: entry.shopifyArticleLimit ?? 10,
+  search: "blog_id:#{entry.shopifyArticleSourceBlogId}",
 }) %}
 ```
+
+Refer to the [Shopify API search syntax](https://shopify.dev/docs/api/usage/search-syntax) documentation for details on the `query` argument.
 
 #### Store Service
 
@@ -1037,9 +1054,9 @@ The event object has three properties:
 - `source`: The Shopify product object that was applied.
 
 ```php
+use craft\base\Event;
 use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\services\Products;
-use yii\base\Event;
 
 Event::on(
   Products::class,
@@ -1060,6 +1077,37 @@ Event::on(
 
 > [!WARNING]
 > Do not manually save changes made in this event handler. The plugin will take care of this for you!
+
+#### `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`
+
+Emitted as we build a [`products()`](https://shopify.dev/docs/api/admin-graphql/latest/queries/products) GraphQL query to be executed within a bulk operation.
+
+```php
+use craft\base\Event;
+use craft\shopify\events\DefineGqlFieldsEvent;
+use craft\shopify\services\Api;
+
+Event::on(
+    Api::class,
+    Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS,
+    function(DefineGqlFieldsEvent $event) {
+        // Select data for Shopify's Standard Product Taxonomy
+        // https://shopify.github.io/product-taxonomy/releases/2026-02/
+        $event->fields['edges']['node']['category'] = [
+            'fullName',
+            'id',
+            'name',
+        ];
+    }
+);
+```
+
+Due to the way Shopify has structured its API, the main product field selections are always nested within `edges.nodes`.
+This is also the case when crossing relationships or “connections” to other API resources (like `metafields`).
+
+We do not recommend trying to reduce selection sets, as it can interfere with the plugin’s basic functions.
+While the entire selection will be saved in the `shopify_data` table, we only split out specific objects.
+If you add nested selections (like [`combinedListings`](https://shopify.dev/docs/api/admin-graphql/2025-10/objects/Product#field-Product.fields.combinedListing)), they will not be unpacked into additional records.
 
 ### GraphQL Playground
 
