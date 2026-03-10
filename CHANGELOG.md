@@ -6,7 +6,7 @@
 > After updating, this plugin now requires API version `2026-01` and the creation of an app via the Dev Dashboard.
 > Webhooks will need to be recreated for the new app. Go to **Shopify** → **Webhooks** and create the missing webhooks. See the [upgrade notes](https://github.com/craftcms/shopify/blob/7.x/README.md#upgrading) for additional information.
 
-- Shopify for Craft now supports version `2025-10` of Shopify’s GraphQL Admin API.
+- Shopify for Craft now supports version `2026-01` of Shopify’s GraphQL Admin API.
 - It is now possible to configure the webhook and auth URLs using the `SHOPIFY_PUBLIC_DEV_URL` environment variable. ([#185](https://github.com/craftcms/shopify/issues/185))
 - Fixed a bug where product slugs weren’t syncing correctly.
 - Added `craft\shopify\collections\VariantCollection`.
@@ -22,7 +22,7 @@
 - Added `craft\shopify\models\Settings::setClientId()`.
 - Added `craft\shopify\models\Settings::setClientSecret()`.
 - Added `craft\shopify\models\Variant`.
-- Added `craft\shopify\services\Api::API_ACCESS_TOKEN_CACHE_KEY`.
+- Added `craft\shopify\services\Api::API_ACCESS_TOKEN_ENV_VAR`.
 - Added `craft\shopify\services\Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS`.
 - Added `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`.
 - Removed `craft\shopify\controllers\ProductsController::actionRenderCardHtml()`
@@ -30,9 +30,9 @@
 - Removed `craft\shopify\elements\db\ProductQuery::$publishedOnCurrentPublication`.
 - Removed `craft\shopify\elements\db\ProductQuery::publishedOnCurrentPublication()`.
 - Deprecated `craft\shopify\models\Settings::getApiKey()`. `getClientId()` should be used instead.
-- Deprecated `craft\shopify\models\Settings::getApiSecret()`. `getClientSecret()` should be used instead.
+- Deprecated `craft\shopify\models\Settings::getApiSecretKey()`. `getClientSecret()` should be used instead.
 - Deprecated `craft\shopify\models\Settings::setApiKey()`. `setClientId()` should be used instead.
-- Deprecated `craft\shopify\models\Settings::setApiSecret()`. `setClientSecret()` should be used instead.
+- Deprecated `craft\shopify\models\Settings::setApiSecretKey()`. `setClientSecret()` should be used instead.
 - Deprecated the `--throttle` option for `shopify/sync` commands.
 - `craft\shopify\elements\Product::getVariants()` now returns a collection.
 
