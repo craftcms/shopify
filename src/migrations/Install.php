@@ -121,25 +121,6 @@ class Install extends Migration
                 $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->text()) . " GENERATED ALWAYS AS (" .
                 $qb->jsonExtract('data', [$col]) . ") STORED;");
         }
-
-        $boolColumns = [
-            'publishedOnCurrentPublication' => 'publishedOnCurrentPublication',
-        ];
-
-        foreach ($boolColumns as $col => $alias) {
-            $as = $qb->jsonExtract('data', [$col]);
-            if ($db->getIsMaria()) {
-                $as = 'CAST(IF(JSON_EXTRACT(`data`, \'$."' . $col . '"\'), 1, 0) as signed)';
-            } elseif ($db->getIsMysql()) {
-                $as = 'CAST(JSON_EXTRACT(`data`, \'$."' . $col . '"\') as signed)';
-            } else {
-                $as .= '::boolean';
-            }
-
-            $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
-                $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->boolean()) . " GENERATED ALWAYS AS (" .
-                $as . ") STORED;");
-        }
     }
 
     /**

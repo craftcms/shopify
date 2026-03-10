@@ -271,7 +271,6 @@ class Api extends Component
                     ],
                     'productType',
                     'publishedAt',
-                    'publishedOnCurrentPublication',
                     'status',
                     'tags',
                     'templateSuffix',

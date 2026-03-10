@@ -133,11 +133,6 @@ class Product extends Element
     public ?DateTime $publishedAt = null;
 
     /**
-     * @var bool
-     */
-    public ?bool $publishedOnCurrentPublication = null;
-
-    /**
      * The product ID in the Shopify store
      *
      * @var int|null
@@ -449,7 +444,6 @@ class Product extends Element
         $attributes[] = 'images';
         $attributes[] = 'metafields';
         $attributes[] = 'variants';
-        $attributes[] = 'publishedOnCurrentPublication';
 
         return $attributes;
     }

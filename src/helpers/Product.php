@@ -65,7 +65,6 @@ class Product
 
         $meta[Craft::t('shopify', 'Handle')] = $product->handle;
         $meta[Craft::t('shopify', 'Status')] = Product::shopifyStatusHtml($product);
-        $meta[Craft::t('shopify', 'Channel')] = Product::shopifyPublishedHtml($product);
 
         // Options
         if (count($product->getOptions()) > 0) {
@@ -173,29 +172,6 @@ class Product
         return Cp::statusLabelHtml([
             'color' => $color,
             'label' => StringHelper::titleize($product->shopifyStatus),
-        ]);
-    }
-
-    /**
-     * @param ProductElement $product
-     * @return string
-     * @since 6.0.0
-     */
-    public static function shopifyPublishedHtml(ProductElement $product): string
-    {
-        $status = $product->publishedOnCurrentPublication ? Craft::t('shopify', 'Published') : Craft::t('shopify', 'Unpublished');
-
-        // @TODO update this either when Craft 4 support is dropped or 4 gets enums
-        if (!class_exists(Color::class) || !method_exists(Cp::class, 'statusLabelHtml')) {
-            $color = $product->publishedOnCurrentPublication ? 'green' : 'red';
-            return "<span class='status $color'></span>" . $status;
-        }
-
-        $color = $product->publishedOnCurrentPublication ? Color::Green->value : Color::Red->value;
-
-        return Cp::statusLabelHtml([
-            'color' => $color,
-            'label' => $status,
         ]);
     }
 }

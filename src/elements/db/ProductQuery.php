@@ -73,26 +73,6 @@ class ProductQuery extends ElementQuery
     public mixed $images = null;
 
     /**
-     * @var bool|null
-     * @since 6.0.0
-     */
-    public ?bool $publishedOnCurrentPublication = null;
-
-    /**
-     * Narrows the query to those products that are published on the current publication.
-     *
-     * @param bool|null $publishedOnCurrentPublication
-     * @return static self reference
-     * @since 6.0.0
-     */
-    public function publishedOnCurrentPublication(?bool $publishedOnCurrentPublication = true): static
-    {
-        $this->publishedOnCurrentPublication = $publishedOnCurrentPublication;
-
-        return $this;
-    }
-
-    /**
      * @var bool Eager loads all relational data for the resulting products.
      * @since 6.0.0
      */
@@ -409,7 +389,6 @@ class ProductQuery extends ElementQuery
             'data.productType',
             'data.createdAt',
             'data.publishedAt',
-            'data.publishedOnCurrentPublication',
             'data.tags',
             'data.templateSuffix',
             'data.updatedAt',
@@ -432,10 +411,6 @@ class ProductQuery extends ElementQuery
 
         if (isset($this->shopifyStatus)) {
             $this->subQuery->andWhere(Db::parseParam('data.shopifyStatus', $this->shopifyStatus));
-        }
-
-        if (isset($this->publishedOnCurrentPublication)) {
-            $this->subQuery->andWhere(Db::parseBooleanParam('data.publishedOnCurrentPublication', $this->publishedOnCurrentPublication));
         }
 
         if (isset($this->handle)) {
