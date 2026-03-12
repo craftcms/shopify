@@ -113,7 +113,7 @@ Click **Create** on the Webhooks screen to add the required webhooks to Shopify.
 > You will need to add webhooks for each environment you deploy the plugin to, because each webhook is tied to a specific URL.
 
 > [!NOTE]
-> If you need to test live synchronization in development, we recommend using [ngrok](https://ngrok.com/) to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your site’s primary/base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel, then recreate your webhooks.
+> To test synchronization in development, we recommend using [ngrok](https://ngrok.com/) to create a tunnel to your local environment. DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). Keep in mind that your primary site’s base URL is used when registering webhooks, so you may need to update it to match the ngrok tunnel, then recreate your webhooks.
 
 ## Upgrading
 
