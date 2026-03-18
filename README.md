@@ -1006,6 +1006,20 @@ The same params argument can be passed to a product element’s `getShopifyUrl()
 {% endfor %}
 ```
 
+Your store’s default currency is also available:
+
+```twig
+{{ variant.price|currency(craft.shopify.store.currency) }}
+```
+
+Dump the entire object to see what else is available:
+
+```twig
+{{ dump(craft.shopify.store.shopSettings) }}
+```
+
+We keep the shop’s core settings up-to-date by registering a `SHOP_UPDATE` [webhook](#set-up-webhooks).
+
 ## Product Field
 
 The plugin provides a _Shopify Products_ field, which uses the familiar [relational field](https://craftcms.com/docs/5.x/system/relations.html) UI to allow authors to select synchronized Product elements.
