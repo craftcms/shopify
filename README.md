@@ -224,7 +224,12 @@ Your “legacy custom app” can be left as-is or deleted, once all your environ
 At the beginning of 2026, Shopify overhauled how “apps” are created, moving them to the new [Dev Dashboard](https://shopify.dev/docs/apps/build/dev-dashboard).
 
 You should be able to [create a new app](#create-an-app), and [install it](#install-in-a-store) using the new OAuth mechanism, without disruption to product synchronization.
-See the notes above 
+
+### Publishing and Status
+
+Shopify has eliminated [sales channels for custom apps](https://shopify.dev/docs/apps/build/sales-channels/start-building), and therefore the [`publishedOnCurrentPublication` field](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product#field-Product.fields.publishedOnCurrentChannel) is no longer available in Product queries.
+
+This means that there is no official way to “publish” products to the Craft integration, but we cover some alternatives in the [sales channel emulation](#emulate-sales-channels) section.
 
 ### Product Field Layouts
 
@@ -1042,7 +1047,52 @@ The following settings can also be set via a `shopify.php` file in your `config/
 | `template`                   | `string` | —       | Product element template path.                                                                                                                                                                                                                                                                                     |
 
 > [!NOTE]
-> Setting `apiKey`, `apiSecretKey`, `apiVersion`, `accessToken`, or `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#create-a-shopify-app). You can still reference environment values from the config file with `craft\helpers\App::env()`.
+> Setting `apiKey`, `apiSecretKey`, `apiVersion`, `accessToken`, or `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#connect-to-shopify).
+> You can still reference environment values from the config file with `craft\helpers\App::env()`.
+
+### Emulate Sales Channels
+
+Private apps no longer come with a sales channel that allows merchants to selectively expose products to the Craft integration.
+
+However, you can achieve similar functionality by altering the base product query, conditionally synchronizing products after they’re queried, or a combination of both.
+Both methods depend on setting up signifiers within Shopify, like a special category or metafield.
+
+#### Altering the Product Query
+
+Two [events](#events) are emitted as we build Product GraphQL queries.
+
+The first ([`EVENT_DEFINE_PRODUCT_GQL_FIELDS`](#craftshopifyservicesapievent_define_product_gql_fields)) is used to adjust the _selections_ (the fields that you want returned from the API).
+These are most useful in combination with the [selective synchronization](#selective-sync) strategy, below, when the data you need to determine eligibility is not available in the plugin’s base selection.
+In the event’s example, we add selections for Shopify’s [Standard Product Taxonomy](https://help.shopify.com/en/manual/products/details/product-category).
+
+You might instead reach for [product collections](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product#field-Product.fields.collections) by adding the `collections` field to your selection:
+
+```php
+$event->fields['edges']['node']['collections'] = [
+    'title',
+    'handle',
+    'description',
+    // ...
+];
+```
+
+The second event ([`EVENT_DEFINE_GQL_QUERY_ARGUMENTS`](#craftshopifyservicesapievent_define_gql_query_arguments)) allows you to manipulate _arguments_.
+Arguments are typically used to narrow the scope of a query, as you would with an element query in Craft.
+Note that Shopify collapses most of its query capabilities into a single string they call the [search syntax](https://shopify.dev/docs/api/usage/search-syntax), and the plugin already uses this when querying specific products by ID.
+
+As the example in the [event section below](#craftshopifyservicesapievent_define_gql_query_arguments) shows, you’ll need to account for an existing `query` argument, concatenating additional conditions when necessary.
+
+#### Selective Sync
+
+The [`EVENT_BEFORE_SYNCHRONIZE_PRODUCT` event](#craftshopifyservicesproductsevent_before_synchronize_product) example shows how you would achieve the same result by checking the value of a `do_not_sync` metafield.
+We synchronize all metafield values, by default, so you do not need to modify the base product query to fetch additional fields.
+
+> [!WARNING]  
+> This strategy may not be viable for the initial synchronization of large product catalogs that only need a small slice available in Craft.
+> The plugin will still generate a bulk operation to fetch _all_ product data.
+
+Preventing a product from synchronizing only means that the plugin takes no action—a product that no longer appears in a synchronization is left as-is.
+As you test synchronization criteria, you can run the `shopify/data/reset` command to delete all imported Product elements and start fresh.
 
 ### Events
 
