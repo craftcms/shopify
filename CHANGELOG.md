@@ -9,8 +9,18 @@
 
 - Shopify for Craft now requires version `2026-01` of Shopify’s GraphQL Admin API.
 - It is now possible to configure the webhook and auth URLs using the `SHOPIFY_PUBLIC_DEV_URL` environment variable. ([#185](https://github.com/craftcms/shopify/issues/185))
+- Added the “Shopify Sync” permission.
+- Added the `templateSuffix` product query param.
+- Removed the `publishedOnCurrentPublication` product query param.
+- Product conditions can now have a “Template Suffix” rule.
 - Fixed a bug where product slugs weren’t syncing correctly.
 - Added `craft\shopify\collections\VariantCollection`.
+- Added `craft\shopify\console\controllers\ApiController`.
+- Added `craft\shopify\controllers\AuthController`.
+- Added `craft\shopify\db\Table::ACCESS_TOKENS`.
+- Added `craft\shopify\elements\conditions\products\TemplateSuffixConditionRule`.
+- Added `craft\shopify\elements\db\ProductQuery::$templateSuffix`.
+- Added `craft\shopify\elements\db\ProductQuery::templateSuffix()`.
 - Added `craft\shopify\events\DefineGqlFieldsEvent`.
 - Added `craft\shopify\events\DefineGqlQueryArgumentsEvent`.
 - Added `craft\shopify\fieldlayoutelements\MediaField`.
@@ -23,9 +33,17 @@
 - Added `craft\shopify\models\Settings::setClientId()`.
 - Added `craft\shopify\models\Settings::setClientSecret()`.
 - Added `craft\shopify\models\Variant`.
+- Added `craft\shopify\records\AccessToken`.
 - Added `craft\shopify\services\Api::API_ACCESS_TOKEN_ENV_VAR`.
 - Added `craft\shopify\services\Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS`.
 - Added `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`.
+- Added `craft\shopify\services\Api::getAccessToken()`.
+- Added `craft\shopify\services\Api::initializeContext()`.
+- Deprecated `craft\shopify\models\Settings::getApiKey()`. `getClientId()` should be used instead.
+- Deprecated `craft\shopify\models\Settings::getApiSecretKey()`. `getClientSecret()` should be used instead.
+- Deprecated `craft\shopify\models\Settings::setApiKey()`. `setClientId()` should be used instead.
+- Deprecated `craft\shopify\models\Settings::setApiSecretKey()`. `setClientSecret()` should be used instead.
+- Deprecated the `--throttle` option for `shopify/sync` commands.
 - Removed `craft\shopify\controllers\ProductsController::actionRenderCardHtml()`
 - Removed `craft\shopify\elements\Product::$publishedOnCurrentPublication`.
 - Removed `craft\shopify\elements\Product::getBodyHtml()`.
@@ -37,12 +55,10 @@
 - Removed `craft\shopify\models\Settings::$syncProductMetafields`.
 - Removed `craft\shopify\models\Settings::$syncVariantMetafields`.
 - Removed `craft\shopify\services\Products::syncAllProducts()`.
-- Deprecated `craft\shopify\models\Settings::getApiKey()`. `getClientId()` should be used instead.
-- Deprecated `craft\shopify\models\Settings::getApiSecretKey()`. `getClientSecret()` should be used instead.
-- Deprecated `craft\shopify\models\Settings::setApiKey()`. `setClientId()` should be used instead.
-- Deprecated `craft\shopify\models\Settings::setApiSecretKey()`. `setClientSecret()` should be used instead.
-- Deprecated the `--throttle` option for `shopify/sync` commands.
 - `craft\shopify\elements\Product::getVariants()` now returns a collection.
+- `craft\shopify\elements\Product::getCheapeastVariant()` now returns a `Variant` model.
+- `craft\shopify\elements\Product::getDefaultVariant()` now returns a `Variant` model.
+- Shopify for Craft now requires Shopify PHP SDK 6.0 or later.
 
 ## 6.1.3 - 2026-01-19
 

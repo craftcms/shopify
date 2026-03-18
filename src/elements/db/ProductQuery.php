@@ -59,6 +59,7 @@ class ProductQuery extends ElementQuery
 
     /**
      * @var mixed|null
+     * @since 7.0.0
      */
     public mixed $templateSuffix = null;
 
@@ -249,6 +250,7 @@ class ProductQuery extends ElementQuery
 
     /**
      * Narrows the query results based on the “template suffix” selected in Shopify.
+     * @since 7.0.0
      */
     public function templateSuffix(mixed $value): ProductQuery
     {

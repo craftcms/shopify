@@ -21,7 +21,6 @@ return [
     'Are you sure you want to run a complete sync of all products?' => 'Are you sure you want to run a complete sync of all products?',
     'Are you sure you want to delete this sync?' => 'Are you sure you want to delete this sync?',
     'Are you sure you want to delete this webhook?' => 'Are you sure you want to delete this webhook?',
-    'Body HTML' => 'Body HTML',
     'Channel' => 'Channel',
     'Completed' => 'Completed',
     'Couldn’t save settings.' => 'Couldn’t save settings.',

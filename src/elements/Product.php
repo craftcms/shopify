@@ -199,7 +199,6 @@ class Product extends Element
     public static function searchableAttributes(): array
     {
         return array_merge(parent::searchableAttributes(), [
-            'bodyHtml',
             'descriptionHtml',
             'handle',
             'vendor',
@@ -987,7 +986,6 @@ class Product extends Element
         $labels = parent::attributeLabels();
 
         $labels['shopifyId'] = Craft::t('shopify', 'Shopify ID');
-        $labels['bodyHtml'] = Craft::t('shopify', 'Body HTML');
         $labels['createdAt'] = Craft::t('shopify', 'Created at');
         $labels['handle'] = Craft::t('shopify', 'Handle');
         $labels['images'] = Craft::t('shopify', 'Images');
