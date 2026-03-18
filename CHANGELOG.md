@@ -3,10 +3,11 @@
 ## 7.x - WIP
 
 > [!IMPORTANT]
-> After updating, this plugin now requires API version `2026-01` and the creation of an app via the Dev Dashboard.
-> Webhooks will need to be recreated for the new app. Go to **Shopify** → **Webhooks** and create the missing webhooks. See the [upgrade notes](https://github.com/craftcms/shopify/blob/7.x/README.md#upgrading) for additional information.
+> As part of the update to 7.x, you will need to create a new “app” via Shopify’s _Dev Dashboard_, using API version `2026-01`.
+> Webhooks will also need to be recreated for the new app, by visiting **Shopify** → **Webhooks** in the Craft control panel.
+> See the [upgrade notes](https://github.com/craftcms/shopify/blob/7.x/README.md#upgrading) for additional information.
 
-- Shopify for Craft now supports version `2026-01` of Shopify’s GraphQL Admin API.
+- Shopify for Craft now requires version `2026-01` of Shopify’s GraphQL Admin API.
 - It is now possible to configure the webhook and auth URLs using the `SHOPIFY_PUBLIC_DEV_URL` environment variable. ([#185](https://github.com/craftcms/shopify/issues/185))
 - Fixed a bug where product slugs weren’t syncing correctly.
 - Added `craft\shopify\collections\VariantCollection`.
