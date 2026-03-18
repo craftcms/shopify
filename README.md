@@ -346,7 +346,6 @@ Starting at {{ cheapestVariant.price|currency }}!
 ```
 
 Note that this does not factor in [contextual pricing](https://shopify.dev/docs/api/admin-graphql/latest/objects/Product#field-Product.fields.contextualPricing).
-If you’ve 
 
 #### `Product::getShopifyUrl()`
 
