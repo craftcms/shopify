@@ -1024,6 +1024,8 @@ These fields return a [product query](#querying-products), which you can customi
 
 ## Going Further
 
+This section describes advanced ways to customize the plugin’s behavior.
+
 ### Settings
 
 The following settings can also be set via a `shopify.php` file in your `config/` directory.
@@ -1078,7 +1080,8 @@ Event::on(
 ```
 
 > [!WARNING]
-> Do not manually save changes made in this event handler. The plugin will take care of this for you!
+> Do not manually save changes made in this event handler.
+> If the event is not canceled by a handler (`$event->isValid = false`), the Plugin proceeds to save the element, for you.
 
 #### `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`
 
@@ -1113,7 +1116,7 @@ If you add nested selections (like [`combinedListings`](https://shopify.dev/docs
 
 #### `craft\shopify\services\Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS`
 
-Emitted as we build a GraphQL query to be executed within a bulk operation.
+Emitted as we build _any_ GraphQL query.
 
 ```php
 use craft\base\Event;
@@ -1122,12 +1125,13 @@ use craft\shopify\services\Api;
 
 Event::on(
     Api::class,
-    Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS,
+    Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS,
     function(DefineGqlQueryArgumentsEvent $event) {
+        // Skip if we’re not querying products:
         if ($event->fieldName !== 'products') {
             return;
         }
-        
+
         // For product queries only sync products that belong to a specific collection:
         $syncCollectionId = 'collection_id:108179161409';
         if (array_key_exists('query', $event->arguments)) {
@@ -1256,6 +1260,6 @@ Key elements of this approach:
 >
 > ```twig
 > {% cache using key "pricing:#{product.id}:GB" for 5 minutes %}
->   {# pricing query here #}
+>   {# Perform the API query inside here! #}
 > {% endcache %}
 > ```
