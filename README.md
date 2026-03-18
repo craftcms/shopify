@@ -629,7 +629,7 @@ Once you have a reference to a variant, you can output any of its properties:
 ```twig
 {% set defaultVariant = product.getDefaultVariant() %}
 
-{{ defaultVariant.price|currency(variant.data.currencyCode) }}
+{{ defaultVariant.price|currency(craft.shopify.store.currency) }}
 ```
 
 > [!NOTE]
