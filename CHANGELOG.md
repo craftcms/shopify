@@ -3,17 +3,15 @@
 ## 7.x - WIP
 
 > [!IMPORTANT]
-> As part of the update to 7.x, you will need to create a new “app” via Shopify’s _Dev Dashboard_, using API version `2026-01`.
-> Webhooks will also need to be recreated for the new app, by visiting **Shopify** → **Webhooks** in the Craft control panel.
-> See the [upgrade notes](https://github.com/craftcms/shopify/blob/7.x/README.md#upgrading) for additional information.
+> Shopify for Craft 7.x uses a new app-based authorization system.
+> Follow the [upgrade instructions](https://github.com/craftcms/shopify/blob/7.x/README.md#upgrading) to get new credentials.
 
 - Shopify for Craft now requires version `2026-01` of Shopify’s GraphQL Admin API.
-- It is now possible to configure the webhook and auth URLs using the `SHOPIFY_PUBLIC_DEV_URL` environment variable. ([#185](https://github.com/craftcms/shopify/issues/185))
+- Shopify for Craft now requires Shopify PHP SDK 6.0 or later.
+- Added support for setting the base webhook and auth URL using the `SHOPIFY_PUBLIC_DEV_URL` environment variable. ([#185](https://github.com/craftcms/shopify/issues/185))
+- Product conditions can now have a “Template Suffix” rule.
 - Added the “Shopify Sync” permission.
 - Added the `templateSuffix` product query param.
-- Removed the `publishedOnCurrentPublication` product query param.
-- Product conditions can now have a “Template Suffix” rule.
-- Fixed a bug where product slugs weren’t syncing correctly.
 - Added `craft\shopify\collections\VariantCollection`.
 - Added `craft\shopify\console\controllers\ApiController`.
 - Added `craft\shopify\controllers\AuthController`.
@@ -27,7 +25,7 @@
 - Added `craft\shopify\fieldlayoutelements\MetafieldsField`.
 - Added `craft\shopify\fieldlayoutelements\OptionsField`.
 - Added `craft\shopify\fieldlayoutelements\VariantsField`.
-- Added `craft\shopify\models\Settings::getAuthUrl()`
+- Added `craft\shopify\models\Settings::getAuthUrl()`.
 - Added `craft\shopify\models\Settings::getClientId()`.
 - Added `craft\shopify\models\Settings::getClientSecret()`.
 - Added `craft\shopify\models\Settings::setClientId()`.
@@ -39,12 +37,16 @@
 - Added `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`.
 - Added `craft\shopify\services\Api::getAccessToken()`.
 - Added `craft\shopify\services\Api::initializeContext()`.
+- `craft\shopify\elements\Product::getCheapeastVariant()` now returns a `craft\shopify\models\Variant` object.
+- `craft\shopify\elements\Product::getDefaultVariant()` now returns a `craft\shopify\models\Variant` object.
+- `craft\shopify\elements\Product::getVariants()` now returns a collection.
+- Deprecated the `--throttle` option for `shopify/sync` commands.
 - Deprecated `craft\shopify\models\Settings::getApiKey()`. `getClientId()` should be used instead.
 - Deprecated `craft\shopify\models\Settings::getApiSecretKey()`. `getClientSecret()` should be used instead.
 - Deprecated `craft\shopify\models\Settings::setApiKey()`. `setClientId()` should be used instead.
 - Deprecated `craft\shopify\models\Settings::setApiSecretKey()`. `setClientSecret()` should be used instead.
-- Deprecated the `--throttle` option for `shopify/sync` commands.
-- Removed `craft\shopify\controllers\ProductsController::actionRenderCardHtml()`
+- Removed the `publishedOnCurrentPublication` product query param.
+- Removed `craft\shopify\controllers\ProductsController::actionRenderCardHtml()`.
 - Removed `craft\shopify\elements\Product::$publishedOnCurrentPublication`.
 - Removed `craft\shopify\elements\Product::getBodyHtml()`.
 - Removed `craft\shopify\elements\Product::setBodyHtml()`.
@@ -55,10 +57,7 @@
 - Removed `craft\shopify\models\Settings::$syncProductMetafields`.
 - Removed `craft\shopify\models\Settings::$syncVariantMetafields`.
 - Removed `craft\shopify\services\Products::syncAllProducts()`.
-- `craft\shopify\elements\Product::getVariants()` now returns a collection.
-- `craft\shopify\elements\Product::getCheapeastVariant()` now returns a `Variant` model.
-- `craft\shopify\elements\Product::getDefaultVariant()` now returns a `Variant` model.
-- Shopify for Craft now requires Shopify PHP SDK 6.0 or later.
+- Fixed a bug where product slugs weren’t syncing correctly.
 
 ## 6.1.3 - 2026-01-19
 
