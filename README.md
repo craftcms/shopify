@@ -204,7 +204,7 @@ php craft shopify/api/query 'mutation deleteWebhook {
 ```
 
 …substituting a known subscription GID.
-Discover orphaned subscriptions using the [`webhookSubscriptions()`](https://shopify.dev/docs/api/admin-graphql/latest/queries/webhookSubscriptions) query.
+Discover orphaned subscriptions using the [`webhookSubscriptions()`](https://shopify.dev/docs/api/admin-graphql/2026-01/queries/webhookSubscriptions) query.
 
 ## Upgrading
 
@@ -340,7 +340,8 @@ Shortcut for getting the lowest-priced [variant](#variants-and-pricing) belongin
 Starting at {{ cheapestVariant.price|currency }}!
 ```
 
-Note that this does not factor in [contextual pricing](#contextual-pricing).
+Note that this does not factor in [contextual pricing](https://shopify.dev/docs/api/admin-graphql/latest/objects/Product#field-Product.fields.contextualPricing).
+If you’ve 
 
 #### `Product::getShopifyUrl()`
 
@@ -416,7 +417,7 @@ A product’s `status` in Craft is a combination of its `shopifyStatus` attribut
 In most cases, you’ll only want to display “Live” products, or those which are _Active_ in Shopify and _Enabled_ in Craft:
 
 | Status            | Shopify  | Craft    |
-| ----------------- | -------- | -------- |
+|-------------------|----------|----------|
 | `live`            | Active   | Enabled  |
 | `shopifyDraft`    | Draft    | Enabled  |
 | `shopifyArchived` | Archived | Enabled  |
@@ -441,7 +442,7 @@ The plugin automatically loads the relevant product when its [route](#routing) i
 The following element query parameters are supported, in addition to [Craft’s standard set](https://craftcms.com/docs/5.x/development/element-queries.html).
 
 > [!NOTE]
-> Fields stored as JSON (like [`tags`](#tags), [`options`](#options) and [`metafields`](#metafields)) are only queryable as plain text. If you need to do advanced organization or filtering, we recommend using custom Category or Tag fields in your Product [field layout](#custom-fields).
+> Fields stored as JSON (like [`tags`](#tags), [`options`](#options) and `metafields` are only queryable as plain text. If you need to do advanced organization or filtering, we recommend using custom Category or Tag fields in your Product [field layout](#custom-fields).
 
 #### `shopifyId`
 
@@ -456,7 +457,7 @@ Filter by legacy numeric Shopify product IDs.
 
 #### `shopifyGid`
 
-Filter by Shopify GIDs.
+Filter by [Shopify GIDs](https://shopify.dev/docs/api/admin-graphql/2026-01/scalars/ID).
 
 ```twig
 {# Watch out—these aren't the same as element IDs! #}
@@ -916,7 +917,7 @@ In addition to [product element methods](#methods), the plugin exposes its API t
 #### API Service
 
 > [!WARNING]
-> Use of API calls in Twig blocks rendering and—depending on traffic—may cause timeouts and/or failures due to [rate limits](#rate-limits). Consider using the [`{% cache %}` tag](https://craftcms.com/docs/5.x/reference/twig/tags.html#cache) with a key and specific expiry time to avoid making a request every time a template is rendered:
+> Use of API calls in Twig blocks rendering and—depending on traffic—may cause timeouts and/or failures due to [rate limits](https://shopify.dev/docs/api/admin-graphql/2026-01#rate-limits). Consider using the [`{% cache %}` tag](https://craftcms.com/docs/5.x/reference/twig/tags.html#cache) with a key and specific expiry time to avoid making a request every time a template is rendered:
 >
 > ```twig
 > {% cache using key "shopify:collections" for 10 minutes %}
@@ -1027,16 +1028,16 @@ These fields return a [product query](#querying-products), which you can customi
 
 The following settings can also be set via a `shopify.php` file in your `config/` directory.
 
-| Setting                      | Type   | Default | Description                                                                                                                                                                                                    |
-|------------------------------|--------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `apiKey`                     | `string` | — | Shopify API key.                                                                                                                                                                                               |
-| `apiSecretKey`               | `string` | — | Shopify API secret key.                                                                                                                                                                                        |
-| `apiVersion`                 | `string` | — | Shopify [API version](https://shopify.dev/docs/api/usage/versioning) description.                                                                                                                              |
-| `accessToken`                | `string` | — | Shopify API access token.                                                                                                                                                                                      |
-| `contextualPricingCountries` | `string` | — | Comma-separated list of [two-letter country codes](https://shopify.dev/docs/api/admin-graphql/2026-01/enums/CountryCode) that determine which [contextual prices](#contextual-pricing) are loaded via the API. |
-| `hostName`                   | `string` | — | Shopify [host name](#store-hostname).                                                                                                                                                                          |
-| `uriFormat`                  | `string` | — | Product element URI format.                                                                                                                                                                                    |
-| `template`                   | `string` | — | Product element template path.                                                                                                                                                                                 |
+| Setting                      | Type     | Default | Description                                                                                                                                                                                                                                                                                                        |
+|------------------------------|----------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `apiKey`                     | `string` | —       | Shopify API key.                                                                                                                                                                                                                                                                                                   |
+| `apiSecretKey`               | `string` | —       | Shopify API secret key.                                                                                                                                                                                                                                                                                            |
+| `apiVersion`                 | `string` | —       | Shopify [API version](https://shopify.dev/docs/api/usage/versioning) description.                                                                                                                                                                                                                                  |
+| `accessToken`                | `string` | —       | Shopify API access token.                                                                                                                                                                                                                                                                                          |
+| `contextualPricingCountries` | `string` | —       | Comma-separated list of [two-letter country codes](https://shopify.dev/docs/api/admin-graphql/2026-01/enums/CountryCode) that determine which [contextual prices](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/ProductVariant#field-ProductVariant.fields.contextualPricing) are loaded via the API. |
+| `hostName`                   | `string` | —       | Your store’s hostname. See the [creating an app](#create-an-app) section for more information.                                                                                                                                                                                                                     |
+| `uriFormat`                  | `string` | —       | Product element URI format.                                                                                                                                                                                                                                                                                        |
+| `template`                   | `string` | —       | Product element template path.                                                                                                                                                                                                                                                                                     |
 
 > [!NOTE]
 > Setting `apiKey`, `apiSecretKey`, `apiVersion`, `accessToken`, or `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#create-a-shopify-app). You can still reference environment values from the config file with `craft\helpers\App::env()`.
@@ -1081,7 +1082,7 @@ Event::on(
 
 #### `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`
 
-Emitted as we build a [`products()`](https://shopify.dev/docs/api/admin-graphql/latest/queries/products) GraphQL query to be executed within a bulk operation.
+Emitted as we build a [`products()`](https://shopify.dev/docs/api/admin-graphql/2026-01/queries/products) GraphQL query to be executed within a bulk operation.
 
 ```php
 use craft\base\Event;
@@ -1138,7 +1139,7 @@ Event::on(
 );
 ```
 
-Using this event, after the queries have been built, you have the opportunity to add custom arguments to the main query. For example, you can tailor a query for products using the [ProductConnection arguments](https://shopify.dev/docs/api/admin-graphql/latest/queries/products#arguments) (like `query`, `reverse` or `savedSearchId`).
+Using this event, after the queries have been built, you have the opportunity to add custom arguments to the main query. For example, you can tailor a query for products using the [ProductConnection arguments](https://shopify.dev/docs/api/admin-graphql/2026-01/queries/products#arguments) (like `query`, `reverse`, or `savedSearchId`).
 
 ### GraphQL Playground
 
@@ -1250,7 +1251,8 @@ Key elements of this approach:
 - Falls back to the default `variant.price` if contextual pricing is not available
 
 > [!WARNING]
-> Real-time API calls add latency to page rendering and count against [rate limits](#rate-limits). If some staleness is acceptable, wrap the query in a [`{% cache %}` tag](https://craftcms.com/docs/5.x/reference/twig/tags.html#cache):
+> Real-time API calls add latency to page rendering and count against [rate limits](https://shopify.dev/docs/api/admin-graphql/2026-01#rate-limits).
+> If some staleness is acceptable, wrap the query in a [`{% cache %}` tag](https://craftcms.com/docs/5.x/reference/twig/tags.html#cache):
 >
 > ```twig
 > {% cache using key "pricing:#{product.id}:GB" for 5 minutes %}
