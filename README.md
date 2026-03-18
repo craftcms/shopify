@@ -4,7 +4,7 @@
 
 Build a content-driven storefront by synchronizing [Shopify](https://shopify.com) products into [Craft CMS](https://craftcms.com/).
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > Version 7.x of the Shopify plugin uses a new app-based authorization system.
 > You must follow the [upgrade instructions](#upgrading) to get new credentials.
 
@@ -51,10 +51,10 @@ To install an app into a store, one of these statements must describe your accou
 
 ![Adding a collaborator via the Shopify admin](docs/shopify-add-collaborator.png)
 
-> [!CAUTION]  
+> [!CAUTION]
 > The new OAuth-based API connection requires that apps are created from an “organization” that has access to the [Partner Dashboard](https://www.shopify.com/partners).
 > Standalone stores (like the one created when you sign up for a Shopify account) belong to their own organization.
-> 
+>
 > - If you are working with a store or account that has never accessed a Partner Dashboard, **you must create a Partner profile before proceeding**.
 > - When working from an account that has access to multiple organizations, **it is generally safest to access the new Dev Dashboard _via_ the Partner Dashboard you want the app associated with.**
 
@@ -76,7 +76,7 @@ To install an app into a store, one of these statements must describe your accou
         - `read_inventory`
         - `read_product_listings`
         - `read_products`
-        - Shopify requires these to be in a comma-separated list: 
+        - Shopify requires these to be in a comma-separated list:
         ```
         read_inventory,read_product_listings,read_products
         ```
@@ -135,7 +135,7 @@ As you type the `$`-prefixed value into an input, Craft will [suggest](https://c
 
 Press **Save** to commit the settings to [project config](https://craftcms.com/docs/5.x/system/project-config.html).
 
-> [!TIP]  
+> [!TIP]
 > You may see a warning below the read-only **Shopify App Auth URL** field.
 > This is expected, until you’ve completed the OAuth flow!
 
@@ -143,14 +143,14 @@ Press **Save** to commit the settings to [project config](https://craftcms.com/d
 
 In this step, we’ll perform the [authorization code grant](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/authorization-code-grant) or _OAuth_ flow, during which Craft and Shopify negotiate a long-lived access token.
 
-> [!TIP]  
+> [!TIP]
 > Whoever installs the app must be able to access to the store _and_ the Craft project from the same browser.
 > Shopify does _not_ need to directly contact the Craft, so you may do this from your local development machine!
 
 1. Visit the installation URL you copied from the **Distribution** screen in the Partner Dashboard. You must be logged in to a Shopify account with access to the target store (but it does not need to be the same account that created the app).
 1. Select the store in Shopify’s context picker.
 1. On the **Install app** screen within the store’s admin, review the permissions and press **Install**.
-   > [!WARNING]  
+   > [!WARNING]
    > If you do not see a blue banner confirming **This app is exclusive to your store**, _do not proceed_!
    > A banner saying **This app can’t be installed on this store** (or landing on a generic Shopify error page) usually means that the hostname is not valid for the distribution.
 1. You will be redirected to the Craft control panel “auth” URL you used when creating the Shopify app. (If you were not already logged in, Craft will ask for your username and password; your user must have the **Access Shopify** permission or be an administrator to complete the authorization flow.)
@@ -176,9 +176,9 @@ The plugin will use your newly-issued access token to perform this operation, so
 
 Development environments are not typically exposed to the public internet, which means Shopify won’t be able to deliver webhooks.
 To test synchronization in development, we recommend using [ngrok](https://ngrok.com/) to create a tunnel to your local environment.
-DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/). 
+DDEV makes this simple, with [the `ddev share` command](https://ddev.readthedocs.io/en/latest/users/topics/sharing/).
 
-> [!TIP]  
+> [!TIP]
 > Use the `SHOPIFY_PUBLIC_DEV_URL` environment variable to override your project’s base URL when creating webhooks; this allows you to continue using your regular DDEV site URL for control panel and front-end access, rather than overriding the entire project or site’s base URL.
 >
 > This setting may not work if you have set a custom `cpBaseUrl`!
@@ -256,7 +256,7 @@ This adds a [bulk operation](https://shopify.dev/docs/api/usage/bulk-operations/
 
 Going forward, your products are automatically kept in sync via [webhooks](#set-up-webhooks). You can view a history of synchronization operations by visiting the **Shopify Sync** utility.
 
-> [!WARNING]  
+> [!WARNING]
 > We do our best to capture native Shopify resources that are attached to a product (like variants, media, and options), but cannot dynamically discover relationships with other content via `Metafield`s, or data from third-party apps.
 
 ### Native Attributes
@@ -286,7 +286,7 @@ In addition to the standard element attributes like `id`, `title`, and `status`,
 All of these properties are available when working with a product element [in your templates](#templating).
 Yii and Twig also allow you to access some values via magic getters—any [method](#methods) beginning with `get` (like `product.getDefaultVariant()`) can also be treated like a property (`product.defaultVariant`).
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > See the Shopify documentation on the [product resource](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product) for more information about what kinds of values to expect from these properties.
 > The nature of GraphQL (and API versioning) means that we may not be capturing 100% of the available data.
 > To select additional fields, you can intercept the [event](#events) emitted just before a product GraphQL query is sent.
@@ -415,7 +415,7 @@ If you would prefer your customers to view individual products on Shopify, clear
 
 A product’s `status` in Craft is a combination of its `shopifyStatus` attribute ('active', 'draft', or 'archived') and its enabled state. The former can only be changed from Shopify; the latter is set in the Craft control panel.
 
-> **Note**  
+> [!NOTE]
 > Statuses in Craft are often a synthesis of multiple properties. For example, an entry with the _Pending_ status just means it is `enabled` _and_ has a `postDate` in the future.
 
 In most cases, you’ll only want to display “Live” products, or those which are _Active_ in Shopify and _Enabled_ in Craft:
@@ -559,7 +559,7 @@ Filter by the vendor information from Shopify.
     <li>
       <h2>{{ product.title }}</h2>
       Available in {{ product.variants|column('title')|join(', ') }}.
-      
+
       {# Similar loops for each type of nested record... #}
     </li>
   {% endfor %}
@@ -850,7 +850,7 @@ The above example can be simplified with the [Buy Button JS](https://shopify.dev
 
 ### Storefront API Client
 
-> [!WARNING]  
+> [!WARNING]
 > This section requires installing the [Headless](https://apps.shopify.com/headless) app and retrieving a **Public access token** from the app’s settings.
 > You may also need to publish all your products into the new “storefront” created during installation.
 
@@ -1157,7 +1157,7 @@ As the example in the [event section below](#craftshopifyservicesapievent_define
 The [`EVENT_BEFORE_SYNCHRONIZE_PRODUCT` event](#craftshopifyservicesproductsevent_before_synchronize_product) example shows how you would achieve the same result by checking the value of a `do_not_sync` metafield.
 We synchronize all metafield values, by default, so you do not need to modify the base product query to fetch additional fields.
 
-> [!WARNING]  
+> [!WARNING]
 > This strategy may not be viable for the initial synchronization of large product catalogs that only need a small slice available in Craft.
 > The plugin will still generate a bulk operation to fetch _all_ product data.
 

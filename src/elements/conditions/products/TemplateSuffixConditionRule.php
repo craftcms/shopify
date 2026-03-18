@@ -1,4 +1,9 @@
 <?php
+/**
+ * @link https://craftcms.com/
+ * @copyright Copyright (c) Pixel & Tonic, Inc.
+ * @license https://craftcms.github.io/license/
+ */
 
 namespace craft\shopify\elements\conditions\products;
 
@@ -9,6 +14,12 @@ use craft\elements\db\ElementQueryInterface;
 use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\elements\Product;
 
+/**
+ * Template Suffix Condition Rule
+ *
+ * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
+ * @since 7.0.0
+ */
 class TemplateSuffixConditionRule extends BaseTextConditionRule implements ElementConditionRuleInterface
 {
     /**
