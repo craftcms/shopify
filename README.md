@@ -258,6 +258,7 @@ Going forward, your products are automatically kept in sync via [webhooks](#set-
 
 > [!WARNING]
 > We do our best to capture native Shopify resources that are attached to a product (like variants, media, and options), but cannot dynamically discover relationships with other content via `Metafield`s, or data from third-party apps.
+> Additional fields can be captured by listening [events](#events) in a custom module.
 
 ### Native Attributes
 
