@@ -636,6 +636,63 @@ Once you have a reference to a variant, you can output any of its properties:
 > The [`currency`](https://craftcms.com/docs/5.x/reference/twig/filters.html#currency) filter is provided by Craft (not the Shopify plugin).
 > You must pass a three-digit [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) code to properly format a currency value.
 
+#### Contextual Pricing
+
+If you are using the [`contextualPricingCountries` setting](#settings) to sync market- or currency-specific prices from the API, you may need to reach for the appropriate `amount` and `currencyCode` within the variant’s raw data.
+Both the `price` and `compareAtPrice` are available for each country, under a key following this format:
+
+```
+{twoLetterCountryCodeLower}ContextualPricing
+```
+
+Each country’s object retains the shape [described in the API](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/ProductVariantContextualPricing):
+
+```json
+{
+  // Other variant properties...
+
+  "usContextualPricing": {
+    "price": {
+      "amount": 14.99,
+      "currencyCode": "USD"
+    },
+    "compareAtPrice": {
+      "amount": 19.99,
+      "currencyCode": "USD"
+    }
+  },
+  "gbContextualPricing": {
+    "price": {
+      "amount": 11.99,
+      "currencyCode": "GBP"
+    },
+    "compareAtPrice": {
+      "amount": 16.99,
+      "currencyCode": "GBP"
+    }
+  }
+}
+```
+
+It’s up to you how markets are mapped to sites.
+Our original pricing output example might be made dynamic, like this:
+
+```twig
+{% set defaultVariant = product.getDefaultVariant() %}
+
+{# Load the current site’s "country code" from a global set: #}
+{% set currentMarket = shopInfo.marketCountryCode %}
+
+{# Build the key according to the format, above: #}
+{% set marketPrice = defaultVariant.data["#{currentMarket|lower}ContextualPricing"].price ?? null %}
+
+{% if marketPrice %}
+  {{ marketPrice.amount|currency(marketPrice.currencyCode) }}
+{% else %}
+  {{ defaultVariant.price|currency(defaultVariant.currencyCode) }}
+{% endif %}
+```
+
 ### Using Options
 
 [Options](https://help.shopify.com/en/manual/products/variants) are Shopify’s way of distinguishing variants in multiple dimensions. When you add product options, Shopify typically creates a variant for each combination of their possible values.
