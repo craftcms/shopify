@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## 7.x - WIP
+## 7.0.0 - 2026-03-19
 
 > [!IMPORTANT]
 > Shopify for Craft 7.x uses a new app-based authorization system.
