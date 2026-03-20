@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a PHP error that could occur when retrieving products. ([#202](https://github.com/craftcms/shopify/issues/202))
+
 ## 7.0.0 - 2026-03-19
 
 > [!IMPORTANT]

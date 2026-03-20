@@ -126,7 +126,7 @@ class Products extends Component
             'productType' => $product['productType'],
             'publishedAt' => Db::prepareDateForDb($product['publishedAt']),
             'shopifyStatus' => $product['status'],
-            'tags' => $product['tags'],
+            'tags' => $product['tags'] ?? [],
             'templateSuffix' => $product['templateSuffix'],
             'updatedAt' => Db::prepareDateForDb($product['updatedAt']),
             'vendor' => $product['vendor'],
