@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 7.0.2 - 2026-03-24
 
 - Fixed a PHP error that could occur when authorizing the Shopify app. ([#204](https://github.com/craftcms/shopify/issues/204))
 
