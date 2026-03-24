@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a PHP error that could occur when authorizing the Shopify app. ([#204](https://github.com/craftcms/shopify/issues/204))
+
 ## 7.0.1 - 2026-03-20
 
 - Fixed a PHP error that could occur when retrieving products. ([#202](https://github.com/craftcms/shopify/issues/202))

@@ -11,6 +11,7 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\log\MonologTarget;
 use craft\shopify\events\DefineGqlFieldsEvent;
 use craft\shopify\events\DefineGqlQueryArgumentsEvent;
@@ -658,14 +659,23 @@ class Api extends Component
             /** @var AccessToken $record */
             $record = AccessToken::find()->one() ?? new AccessToken();
 
-            $success = true;
-            try {
-                $configService->setDotEnvVar(self::API_ACCESS_TOKEN_ENV_VAR, $body['access_token']);
-            } catch (\Throwable $e) {
-                $success = false;
-                Craft::error('Couldn\'t save the Shopify Access Token in the .env file. ' . $e->getMessage(), __METHOD__);
+            // If there isn't a `.env` file, let's not try and save it there in case that is by design
+            $dotEnvPath = $configService->getDotEnvPath();
+            $hasDotEnv = $dotEnvPath !== '' && file_exists($dotEnvPath);
+
+            $isSavedToFile = true;
+            if (!$hasDotEnv) {
+                $isSavedToFile = false;
+            } else {
+                try {
+                    $configService->setDotEnvVar(self::API_ACCESS_TOKEN_ENV_VAR, $body['access_token']);
+                } catch (\Throwable $e) {
+                    $isSavedToFile = false;
+                    Craft::error('Couldn\'t save the Shopify Access Token in the .env file. ' . $e->getMessage(), __METHOD__);
+                }
             }
-            $record->accessToken = $success ? '$' . self::API_ACCESS_TOKEN_ENV_VAR : Craft::$app->getSecurity()->encryptByKey($body['access_token']);
+
+            $record->accessToken = $isSavedToFile ? '$' . self::API_ACCESS_TOKEN_ENV_VAR : StringHelper::encenc($body['access_token']);
 
             if (!$record->save()) {
                 // Get the first error message from the record, if available:

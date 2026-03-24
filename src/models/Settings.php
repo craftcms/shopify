@@ -262,9 +262,9 @@ class Settings extends Model
 
             $accessToken = $accessTokenRecord->accessToken;
 
-            // If an actual access token, and not a env var, has been stored we need to unencrypt it
+            // If an actual access token, and not an env var, has been stored we need to decrypt it
             if (!str_starts_with($accessToken, '$')) {
-                $accessToken = Craft::$app->getSecurity()->decryptByKey($accessToken);
+                $accessToken = StringHelper::decdec($accessToken);
             }
 
             $this->setAccessToken($accessToken);
