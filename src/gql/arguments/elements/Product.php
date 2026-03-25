@@ -63,11 +63,6 @@ class Product extends ElementArguments
                 'type' => Type::listOf(QueryArgument::getType()),
                 'description' => 'Narrows the query results based on the vendor on the product.',
             ],
-            'publishedOnCurrentPublication' => [
-                'name' => 'publishedOnCurrentPublication',
-                'type' => Type::boolean(),
-                'description' => 'Narrows the query results based on the published on current publication on the product.',
-            ],
         ]);
     }
 
