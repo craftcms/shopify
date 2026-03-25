@@ -20,8 +20,7 @@ class m250212_135301_add_shopify_gid_column_for_products extends Migration
         }
 
         $this->dropForeignKeyIfExists(Table::PRODUCTS, ['shopifyId']);
-        $this->createIndex(null, Table::PRODUCTS, ['shopifyGid'], true);
-        $this->addForeignKey(null, Table::PRODUCTS, ['shopifyGid'], Table::DATA, ['shopifyId'], null, null);
+        $this->createIndex(null, Table::PRODUCTS, ['shopifyGid'], false);
 
         return true;
     }

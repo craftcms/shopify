@@ -35,6 +35,10 @@ class ProcessBulkOperationData extends BaseBatchedJob
      */
     public int $objectCount = 0;
 
+    /**
+     * @var string|null
+     */
+    public ?string $tempFilePath = null;
 
     /**
      * Signal which data should be cleared before processing the bulk operation.
@@ -57,18 +61,34 @@ class ProcessBulkOperationData extends BaseBatchedJob
      */
     protected function loadData(): Batchable
     {
-        // Download the data to temporary file from the `$dataUrl`
-        $filePath = Assets::tempFilePath('jsonl');
+        // check to see if the file is still in temporary storage
+        if ($this->tempFilePath === null) {
+            // Make sure we only create one temp filename
+            $this->tempFilePath = Assets::tempFilePath('jsonl');
+        }
 
-        // Retrieve remote file contents
-        $client = Craft::createGuzzleClient();
-        $response = $client->get($this->dataUrl);
+        $fileExists = file_exists($this->tempFilePath);
+        $fileSize = $fileExists ? filesize($this->tempFilePath) : 0;
 
-        // Write the contents to the temporary file
-        FileHelper::writeToFile($filePath, $response->getBody()->getContents());
+        // If somehow a zero-byte file exists, remove it to force a re-download
+        if ($fileExists && $fileSize === 0) {
+            FileHelper::unlink($this->tempFilePath);
+            $fileExists = false;
+        }
+
+        // Only re-download if the file doesn't already exist
+        // If the queue is using multiple workers and the file leaks between them,
+        if (!$fileExists) {
+            // Retrieve remote file contents
+            $client = Craft::createGuzzleClient();
+            $response = $client->get($this->dataUrl);
+
+            // Write the contents to the temporary file
+            FileHelper::writeToFile($this->tempFilePath, $response->getBody()->getContents());
+        }
 
         $bulkDataBatcher = new BulkDataBatcher();
-        $bulkDataBatcher->filePath = $filePath;
+        $bulkDataBatcher->filePath = $this->tempFilePath;
         $bulkDataBatcher->total = $this->objectCount;
 
         return $bulkDataBatcher;
@@ -86,7 +106,11 @@ class ProcessBulkOperationData extends BaseBatchedJob
             return;
         }
 
-        $record = ShopifyData::findOne(['shopifyId' => $item['id']]);
+        $parentId = $item['__parentId'] ?? null;
+
+        // Find data records based on their Shopify ID and parent ID. This is to avoid overwriting
+        // records with the same ID but different parents (e.g. Metafields, Images etc).
+        $record = ShopifyData::findOne(['shopifyId' => $item['id'], 'parentId' => $parentId]);
         if (!$record) {
             $record = new ShopifyData();
         }
@@ -150,6 +174,11 @@ class ProcessBulkOperationData extends BaseBatchedJob
         $bulkOperation->setStatus(BulkOperationStatus::Completed);
 
         Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
+
+        // Delete the temporary file
+        if ($this->tempFilePath !== null && file_exists($this->tempFilePath)) {
+            FileHelper::unlink($this->tempFilePath);
+        }
 
         // Start the next bulk op if there is one
         Plugin::getInstance()->getBulkOperations()->nextBulkOperation();

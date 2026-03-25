@@ -12,9 +12,11 @@ use craft\helpers\Json;
 use craft\helpers\ProjectConfig;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
+use craft\shopify\collections\VariantCollection;
 use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
 use craft\shopify\events\ShopifyProductSyncEvent;
+use craft\shopify\models\Variant;
 use craft\shopify\Plugin;
 use craft\shopify\records\ShopifyData;
 use GraphQL\QueryBuilder\QueryBuilder;
@@ -57,18 +59,6 @@ class Products extends Component
     public const EVENT_BEFORE_SYNCHRONIZE_PRODUCT = 'beforeSynchronizeProduct';
 
     /**
-     * @return void
-     * @throws \Throwable
-     * @throws \yii\base\InvalidConfigException
-     * @deprecated in 6.0.0. Use [[BulkOperations::createProductsBulkOperation()]] instead.
-     */
-    public function syncAllProducts(): void
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Products::syncAllProducts() has been deprecated. Use BulkOperations::createProductsBulkOperation() instead.');
-        Plugin::getInstance()->getBulkOperations()->createProductsBulkOperation();
-    }
-
-    /**
      * @param string $id
      * @return void
      * @throws InvalidConfigException
@@ -102,13 +92,13 @@ class Products extends Component
             $builder->setArgument('id', $id);
         });
 
-        $response = Plugin::getInstance()->getApi()->query($query);
+        $item = Plugin::getInstance()->getApi()->query($query);
 
-        if (empty($response) || empty($response['data']['inventoryItem']['variant']['product']['id'])) {
+        if (!$item) {
             return;
         }
 
-        $productId = $response['data']['inventoryItem']['variant']['product']['id'];
+        $productId = $item['variant']['product']['id'];
 
         $this->syncProductByShopifyId($productId);
     }
@@ -135,9 +125,8 @@ class Products extends Component
             'options' => $product['options'],
             'productType' => $product['productType'],
             'publishedAt' => Db::prepareDateForDb($product['publishedAt']),
-            'publishedOnCurrentPublication' => (bool)$product['publishedOnCurrentPublication'],
             'shopifyStatus' => $product['status'],
-            'tags' => $product['tags'],
+            'tags' => $product['tags'] ?? [],
             'templateSuffix' => $product['templateSuffix'],
             'updatedAt' => Db::prepareDateForDb($product['updatedAt']),
             'vendor' => $product['vendor'],
@@ -260,6 +249,13 @@ class Products extends Component
         return $this->_eagerLoadTypeOnProducts($products, 'Metafield', function($product, $rows) {
             $metafields = collect($rows)
                 ->mapWithKeys(function($d, $key) {
+                    /** @var ShopifyData $d */
+
+                    // Map if the data has `key` and `value` properties
+                    if (!isset($d->data['key']) || !isset($d->data['value'])) {
+                        return [];
+                    }
+
                     return [
                         $d->data['key'] => Json::decodeIfJson($d->data['value']),
                     ];
@@ -289,15 +285,51 @@ class Products extends Component
      */
     public function eagerLoadVariantsForProducts(array $products): array
     {
-        return $this->_eagerLoadTypeOnProducts($products, 'ProductVariant', function($product, $rows) {
-            $product->setVariants(array_column($rows, 'data'));
+        $variantIds = [];
+        $variantsByProductId = [];
+        $return = $this->_eagerLoadTypeOnProducts($products, 'ProductVariant', function($product, $rows) use (&$variantsByProductId, &$variantIds) {
+            foreach ($rows as $row) {
+                $variantIds[] = $row->shopifyId;
+            }
+
+            $variantsByProductId[$product->shopifyGid] = $rows;
         });
+
+        // If we are eager loading the variants, for best performance we should also eager load the metafields on the variants
+        $metafieldsData = collect();
+        if (!empty($variantIds)) {
+            $metafieldsData = Plugin::getInstance()
+                ->getApi()
+                ->getShopifyDataByType('Metafield', $variantIds, true)
+                ->groupBy('parentId');
+        }
+
+        foreach ($return as $product) {
+            $variants = VariantCollection::make($variantsByProductId[$product->shopifyGid]);
+
+            if ($metafieldsData->isNotEmpty()) {
+                $variants->map(function(Variant$variant) use ($metafieldsData) {
+                    $metafields = $metafieldsData->get($variant->shopifyId);
+                    if (!empty($metafields)) {
+                        $variant->setMetafields(collect($metafields)->mapWithKeys(function($d) {
+                            return [
+                                $d->data['key'] => Json::decodeIfJson($d->data['value']),
+                            ];
+                        })->all());
+                    }
+                });
+            }
+
+            $product->setMetafields($variants);
+        }
+
+        return $return;
     }
 
     /**
      * @param array|Product[] $products
      * @param string $type
-     * @param callable $callback
+     * @param callable(Product, ShopifyData[]): void $callback
      * @return array
      * @throws InvalidConfigException
      */

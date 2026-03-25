@@ -42,6 +42,17 @@ enum BulkOperationStatus: string
      */
     public function statusLabelHtml(): string
     {
+        // @TODO update this either when Craft 4 support is dropped or 4 gets enums
+        if (!class_exists(Color::class) || !method_exists(Cp::class, 'statusLabelHtml')) {
+            $color = match ($this) {
+                self::Created => 'blue',
+                self::Processing => 'yellow',
+                self::Completed => 'green',
+                default => 'gray', // takes care of draft
+            };
+            return "<span class='status $color'></span>" . $this->statusAsLabel();
+        }
+
         return Cp::statusLabelHtml([
             'color' => match ($this) {
                 self::Queued => Color::Gray,

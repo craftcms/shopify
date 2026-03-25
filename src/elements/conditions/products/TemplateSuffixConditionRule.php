@@ -7,40 +7,27 @@
 
 namespace craft\shopify\elements\conditions\products;
 
-use craft\base\conditions\BaseMultiSelectConditionRule;
+use craft\base\conditions\BaseTextConditionRule;
 use craft\base\ElementInterface;
 use craft\elements\conditions\ElementConditionRuleInterface;
 use craft\elements\db\ElementQueryInterface;
-use craft\helpers\StringHelper;
 use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\elements\Product;
 
 /**
- * Shopify Status condition rule.
+ * Template Suffix Condition Rule
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 3.0.0
+ * @since 7.0.0
  */
-class ShopifyStatusConditionRule extends BaseMultiSelectConditionRule implements ElementConditionRuleInterface
+class TemplateSuffixConditionRule extends BaseTextConditionRule implements ElementConditionRuleInterface
 {
     /**
      * @inheritDoc
      */
     public function getLabel(): string
     {
-        return \Craft::t('shopify', 'Shopify Status');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function options(): array
-    {
-        return [
-            ['value' => Product::SHOPIFY_STATUS_ACTIVE, 'label' => StringHelper::titleize(Product::SHOPIFY_STATUS_ACTIVE)],
-            ['value' => Product::SHOPIFY_STATUS_DRAFT, 'label' => StringHelper::titleize(Product::SHOPIFY_STATUS_DRAFT)],
-            ['value' => Product::SHOPIFY_STATUS_ARCHIVED, 'label' => StringHelper::titleize(Product::SHOPIFY_STATUS_ARCHIVED)],
-        ];
+        return \Craft::t('shopify', 'Template suffix');
     }
 
     /**
@@ -48,7 +35,7 @@ class ShopifyStatusConditionRule extends BaseMultiSelectConditionRule implements
      */
     public function getExclusiveQueryParams(): array
     {
-        return ['shopifyStatus'];
+        return ['templateSuffix'];
     }
 
     /**
@@ -57,15 +44,16 @@ class ShopifyStatusConditionRule extends BaseMultiSelectConditionRule implements
      */
     public function matchElement(ElementInterface $element): bool
     {
-        return $this->matchValue($element->shopifyStatus);
+        return $this->matchValue($element->templateSuffix);
     }
 
     /**
      * @inheritDoc
+     * @param ProductQuery $query
      */
     public function modifyQuery(ElementQueryInterface $query): void
     {
         /** @var ProductQuery $query */
-        $query->shopifyStatus($this->paramValue());
+        $query->templateSuffix($this->paramValue());
     }
 }

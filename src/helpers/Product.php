@@ -13,9 +13,9 @@ use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
 use craft\helpers\StringHelper;
-use craft\helpers\UrlHelper;
 use craft\i18n\Formatter;
 use craft\shopify\elements\Product as ProductElement;
+use craft\shopify\models\Variant;
 use craft\shopify\records\ShopifyData;
 use yii\base\InvalidConfigException;
 
@@ -29,10 +29,11 @@ class Product
 {
     /**
      * @param ProductElement $product
+     * @param array $excludeMetaDataKeys
      * @return string
      * @throws InvalidConfigException
      */
-    public static function renderCardHtml(ProductElement $product): string
+    public static function renderCardHtml(ProductElement $product, array $excludeMetaDataKeys = []): string
     {
         $formatter = Craft::$app->getFormatter();
 
@@ -64,7 +65,6 @@ class Product
 
         $meta[Craft::t('shopify', 'Handle')] = $product->handle;
         $meta[Craft::t('shopify', 'Status')] = Product::shopifyStatusHtml($product);
-        $meta[Craft::t('shopify', 'Channel')] = Product::shopifyPublishedHtml($product);
 
         // Options
         if (count($product->getOptions()) > 0) {
@@ -99,31 +99,35 @@ class Product
             $meta[Craft::t('shopify', 'Total variants')] = Craft::$app->getFormatter()->asInteger(count($variants));
 
             $meta[Craft::t('shopify', 'Variants')] = collect($variants)
-                ->pluck('title')
+                ->map(fn(Variant $variant) => Html::encode($variant->title))
                 ->join(', ');
         }
 
         // Metafields
         if (count($product->getMetafields()) > 0) {
-            $meta[Craft::t('shopify', 'Metafields')] = collect($product->getMetafields())
+            $meta[Craft::t('shopify', 'Meta fields')] = collect($product->getMetafields())
                 ->keys()
                 ->join(', ');
         }
 
         $meta[Craft::t('shopify', 'Shopify ID')] = Html::tag('code', (string)$product->shopifyId);
 
+        // Template suffix
+        if (!empty($product->templateSuffix)) {
+            $meta[Craft::t('shopify', 'Template suffix')] = Html::tag('code', $product->templateSuffix);
+        }
+
         $meta[Craft::t('shopify', 'Created at')] = $formatter->asDatetime($product->createdAt, Formatter::FORMAT_WIDTH_SHORT);
         $meta[Craft::t('shopify', 'Published at')] = $formatter->asDatetime($product->publishedAt, Formatter::FORMAT_WIDTH_SHORT);
         $meta[Craft::t('shopify', 'Updated at')] = $formatter->asDatetime($product->updatedAt, Formatter::FORMAT_WIDTH_SHORT);
 
-        $metadataHtml = Cp::metadataHtml($meta);
+        foreach ($excludeMetaDataKeys as $key) {
+            if (array_key_exists($key, $meta)) {
+                unset($meta[$key]);
+            }
+        }
 
-        $spinner = Html::tag('div', '', [
-            'class' => 'spinner',
-            'hx' => [
-                'indicator',
-            ],
-        ]);
+        $metadataHtml = Cp::metadataHtml($meta);
 
         // This is the date updated in the database which represents the last time it was updated from a Shopify webhook or sync.
         /** @var ShopifyData $productData */
@@ -132,20 +136,13 @@ class Product
         $now = new \DateTime();
         $diff = $now->diff($dateUpdated);
         $duration = DateTimeHelper::humanDuration($diff, false);
-        $footer = Html::tag('div', 'Updated ' . $duration . ' ago.' . $spinner, [
+        $footer = Html::tag('div', 'Updated ' . $duration . ' ago.', [
             'class' => 'pec-footer',
         ]);
 
         return Html::tag('div', $cardHeader . $hr . $metadataHtml . $footer, [
             'class' => 'meta proxy-element-card',
             'id' => 'pec-' . $product->id,
-            'hx' => [
-                'get' => UrlHelper::actionUrl('shopify/products/render-card-html', [
-                    'id' => $product->id,
-                ]),
-                'swap' => 'outerHTML',
-                'trigger' => 'every 15s',
-            ],
         ]);
     }
 
@@ -156,31 +153,25 @@ class Product
      */
     public static function shopifyStatusHtml(ProductElement $product): string
     {
+        // @TODO update this either when Craft 4 support is dropped or 4 gets enums
+        if (!class_exists(Color::class) || !method_exists(Cp::class, 'statusLabelHtml')) {
+            $color = match (StringHelper::toLowerCase($product->shopifyStatus)) {
+                ProductElement::SHOPIFY_STATUS_ACTIVE => 'green',
+                ProductElement::SHOPIFY_STATUS_ARCHIVED => 'red',
+                default => 'orange', // takes care of draft
+            };
+            return "<span class='status $color'></span>" . StringHelper::titleize($product->shopifyStatus);
+        }
+
         $color = match (StringHelper::toLowerCase($product->shopifyStatus)) {
-            'active' => Color::Green->value,
-            'archived' => Color::Red->value,
+            ProductElement::SHOPIFY_STATUS_ACTIVE => Color::Green->value,
+            ProductElement::SHOPIFY_STATUS_ARCHIVED => Color::Red->value,
             default => Color::Orange->value, // takes care of draft
         };
 
         return Cp::statusLabelHtml([
             'color' => $color,
             'label' => StringHelper::titleize($product->shopifyStatus),
-        ]);
-    }
-
-    /**
-     * @param ProductElement $product
-     * @return string
-     * @since 6.0.0
-     */
-    public static function shopifyPublishedHtml(ProductElement $product): string
-    {
-        $color = $product->publishedOnCurrentPublication ? Color::Green->value : Color::Red->value;
-        $status = $product->publishedOnCurrentPublication ? Craft::t('shopify', 'Published') : Craft::t('shopify', 'Unpublished');
-
-        return Cp::statusLabelHtml([
-            'color' => $color,
-            'label' => $status,
         ]);
     }
 }

@@ -15,6 +15,7 @@ class m250127_121804_create_shopify_data_table extends Migration
      */
     public function safeUp(): bool
     {
+        $this->archiveTableIfExists(Table::DATA);
         $this->createTable(Table::DATA, [
             'shopifyId' => $this->string(),
             'type' => $this->string(),

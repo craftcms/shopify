@@ -34,6 +34,15 @@ class Install extends Migration
      */
     public function createTables(): void
     {
+        $this->archiveTableIfExists(Table::ACCESS_TOKENS);
+        $this->createTable(Table::ACCESS_TOKENS, [
+            'id' => $this->primaryKey(),
+            'accessToken' => $this->string(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists(Table::PRODUCTS);
         $this->createTable(Table::PRODUCTS, [
             'id' => $this->integer()->notNull(),
@@ -47,6 +56,7 @@ class Install extends Migration
 
         $this->archiveTableIfExists(Table::DATA);
         $this->createTable(Table::DATA, [
+            'id' => $this->primaryKey(),
             'shopifyId' => $this->string(),
             'type' => $this->string(),
             'data' => $this->json(),
@@ -54,7 +64,6 @@ class Install extends Migration
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
-            'PRIMARY KEY([[shopifyId]])',
         ]);
 
         $this->archiveTableIfExists(Table::BULK_OPERATIONS);
@@ -112,23 +121,6 @@ class Install extends Migration
                 $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->text()) . " GENERATED ALWAYS AS (" .
                 $qb->jsonExtract('data', [$col]) . ") STORED;");
         }
-
-        $boolColumns = [
-            'publishedOnCurrentPublication' => 'publishedOnCurrentPublication',
-        ];
-
-        foreach ($boolColumns as $col => $alias) {
-            $as = $qb->jsonExtract('data', [$col]);
-            if (!$db->getIsPgsql()) {
-                $as = 'CAST(JSON_EXTRACT(`data`, \'$."' . $col . '"\') as signed)';
-            } else {
-                $as .= '::boolean';
-            }
-
-            $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
-                $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->boolean()) . " GENERATED ALWAYS AS (" .
-                $as . ") STORED;");
-        }
     }
 
     /**
@@ -136,9 +128,9 @@ class Install extends Migration
      */
     public function createIndexes(): void
     {
-        $this->createIndex(null, Table::PRODUCTS, ['shopifyId'], true);
-        $this->createIndex(null, Table::PRODUCTS, ['shopifyGid'], true);
-        $this->createIndex(null, Table::DATA, ['shopifyId'], true);
+        $this->createIndex(null, Table::PRODUCTS, ['shopifyId'], false);
+        $this->createIndex(null, Table::PRODUCTS, ['shopifyGid'], false);
+        $this->createIndex(null, Table::DATA, ['shopifyId'], false);
         $this->createIndex(null, Table::DATA, ['parentId'], false);
     }
 

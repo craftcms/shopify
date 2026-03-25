@@ -18,6 +18,7 @@ use craft\console\Controller;
 use craft\console\controllers\ResaveController;
 use craft\db\Query;
 use craft\events\DefineConsoleActionsEvent;
+use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterGqlQueriesEvent;
 use craft\events\RegisterGqlSchemaComponentsEvent;
@@ -28,6 +29,7 @@ use craft\fields\Link;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
 use craft\helpers\UrlHelper;
+use craft\models\FieldLayout;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Gc;
@@ -36,6 +38,10 @@ use craft\services\Utilities;
 use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
 use craft\shopify\feedme\fields\Products as FeedMeProductsField;
+use craft\shopify\fieldlayoutelements\MediaField;
+use craft\shopify\fieldlayoutelements\MetafieldsField;
+use craft\shopify\fieldlayoutelements\OptionsField;
+use craft\shopify\fieldlayoutelements\VariantsField;
 use craft\shopify\fields\Products as ProductsField;
 use craft\shopify\gql\interfaces\elements\Product as GqlProductInterface;
 use craft\shopify\gql\queries\Product as GqlProductQueries;
@@ -73,7 +79,7 @@ class Plugin extends BasePlugin
     /**
      * @var string
      */
-    public string $schemaVersion = '6.0.0.9';
+    public string $schemaVersion = '7.0.0.1';
 
     /**
      * @inheritdoc
@@ -131,6 +137,7 @@ class Plugin extends BasePlugin
         $this->_registerElementTypes();
         $this->_registerUtilityTypes();
         $this->_registerFieldTypes();
+        $this->_registerFieldLayoutElements();
         $this->_registerLinkTypes();
         $this->_registerVariables();
         $this->_registerResaveCommands();
@@ -309,6 +316,27 @@ class Plugin extends BasePlugin
     }
 
     /**
+     * @return void
+     * @since 7.0.0
+     */
+    private function _registerFieldLayoutElements(): void
+    {
+        Event::on(FieldLayout::class, FieldLayout::EVENT_DEFINE_NATIVE_FIELDS, static function(DefineFieldLayoutFieldsEvent $e) {
+            /** @var FieldLayout $fieldLayout */
+            $fieldLayout = $e->sender;
+
+            switch ($fieldLayout->type) {
+                case Product::class:
+                    $e->fields[] = VariantsField::class;
+                    $e->fields[] = OptionsField::class;
+                    $e->fields[] = MetafieldsField::class;
+                    $e->fields[] = MediaField::class;
+                    break;
+            }
+        });
+    }
+
+    /**
      * Register Link types
      *
      * @since 5.2.0
@@ -368,6 +396,7 @@ class Plugin extends BasePlugin
             $event->rules['shopify/products/<elementId:\d+>'] = 'elements/edit';
             $event->rules['shopify/settings'] = 'shopify/settings';
             $event->rules['shopify/webhooks'] = 'shopify/webhooks/edit';
+            $event->rules['shopify/auth'] = 'shopify/auth/index';
         });
     }
 
@@ -498,12 +527,10 @@ class Plugin extends BasePlugin
 
         $session = Plugin::getInstance()->getApi()->getSession();
 
-        if ($session) {
-            $ret['subnav']['products'] = [
-                'label' => Craft::t('shopify', 'Products'),
-                'url' => 'shopify/products',
-            ];
-        }
+        $ret['subnav']['products'] = [
+            'label' => Craft::t('shopify', 'Products'),
+            'url' => 'shopify/products',
+        ];
 
         if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $ret['subnav']['settings'] = [

@@ -11,22 +11,27 @@ use Craft;
 use craft\base\Element;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\User;
-use craft\errors\DeprecationException;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
+use craft\shopify\collections\VariantCollection;
 use craft\shopify\elements\conditions\products\ProductCondition;
 use craft\shopify\elements\db\ProductQuery;
+use craft\shopify\fieldlayoutelements\MetafieldsField;
+use craft\shopify\fieldlayoutelements\OptionsField;
+use craft\shopify\fieldlayoutelements\VariantsField;
 use craft\shopify\helpers\Product as ProductHelper;
+use craft\shopify\models\Variant;
 use craft\shopify\Plugin;
 use craft\shopify\records\Product as ProductRecord;
 use craft\shopify\web\assets\shopifycp\ShopifyCpAsset;
 use craft\web\CpScreenResponseBehavior;
 use DateTime;
 use Exception;
+use Illuminate\Support\Collection;
 use yii\base\InvalidConfigException;
 use yii\helpers\Html as HtmlHelper;
 use yii\web\Response;
@@ -56,26 +61,6 @@ class Product extends Element
     public const SHOPIFY_STATUS_ACTIVE = 'active';
     public const SHOPIFY_STATUS_DRAFT = 'draft';
     public const SHOPIFY_STATUS_ARCHIVED = 'archived';
-
-    /**
-     * @param string|null $bodyHtml
-     * @return void
-     * @throws DeprecationException
-     * @deprecated in 6.0.0. Use [[setDescriptionHtml()]] instead.
-     */
-    public function setBodyHtml(?string $bodyHtml): void
-    {
-        // Craft::$app->getDeprecator()->log(__METHOD__, 'Product::setBodyHtml() has been deprecated. Use setDescriptionHtml() instead.');
-    }
-
-    /**
-     * @return string|null
-     * @deprecated in 6.0.0. Use [[getDescriptionHtml()]] instead.
-     */
-    public function getBodyHtml(): ?string
-    {
-        return $this->getDescriptionHtml();
-    }
 
     /**
      * @return string|null
@@ -127,11 +112,6 @@ class Product extends Element
     public ?DateTime $publishedAt = null;
 
     /**
-     * @var bool
-     */
-    public ?bool $publishedOnCurrentPublication = null;
-
-    /**
      * The product ID in the Shopify store
      *
      * @var int|null
@@ -146,7 +126,7 @@ class Product extends Element
     /**
      * @var string
      */
-    public string $shopifyStatus = 'active';
+    public string $shopifyStatus = self::SHOPIFY_STATUS_ACTIVE;
 
     /**
      * @var array
@@ -164,9 +144,9 @@ class Product extends Element
     public ?DateTime $updatedAt = null;
 
     /**
-     * @var array|null
+     * @var VariantCollection|null
      */
-    private ?array $_variants = null;
+    private ?VariantCollection $_variants = null;
 
     /**
      * @var string
@@ -237,7 +217,7 @@ class Product extends Element
     public static function searchableAttributes(): array
     {
         return array_merge(parent::searchableAttributes(), [
-            'bodyHtml',
+            'descriptionHtml',
             'handle',
             'vendor',
             'productType',
@@ -408,37 +388,47 @@ class Product extends Element
     }
 
     /**
-     * @param string|array $value
+     * @param string|array|Collection<Variant> $value
      * @return void
      */
-    public function setVariants(string|array $value): void
+    public function setVariants(string|array|Collection $value): void
     {
         if (is_string($value)) {
             $value = Json::decodeIfJson($value);
+        }
+
+        if (is_iterable($value)) {
+            if (is_array($value)) {
+                $value = VariantCollection::make($value);
+            } elseif ($value instanceof Collection && !($value instanceof VariantCollection)) {
+                $value = VariantCollection::make($value->all());
+            }
         }
 
         $this->_variants = $value;
     }
 
     /**
-     * @return array
+     * @return VariantCollection
      * @throws InvalidConfigException
      */
-    public function getVariants(): array
+    public function getVariants(): VariantCollection
     {
         if (!$this->shopifyGid) {
-            return [];
+            return VariantCollection::make();
         }
 
-        if ($this->_variants !== null) {
+        if ($this->_variants instanceof VariantCollection) {
             return $this->_variants;
+        } elseif ($this->_variants === null) {
+            $variants = Plugin::getInstance()->getApi()->getShopifyDataByType('ProductVariant', $this->shopifyGid, true);
+        } else {
+            $variants = $this->_variants;
         }
 
-        $variants = Plugin::getInstance()->getApi()->getShopifyDataByType('ProductVariant', $this->shopifyGid);
+        $this->setVariants($variants);
 
-        $this->setVariants($variants->all());
-
-        return $this->_variants ?? [];
+        return $this->_variants ?? VariantCollection::make();
     }
 
     /**
@@ -450,7 +440,6 @@ class Product extends Element
         $attributes[] = 'images';
         $attributes[] = 'metafields';
         $attributes[] = 'variants';
-        $attributes[] = 'publishedOnCurrentPublication';
 
         return $attributes;
     }
@@ -458,21 +447,24 @@ class Product extends Element
     /**
      * Gets the cheapest variant.
      *
-     * @return array
+     * @return Variant|null
+     * @throws InvalidConfigException
      */
-    public function getCheapestVariant(): array
+    public function getCheapestVariant(): ?Variant
     {
-        return collect($this->getVariants())->sortBy('price')->first();
+        return $this->getVariants()->cheapest();
     }
 
     /**
      * Gets the first variant which is Shopify's default variant.
      *
-     * @return array
+     * @return Variant|null
      */
-    public function getDefaultVariant(): array
+    public function getDefaultVariant(): ?Variant
     {
-        return collect($this->getVariants())->first();
+        /** @var Variant|null $variant */
+        $variant = $this->getVariants()->first();
+        return $variant ?? null;
     }
 
     /**
@@ -557,12 +549,9 @@ class Product extends Element
 
     /**
      * @return string
-     * @deprecated in 6.0.0. Use [[craft\shopify\helpers\Product::shopifyStatusHtml()]] instead.
      */
     public function getShopifyStatusHtml(): string
     {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Product::getShopifyStatusHtml() has been deprecated. Use \craft\shopify\helpers\Product::shopifyStatusHtml() instead.');
-
         return ProductHelper::shopifyStatusHtml($this);
     }
 
@@ -717,8 +706,25 @@ class Product extends Element
     {
         /** @noinspection PhpUnhandledExceptionInspection */
         Craft::$app->getView()->registerAssetBundle(ShopifyCpAsset::class);
-        $productCard = ProductHelper::renderCardHtml($this);
-        return $productCard . parent::getSidebarHtml($static);
+
+        // Conditionally show metadata in the sidebar dependent on the field layout
+        $excludeKeys = [];
+        $this->getFieldLayout()->getFields(function($field) use (&$excludeKeys) {
+            if ($field instanceof VariantsField) {
+                $excludeKeys[] = 'Variants';
+                return true;
+            } elseif ($field instanceof OptionsField) {
+                $excludeKeys[] = 'Options';
+                return true;
+            } elseif ($field instanceof MetafieldsField) {
+                $excludeKeys[] = 'Metafields';
+                return true;
+            }
+
+            return false;
+        });
+
+        return ProductHelper::renderCardHtml($this, $excludeKeys) . parent::getSidebarHtml($static);
     }
 
     /**
@@ -735,6 +741,19 @@ class Product extends Element
                 'defaultSort' => ['id', 'desc'],
             ],
         ];
+    }
+
+    /**
+     * @inerhitdoc
+     */
+    public function beforeSave(bool $isNew): bool
+    {
+        // Ensure slug and handle match
+        if ($this->handle !== $this->slug) {
+            $this->slug = $this->handle;
+        }
+
+        return parent::beforeSave($isNew);
     }
 
     /**
@@ -773,7 +792,7 @@ class Product extends Element
     public function afterDelete(): void
     {
         // Remove all the product shopify data
-        if ($this->shopifyGid) {
+        if ($this->shopifyGid && $this->getIsCanonical()) {
             Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyId($this->shopifyGid);
         }
 
@@ -797,6 +816,7 @@ class Product extends Element
             'updatedAt' => Craft::t('shopify', 'Updated At'),
             'variants' => Craft::t('shopify', 'Variants'),
             'vendor' => Craft::t('shopify', 'Vendor'),
+            'templateSuffix' => Craft::t('shopify', 'Template suffix'),
             'shopifyEdit' => Craft::t('shopify', 'Shopify Edit'),
         ];
     }
@@ -823,19 +843,19 @@ class Product extends Element
 
         $sortOptions['title'] = [
             'label' => Craft::t('app', 'Title'),
-            'orderBy' => 'shopify_productdata.title',
+            'orderBy' => 'data.title',
             'defaultDir' => SORT_DESC,
         ];
 
         $sortOptions['shopifyId'] = [
             'label' => Craft::t('shopify', 'Shopify ID'),
-            'orderBy' => 'shopify_productdata.shopifyId',
+            'orderBy' => 'data.shopifyId',
             'defaultDir' => SORT_DESC,
         ];
 
         $sortOptions['shopifyStatus'] = [
             'label' => Craft::t('shopify', 'Shopify Status'),
-            'orderBy' => 'shopify_productdata.shopifyStatus',
+            'orderBy' => 'data.shopifyStatus',
             'defaultDir' => SORT_DESC,
         ];
 
@@ -876,7 +896,7 @@ class Product extends Element
             case 'shopifyEdit':
                 return HtmlHelper::a('', $this->getShopifyEditUrl(), ['target' => '_blank', 'data' => ['icon' => 'external']]);
             case 'shopifyStatus':
-                return ProductHelper::shopifyStatusHtml($this);
+                return $this->getShopifyStatusHtml();
             case 'shopifyId':
                 return $this->$attribute;
             case 'options':
@@ -894,6 +914,8 @@ class Product extends Element
                 })->join('&nbsp;');
             case 'variants':
                 return collect($this->getVariants())->pluck('title')->map(fn($title) => StringHelper::toTitleCase($title))->join(',&nbsp;');
+            case 'templateSuffix':
+                return HtmlHelper::tag('code', $this->templateSuffix);
             default:
             {
                 return parent::attributeHtml($attribute);
@@ -982,7 +1004,6 @@ class Product extends Element
         $labels = parent::attributeLabels();
 
         $labels['shopifyId'] = Craft::t('shopify', 'Shopify ID');
-        $labels['bodyHtml'] = Craft::t('shopify', 'Body HTML');
         $labels['createdAt'] = Craft::t('shopify', 'Created at');
         $labels['handle'] = Craft::t('shopify', 'Handle');
         $labels['images'] = Craft::t('shopify', 'Images');
@@ -991,7 +1012,7 @@ class Product extends Element
         $labels['publishedAt'] = Craft::t('shopify', 'Published at');
         $labels['tags'] = Craft::t('shopify', 'Tags');
         $labels['shopifyStatus'] = Craft::t('shopify', 'Status');
-        $labels['templateSuffix'] = Craft::t('shopify', 'Template Suffix');
+        $labels['templateSuffix'] = Craft::t('shopify', 'Template suffix');
         $labels['updatedAt'] = Craft::t('shopify', 'Updated at');
         $labels['variants'] = Craft::t('shopify', 'Variants');
         $labels['vendor'] = Craft::t('shopify', 'Vendor');

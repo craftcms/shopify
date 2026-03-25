@@ -1,15 +1,125 @@
 # Release Notes for Shopify
 
-## 6.0.0-beta.2 - 2025-03-10
+## 7.0.2 - 2026-03-24
 
-- Fixed a SQL error that could occur when upgrading on PostgreSQL. ([#127](https://github.com/craftcms/commerce/issues/127))
+- Fixed a PHP error that could occur when authorizing the Shopify app. ([#204](https://github.com/craftcms/shopify/issues/204))
 
-## 6.0.0-beta.1 - 2025-02-27
+## 7.0.1 - 2026-03-20
+
+- Fixed a PHP error that could occur when retrieving products. ([#202](https://github.com/craftcms/shopify/issues/202))
+
+## 7.0.0 - 2026-03-19
+
+> [!IMPORTANT]
+> Shopify for Craft 7.x uses a new app-based authorization system.
+> Follow the [upgrade instructions](https://github.com/craftcms/shopify/blob/7.x/README.md#upgrading) to get new credentials.
+
+- Shopify for Craft now requires version `2026-01` of Shopify’s GraphQL Admin API.
+- Shopify for Craft now requires Shopify PHP SDK 6.0 or later.
+- Added support for setting the base webhook and auth URL using the `SHOPIFY_PUBLIC_DEV_URL` environment variable. ([#185](https://github.com/craftcms/shopify/issues/185))
+- Product conditions can now have a “Template Suffix” rule.
+- Added the “Shopify Sync” permission.
+- Added the `templateSuffix` product query param.
+- Added `craft\shopify\collections\VariantCollection`.
+- Added `craft\shopify\console\controllers\ApiController`.
+- Added `craft\shopify\controllers\AuthController`.
+- Added `craft\shopify\db\Table::ACCESS_TOKENS`.
+- Added `craft\shopify\elements\conditions\products\TemplateSuffixConditionRule`.
+- Added `craft\shopify\elements\db\ProductQuery::$templateSuffix`.
+- Added `craft\shopify\elements\db\ProductQuery::templateSuffix()`.
+- Added `craft\shopify\events\DefineGqlFieldsEvent`.
+- Added `craft\shopify\events\DefineGqlQueryArgumentsEvent`.
+- Added `craft\shopify\fieldlayoutelements\MediaField`.
+- Added `craft\shopify\fieldlayoutelements\MetafieldsField`.
+- Added `craft\shopify\fieldlayoutelements\OptionsField`.
+- Added `craft\shopify\fieldlayoutelements\VariantsField`.
+- Added `craft\shopify\models\Settings::getAuthUrl()`.
+- Added `craft\shopify\models\Settings::getClientId()`.
+- Added `craft\shopify\models\Settings::getClientSecret()`.
+- Added `craft\shopify\models\Settings::setClientId()`.
+- Added `craft\shopify\models\Settings::setClientSecret()`.
+- Added `craft\shopify\models\Variant`.
+- Added `craft\shopify\records\AccessToken`.
+- Added `craft\shopify\services\Api::API_ACCESS_TOKEN_ENV_VAR`.
+- Added `craft\shopify\services\Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS`.
+- Added `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`.
+- Added `craft\shopify\services\Api::getAccessToken()`.
+- Added `craft\shopify\services\Api::initializeContext()`.
+- `craft\shopify\elements\Product::getCheapeastVariant()` now returns a `craft\shopify\models\Variant` object.
+- `craft\shopify\elements\Product::getDefaultVariant()` now returns a `craft\shopify\models\Variant` object.
+- `craft\shopify\elements\Product::getVariants()` now returns a collection.
+- Deprecated the `--throttle` option for `shopify/sync` commands.
+- Deprecated `craft\shopify\models\Settings::getApiKey()`. `getClientId()` should be used instead.
+- Deprecated `craft\shopify\models\Settings::getApiSecretKey()`. `getClientSecret()` should be used instead.
+- Deprecated `craft\shopify\models\Settings::setApiKey()`. `setClientId()` should be used instead.
+- Deprecated `craft\shopify\models\Settings::setApiSecretKey()`. `setClientSecret()` should be used instead.
+- Removed the `publishedOnCurrentPublication` product query param.
+- Removed `craft\shopify\controllers\ProductsController::actionRenderCardHtml()`.
+- Removed `craft\shopify\elements\Product::$publishedOnCurrentPublication`.
+- Removed `craft\shopify\elements\Product::getBodyHtml()`.
+- Removed `craft\shopify\elements\Product::setBodyHtml()`.
+- Removed `craft\shopify\elements\db\ProductQuery::$publishedOnCurrentPublication`.
+- Removed `craft\shopify\elements\db\ProductQuery::publishedOnCurrentPublication()`.
+- Removed `craft\shopify\handlers\Product`.
+- Removed `craft\shopify\helpers\Metafields`.
+- Removed `craft\shopify\models\Settings::$syncProductMetafields`.
+- Removed `craft\shopify\models\Settings::$syncVariantMetafields`.
+- Removed `craft\shopify\services\Products::syncAllProducts()`.
+- Fixed a bug where product slugs weren’t syncing correctly.
+
+## 6.1.3 - 2026-01-19
+
+- Fixed a PHP error that could occur when contextual pricing countries aren’t set. ([#191](https://github.com/craftcms/shopify/issues/191))
+
+## 6.1.2 - 2025-12-08
+
+- Fixed a bug where syncing queue jobs could run indefinitely. ([#189](https://github.com/craftcms/shopify/issues/189))
+- Fixed a bug where syncing products could fail if the sync file had downloaded incorrectly.
+
+## 6.1.1 - 2025-11-06
+
+- Fixed a bug where file storage could be maxed out when using multiple queue workers.
+- Fixed a bug where contextual pricing countries weren’t being force to be capitalized.
+
+## 6.1.0 - 2025-10-24
+
+- Shopify for Craft now supports version `2025-07` of Shopify’s GraphQL Admin API.
+- Fixed a PHP error that could occur with missing environment variables. ([#178](https://github.com/craftcms/shopify/issues/178))
+
+## 6.0.5 - 2025-09-09
+
+- Fixed a bug where Shopify data could be overwritten when syncing products. ([#177](https://github.com/craftcms/shopify/issues/177))
+
+## 6.0.4.1 - 2025-08-08
+
+- Fixed a PHP error that could occur when upgrading. ([#176](https://github.com/craftcms/shopify/issues/176))
+
+## 6.0.4 - 2025-08-08
+
+- Fixed a PHP error that occurred when setting the Shopify host name to a non `myshopify` domain. ([#168](https://github.com/craftcms/shopify/issues/168))
+- Fixed a PHP error that occurred when creating product drafts. ([#176](https://github.com/craftcms/shopify/issues/176))
+
+## 6.0.3 - 2025-05-27
+
+- Fixed a SQL error that occurred when syncing products on MariaDB. ([#166](https://github.com/craftcms/shopify/issues/166))
+- Fixed a SQL error that could occur when upgrading.
+
+## 6.0.2 - 2025-05-19
+
+- Fixed a bug where image sort order wasn’t being respected when syncing products. ([#161](https://github.com/craftcms/shopify/issues/161))
+
+## 6.0.1 - 2025-04-29
+
+- Fixed a PHP error that could occur when viewing Shopify utilities. ([#156](https://github.com/craftcms/shopify/issues/156))
+- Fixed a bug where `image` was missing from Shopify variant data.
+
+## 6.0.0 - 2025-04-17
 
 > [!IMPORTANT]
 > After updating, go to **Shopify** → **Webhooks** and create the missing webhooks.
 
 - Shopify for Craft now uses the [GraphQL Admin API](https://shopify.dev/docs/api/admin-graphql) to interact with Shopify.
+- Shopify now requires Craft CMS 4.15.0+ or 5.0.0+.
 - Data syncing is now done via the queue.
 - Added the `shopify/data/reset` command.
 - Added `craft\shopify\Plugin::getBulkOperation()`.
@@ -145,7 +255,7 @@
 
 - Shopify now requires Craft CMS 5.0.0-beta.10 or later.
 
-## 4.1.2 - 2024-04-15 
+## 4.1.2 - 2024-04-15
 
 - Fixed a PHP error that could occur when syncing products with emojis. ([#107](https://github.com/craftcms/shopify/issues/107))
 - Fixed a PHP error that could occur when syncing products. ([#105](https://github.com/craftcms/shopify/issues/105))

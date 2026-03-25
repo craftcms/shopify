@@ -11,8 +11,12 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use craft\log\MonologTarget;
+use craft\shopify\events\DefineGqlFieldsEvent;
+use craft\shopify\events\DefineGqlQueryArgumentsEvent;
 use craft\shopify\Plugin;
+use craft\shopify\records\AccessToken;
 use craft\shopify\records\ShopifyData;
 use GraphQL\Mutation;
 use GraphQL\Query;
@@ -20,23 +24,22 @@ use GraphQL\QueryBuilder\QueryBuilder;
 use GraphQL\Variable;
 use GuzzleHttp\Client;
 use Illuminate\Support\Collection;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Shopify\ApiVersion;
 use Shopify\Auth\FileSessionStorage;
+use Shopify\Auth\OAuth;
 use Shopify\Auth\Session;
 use Shopify\Clients\Graphql;
+use Shopify\Clients\Http;
 use Shopify\Clients\HttpClientFactory;
-use Shopify\Clients\Rest;
 use Shopify\Context;
 use Shopify\Exception\MissingArgumentException;
-use Shopify\Rest\Admin2023_10\Metafield as ShopifyMetafield;
-use Shopify\Rest\Admin2023_10\Product as ShopifyProduct;
-use Shopify\Rest\Admin2023_10\Variant as ShopifyVariant;
-use Shopify\Rest\Admin2024_10\Metafield as ShopifyMetafield2410;
-use Shopify\Rest\Admin2024_10\Product as ShopifyProduct2410;
-use Shopify\Rest\Admin2024_10\Variant as ShopifyVariant2410;
-use Shopify\Rest\Base as ShopifyBaseResource;
+use Shopify\Exception\SessionNotFoundException;
+use Shopify\Exception\ShopifyException;
+use Shopify\Exception\UninitializedContextException;
 use Shopify\Webhooks\Topics;
+use yii\base\InvalidConfigException;
 
 /**
  * Shopify API service.
@@ -62,6 +65,23 @@ class Api extends Component
     ];
 
     /**
+     * @since 7.0.0
+     */
+    public const API_ACCESS_TOKEN_ENV_VAR = 'SHOPIFY_API_ACCESS_TOKEN';
+
+    /**
+     * @event DefineGqlFieldsEvent Triggered while building a GraphQL query for retrieving Product resources from Shopify.
+     * @since 7.0.0
+     */
+    public const EVENT_DEFINE_PRODUCT_GQL_FIELDS = 'defineProductGqlFields';
+
+    /**
+     * @event DefineGqlQueryArgumentsEvent Triggered while building a GraphQL query's arguments for resources from Shopify.
+     * @since 7.0.0
+     */
+    public const EVENT_DEFINE_GQL_QUERY_ARGUMENTS = 'defineGqlQueryArguments';
+
+    /**
      * @var Session|null
      */
     private ?Session $_session = null;
@@ -72,19 +92,13 @@ class Api extends Component
     private ?Graphql $_gqlClient = null;
 
     /**
-     * @var Rest|null
-     */
-    private ?Rest $_client = null;
-
-    /**
      * @return array
      * @since 5.3.0
      */
     public function getSupportedApiVersions(): array
     {
         return [
-            ApiVersion::OCTOBER_2024,
-            ApiVersion::OCTOBER_2023,
+            ApiVersion::JANUARY_2026,
         ];
     }
 
@@ -167,7 +181,11 @@ class Api extends Component
             $shopRecord->data = $response;
 
             if (!$shopRecord->save()) {
-                throw new \Exception('Failed to save shop data: ' . $shopRecord->getErrors()[0]);
+                // Get the first error message from the record, if available:
+                $errors = $shopRecord->getErrors();
+                $firstError = array_shift($errors)[0] ?? ['Unknown error'];
+
+                throw new \Exception('Failed to save shop data: ' . implode(', ', $firstError));
             }
 
             $shop = $shopRecord->data;
@@ -261,7 +279,6 @@ class Api extends Component
                     ],
                     'productType',
                     'publishedAt',
-                    'publishedOnCurrentPublication',
                     'status',
                     'tags',
                     'templateSuffix',
@@ -284,6 +301,16 @@ class Api extends Component
                                 'title',
                                 'updatedAt',
                                 'position',
+                                'image' => [
+                                    'altText',
+                                    'height',
+                                    'id',
+                                    'url',
+                                    'width',
+                                    'originalSrc',
+                                    'src',
+                                    'transformedSrc',
+                                ],
                                 'inventoryItem' => [
                                     'id',
                                     'countryCodeOfOrigin',
@@ -321,6 +348,14 @@ class Api extends Component
                 ],
             ],
         ];
+
+        if ($this->hasEventHandlers(self::EVENT_DEFINE_PRODUCT_GQL_FIELDS)) {
+            $event = new DefineGqlFieldsEvent([
+                'fields' => $fields,
+            ]);
+            $this->trigger(self::EVENT_DEFINE_PRODUCT_GQL_FIELDS, $event);
+            $fields = $event->fields;
+        }
 
         return $this->createQuery('products', $fields, function(QueryBuilder $builder) use ($id) {
             if ($id) {
@@ -371,43 +406,93 @@ class Api extends Component
             $this->_prepQueryBuilder($key, $value, $builder);
         }
 
-        return $builder->getQuery();
+        $query = $builder->getQuery();
+
+        if ($this->hasEventHandlers(self::EVENT_DEFINE_GQL_QUERY_ARGUMENTS)) {
+            $event = new DefineGqlQueryArgumentsEvent([
+                'fieldName' => $query->getFieldName(),
+                'arguments' => $query->getArguments(),
+            ]);
+            $this->trigger(self::EVENT_DEFINE_GQL_QUERY_ARGUMENTS, $event);
+            $query->setArguments($event->arguments);
+        }
+
+        return $query;
     }
 
     /**
-     * Run a Shopify GraphQL query.
+     * Run a GraphQL query against the Shopify API.
+     *
+     * If you need to control how a response is unpacked, use {@see getGqlClient()} directly.
+     *
+     * Under normal circumstances, the selected fields (including `userErrors`, when requested) are returned as an array.
+     * A `false` return value indicates a low-level communication failure.
+     *
+     * All other issues should trigger a {@see ShopifyException}.
      *
      * @param Query|string $query
      * @param array|null $variables
-     * @return mixed
+     * @return mixed Typically an array with the same structure as the selection, or `null` for nonexistent nodes.
+     * @throws ShopifyException when the response looks unusual (i.e. an `errors` key is present, or a `data` key was not returned)
+     * @throws SessionNotFoundException if a session can’t be established
      * @since 6.0.0
      */
     public function query(Query|string $query, ?array $variables = null): mixed
     {
-        $data = ['query' => (string)$query];
+        // An invalid session will cause everything to fail:
+        if ($this->getSession() === null) {
+            throw new SessionNotFoundException(Craft::t('shopify', 'No Shopify session available. Please check your credentials and re-authorize the application, if necessary.'));
+        }
+
+        $payload = ['query' => (string)$query];
+
         if ($variables) {
-            $data['variables'] = $variables;
+            $payload['variables'] = $variables;
         }
 
         try {
-            $response = $this->getGqlClient()->query($data);
+            $response = $this->getGqlClient()->query($payload);
             $body = $response->getDecodedBody();
 
+            if (array_key_exists('errors', $body)) {
+                $message = $body['errors'];
+
+                // https://shopify.dev/docs/api/admin-graphql/2025-10#status-and-error-codes
+                // Some low-level errors (like an unavailable shop) are reported as a single string.
+                // Others need to be unpacked from an array:
+                if (is_array($message)) {
+                    $message = $message[0]['message'];
+                    // (Shopify also suggests that 400 errors may have a key like `query`, but we haven’t observed this!)
+                }
+
+                throw new ShopifyException($message);
+            }
+
+            // GraphQL responses are always nested inside a `data` key:
             if (!isset($body['data'])) {
-                throw new \Exception('No data returned from GraphQL query.');
+                throw new ShopifyException('No data was returned from the GraphQL query.');
             }
 
             $data = $body['data'];
+
+            // Queries and mutations have implicit “names” based on the procedure, which is where our data will be in the response.
+            // The name itself doesn’t matter (we are only sending one query or mutation at a time), so we can just unwrap the “first” item:
             $data = ArrayHelper::firstValue($data);
+
+            // The query may have selected `userErrors`, so we should check and throw:
             if (!empty($data['userErrors'])) {
-                throw new \Exception($data['userErrors'][0]['message']);
+                Craft::error('A GraphQL response included `userErrors`: ' . join(', ', array_column($data['userErrors'], 'message')), __METHOD__);
+                throw new ShopifyException($data['userErrors'][0]['message']);
             }
 
             return $data;
-        } catch (\Exception $e) {
+        } catch (ClientExceptionInterface $e) {
+            // We only intercept communication-related exceptions, here.
+            // Everything else (like a query or mutation issue) is allowed to bubble out so it can be reported to the user.
             Craft::error('Could not run GraphQL query: ' . $e->getMessage(), __METHOD__);
 
-            return false;
+            // Re-throw as an API error:
+            throw new ShopifyException('An issue occurred while communicating with the Shopify API. Check the logs for more information.');
         }
     }
 
@@ -429,6 +514,7 @@ class Api extends Component
 
         $data = ShopifyData::find()
             ->where($criteria)
+            ->orderBy(['id' => SORT_ASC])
             ->collect();
 
         // The caller can request the raw database rows, instead of just the `data` JSON column:
@@ -440,8 +526,9 @@ class Api extends Component
     }
 
     /**
-     * Returns or sets up a Rest API client.
+     * Returns or sets up a GraphQL API client.
      *
+     * @see query()
      * @return Graphql
      * @throws MissingArgumentException
      * @since 6.0.0
@@ -450,6 +537,11 @@ class Api extends Component
     {
         if ($this->_gqlClient === null) {
             $session = $this->getSession();
+
+            if (!$session) {
+                throw new InvalidConfigException('Unable to initialize API session. Check that your API credentials are correct and that you have authorized the app.');
+            }
+
             $this->_gqlClient = new Graphql($session->getShop(), $session->getAccessToken());
         }
 
@@ -460,7 +552,7 @@ class Api extends Component
      * Returns or initializes a context + session.
      *
      * @return Session|null
-     * @throws \Shopify\Exception\MissingArgumentException
+     * @throws MissingArgumentException
      */
     public function getSession(): ?Session
     {
@@ -468,47 +560,136 @@ class Api extends Component
 
         if (
             $this->_session === null &&
-            ($apiKey = $pluginSettings->getApiKey(true)) &&
-            ($apiSecretKey = $pluginSettings->getApiSecretKey(true))
+            ($pluginSettings->getClientId(true)) &&
+            ($pluginSettings->getClientSecret(true))
         ) {
-            /** @var MonologTarget $webLogTarget */
-            $webLogTarget = Craft::$app->getLog()->targets['web'];
-
-            Context::initialize(
-                apiKey: $apiKey,
-                apiSecretKey: $apiSecretKey,
-                scopes: ['write_products', 'read_products', 'read_inventory'],
-                // This `hostName` is different from the `shop` value used when creating a Session!
-                // Shopify wants a name for the host/environment that is initiating the connection.
-                hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
-                sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
-                apiVersion: $pluginSettings->getApiVersion(),
-                isEmbeddedApp: false,
-                logger: $webLogTarget->getLogger(),
-            );
-
-            Context::$HTTP_CLIENT_FACTORY = new class() extends HttpClientFactory {
-                public function client(): ClientInterface
-                {
-                    // This is the default client, but we need to add the header for presentment prices
-                    return new Client(['headers' => ['X-Shopify-Api-Features' => 'include-presentment-prices']]);
-                }
-            };
+            $this->initializeContext();
 
             $hostName = $pluginSettings->getHostName(true);
-            $accessToken = $pluginSettings->getAccessToken(true);
+            $accessToken = $this->getAccessToken(shop: $hostName);
 
-            $this->_session = new Session(
-                id: 'NA',
-                shop: $hostName,
-                isOnline: false,
-                state: 'NA'
-            );
+            // If there isn't an access token we can't create a session
+            if ($accessToken) {
+                $this->_session = new Session(
+                    id: 'NA',
+                    shop: $hostName,
+                    isOnline: false,
+                    state: 'NA'
+                );
 
-            $this->_session->setAccessToken($accessToken); // this is the most important part of the authentication
+                $this->_session->setAccessToken($accessToken); // this is the most important part of the authentication
+            }
         }
 
         return $this->_session;
+    }
+
+    /**
+     * @return void
+     * @throws MissingArgumentException
+     * @throws \yii\base\Exception
+     * @since 7.0.0
+     */
+    public function initializeContext(): void
+    {
+        $pluginSettings = Plugin::getInstance()->getSettings();
+        /** @var MonologTarget $webLogTarget */
+        $webLogTarget = Craft::$app->getLog()->targets['web'];
+
+        Context::initialize(
+            apiKey: $pluginSettings->getClientId(),
+            apiSecretKey: $pluginSettings->getClientSecret(),
+            scopes: ['write_products', 'read_products', 'read_inventory'],
+            // This `hostName` is different from the `shop` value used when creating a Session!
+            // Shopify wants a name for the host/environment that is *initiating* the API connection.
+            // Internally, they appear to use this for starting OAuth flows and creating webhooks (but we handle the latter, manually).
+            hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
+            sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
+            apiVersion: $pluginSettings->getApiVersion(),
+            isEmbeddedApp: false,
+            logger: $webLogTarget->getLogger(),
+        );
+
+        Context::$HTTP_CLIENT_FACTORY = new class() extends HttpClientFactory {
+            public function client(): ClientInterface
+            {
+                // This is the default client, but we need to add the header for presentment prices
+                return new Client(['headers' => ['X-Shopify-Api-Features' => 'include-presentment-prices']]);
+            }
+        };
+    }
+
+    /**
+     * @param string|null $code
+     * @param string|null $shop
+     * @return string|null
+     * @throws ClientExceptionInterface
+     * @throws UninitializedContextException
+     * @throws \JsonException
+     * @since 7.0.0
+     */
+    public function getAccessToken(?string $code = null, ?string $shop = null, bool $forceRefresh = false): ?string
+    {
+        // Try and retrieve the access token from the cache
+        if (!$forceRefresh && $accessToken = Plugin::getInstance()->getSettings()->getAccessToken()) {
+            return $accessToken;
+        }
+
+        if (!$code || !$shop) {
+            return null;
+        }
+
+        $client = new Http($shop);
+
+        try {
+            $response = $client->post(OAuth::ACCESS_TOKEN_POST_PATH, [
+                'client_id' => Plugin::getInstance()->getSettings()->getClientId(true),
+                'client_secret' => Plugin::getInstance()->getSettings()->getClientSecret(true),
+                'code' => $code,
+                'expiring' => 0,
+            ]);
+
+            $body = $response->getDecodedBody();
+
+            if (!isset($body['access_token'])) {
+                throw new \Exception('No access token returned from Shopify.');
+            }
+
+            $configService = Craft::$app->getConfig();
+            /** @var AccessToken $record */
+            $record = AccessToken::find()->one() ?? new AccessToken();
+
+            // If there isn't a `.env` file, let's not try and save it there in case that is by design
+            $dotEnvPath = $configService->getDotEnvPath();
+            $hasDotEnv = $dotEnvPath !== '' && file_exists($dotEnvPath);
+
+            $isSavedToFile = true;
+            if (!$hasDotEnv) {
+                $isSavedToFile = false;
+            } else {
+                try {
+                    $configService->setDotEnvVar(self::API_ACCESS_TOKEN_ENV_VAR, $body['access_token']);
+                } catch (\Throwable $e) {
+                    $isSavedToFile = false;
+                    Craft::error('Couldn\'t save the Shopify Access Token in the .env file. ' . $e->getMessage(), __METHOD__);
+                }
+            }
+
+            $record->accessToken = $isSavedToFile ? '$' . self::API_ACCESS_TOKEN_ENV_VAR : StringHelper::encenc($body['access_token']);
+
+            if (!$record->save()) {
+                // Get the first error message from the record, if available:
+                $errors = $record->getErrors();
+                $firstError = array_shift($errors)[0] ?? ['Unknown error'];
+
+                Craft::error('Couldn\'t save the Shopify Access Token in the database. ' . implode(', ', $firstError), __METHOD__);
+            }
+
+            return $body['access_token'];
+        } catch (\Exception $e) {
+            Craft::error('Could not get access token from Shopify: ' . $e->getMessage(), __METHOD__);
+            throw $e;
+        }
     }
 
     /**
@@ -522,14 +703,11 @@ class Api extends Component
             'nodes' => [
                 'id',
                 'topic',
-                'endpoint' => [
-                    '... on WebhookHttpEndpoint' => [
-                        'callbackUrl',
-                    ],
-                ],
+                'uri',
             ],
         ], function(QueryBuilder $builder) {
             $builder->setArgument('first', 100);
+            $builder->setArgument('uri', Plugin::getInstance()->getSettings()->getWebhookUrl());
         });
 
         $response = $this->query($query);
@@ -542,19 +720,14 @@ class Api extends Component
     }
 
     /**
-     * @param string $id
-     * @param string|null $error
+     * @param string $id Shopify webhook subscription GID
      * @return bool
      * @throws MissingArgumentException
+     * @throws ShopifyException
      * @since 6.0.0
      */
-    public function deleteWebhookById(string $id, ?string &$error = null): bool
+    public function deleteWebhookById(string $id): bool
     {
-        if ($this->getSession() === null) {
-            $error = Craft::t('shopify', 'No Shopify session available.');
-            return false;
-        }
-
         $mutation = (new Mutation('webhookSubscriptionDelete'))
             ->setOperationName('webhookSubscriptionDelete')
             ->setVariables([
@@ -572,250 +745,15 @@ class Api extends Component
                 'deletedWebhookSubscriptionId',
             ]);
 
-        try {
-            Plugin::getInstance()->getApi()->getGqlClient()->query([
-                'query' => (string)$mutation,
-                'variables' => [
-                    'id' => $id,
-                ],
-            ]);
+        $variables = [
+            'id' => $id,
+        ];
 
-            return true;
-        } catch (\Exception $e) {
-            Craft::error('Could not delete webhook with Shopify API: ' . $e->getMessage(), __METHOD__);
-
-            $error = Craft::t('shopify', 'Webhook could not be deleted');
-            return false;
-        }
-    }
-
-    // Old REST methods
-    // =========================================================================
-
-    /**
-     * Retrieve all a shop’s products.
-     *
-     * @return ShopifyProduct[]|ShopifyProduct2410[]
-     * @deprecated in 6.0.0
-     */
-    public function getAllProducts(): array
-    {
-        /** @var ShopifyProduct[]|ShopifyProduct2410[] $all */
-        $all = $this->getAll($this->getProductClass());
-
-        return $all;
-    }
-
-    /**
-     * Retrieve a single product by its Shopify ID.
-     *
-     * @return ShopifyProduct|ShopifyProduct2410
-     * @deprecated in 6.0.0
-     */
-    public function getProductByShopifyId($id): ShopifyProduct|ShopifyProduct2410
-    {
-        return $this->getProductClass()::find($this->getSession(), $id);
-    }
-
-    /**
-     * Retrieve a product ID by a variant's inventory item ID.
-     *
-     * @return ?int The product Shopify ID
-     * @deprecated in 6.0.0
-     */
-    public function getProductIdByInventoryItemId($id): ?int
-    {
-        $variant = Plugin::getInstance()->getApi()->get('variants', [
-            'inventory_item_id' => $id,
-        ]);
-
-        if (isset($variant['variants'])) {
-            return $variant['variants'][0]['product_id'];
+        if (!$this->query($mutation, $variables)) {
+            Craft::error(sprintf('No data was returned while deleting webhook %s', $id), __METHOD__);
+            throw new ShopifyException('The webhook may not have been deleted.');
         }
 
-        return null;
-    }
-
-    /**
-     * Retrieves "metafields" for the provided Shopify product ID.
-     *
-     * @param int $id Shopify Product ID
-     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
-     * @deprecated in 6.0.0
-     */
-    public function getMetafieldsByProductId(int $id): array
-    {
-        if (!Plugin::getInstance()->getSettings()->syncProductMetafields) {
-            return [];
-        }
-
-        return $this->getMetafieldsByIdAndOwnerResource($id, 'products');
-    }
-
-    /**
-     * @param int $id
-     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
-     * @since 4.1.0
-     * @deprecated in 6.0.0
-     */
-    public function getMetafieldsByVariantId(int $id): array
-    {
-        if (!Plugin::getInstance()->getSettings()->syncVariantMetafields) {
-            return [];
-        }
-
-        return $this->getMetafieldsByIdAndOwnerResource($id, 'variants');
-    }
-
-    /**
-     * @param int $id
-     * @param string $ownerResource
-     * @return ShopifyMetafield[]|ShopifyMetafield2410[]
-     * @since 4.1.0
-     * @deprecated in 6.0.0
-     */
-    public function getMetafieldsByIdAndOwnerResource(int $id, string $ownerResource): array
-    {
-        /** @var array $metafields */
-        $metafields = $this->get("{$ownerResource}/{$id}/metafields", [
-            'metafield' => [
-                'owner_id' => $id,
-                'owner_resource' => $ownerResource,
-            ],
-        ]);
-
-        if (empty($metafields) || !isset($metafields['metafields'])) {
-            return [];
-        }
-
-        $return = [];
-
-        foreach ($metafields['metafields'] as $metafield) {
-            $metafieldClass = $this->getMetaFieldClass();
-            $return[] = new $metafieldClass($this->getSession(), $metafield);
-        }
-
-        return $return;
-    }
-
-    /**
-     * Retrieves "variants" for the provided Shopify product ID.
-     *
-     * @param int $id Shopify Product ID
-     * @deprecated in 6.0.0
-     */
-    public function getVariantsByProductId(int $id): array
-    {
-        $resources = [];
-        $params = ['limit' => 250];
-
-        do {
-            $resources = array_merge($resources, $this->getVariantClass()::all(
-                $this->getSession(),
-                ['product_id' => $id],
-                $this->getVariantClass()::$NEXT_PAGE_QUERY ?: $params,
-            ));
-        } while ($this->getVariantClass()::$NEXT_PAGE_QUERY);
-
-        $variants = [];
-        foreach ($resources as $resource) {
-            $variants[] = $resource->toArray();
-        }
-
-        return $variants;
-    }
-
-    /**
-     * Shortcut for retrieving arbitrary API resources. A plain (parsed) response body is returned, so it’s the caller’s responsibility for unpacking it properly.
-     *
-     * @see Rest::get();
-     * @deprecated in 6.0.0. Use [[query()]] instead.
-     */
-    public function get($path, array $query = [])
-    {
-        $response = $this->getClient()->get($path, [], $query, 5);
-
-        return $response->getDecodedBody();
-    }
-
-    /**
-     * Iteratively retrieves a paginated collection of API resources.
-     *
-     * @param string $type Stripe API resource class
-     * @param array $params
-     * @return ShopifyBaseResource[]
-     * @deprecated in 6.0.0. Use [[query()]] instead.
-     */
-    public function getAll(string $type, array $params = []): array
-    {
-        $resources = [];
-
-        // Force maximum page size:
-        $params['limit'] = 250;
-
-        do {
-            $resources = array_merge($resources, $type::all(
-                $this->getSession(),
-                [],
-                $type::$NEXT_PAGE_QUERY ?: $params,
-            ));
-        } while ($type::$NEXT_PAGE_QUERY);
-
-        return $resources;
-    }
-
-    /**
-     * Returns or sets up a Rest API client.
-     *
-     * @return Rest
-     * @throws MissingArgumentException
-     * @deprecated in 6.0.0. Use [[getGqlClient()]] instead.
-     */
-    public function getClient(): Rest
-    {
-        if ($this->_client === null) {
-            $session = $this->getSession();
-            $this->_client = new Rest($session->getShop(), $session->getAccessToken());
-        }
-
-        return $this->_client;
-    }
-
-    /**
-     * @return string
-     * @since 5.3.0
-     * @phpstan-return class-string<ShopifyProduct|ShopifyProduct2410>
-     */
-    public function getProductClass(): string
-    {
-        return $this->_apiNamespace() . '\Product';
-    }
-
-    /**
-     * @return string
-     * @since 5.3.0
-     * @phpstan-return class-string<ShopifyVariant|ShopifyVariant2410>
-     */
-    public function getVariantClass(): string
-    {
-        return $this->_apiNamespace() . '\Variant';
-    }
-
-    /**
-     * @return string
-     * @since 5.3.0
-     * @phpstan-return class-string<ShopifyMetafield|ShopifyMetafield2410>
-     */
-    public function getMetaFieldClass(): string
-    {
-        return $this->_apiNamespace() . '\Metafield';
-    }
-
-    /**
-     * @return string
-     */
-    private function _apiNamespace(): string
-    {
-        return 'Shopify\Rest\Admin' . str_replace('-', '_', Plugin::getInstance()->getSettings()->getApiVersion());
+        return true;
     }
 }

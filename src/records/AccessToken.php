@@ -11,27 +11,25 @@ use craft\db\ActiveRecord;
 use craft\shopify\db\Table;
 
 /**
- * Shopify Data record.
+ * Access Token record.
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 6.0.0
+ * @since 7.0.0
+ *
  *
  * @property int $id
- * @property string $shopifyId
- * @property string $type
- * @property string|array $data
- * @property string $parentId
+ * @property string $accessToken
  * @property string $dateCreated
  * @property string $dateUpdated
  * @property string $uid
  */
-class ShopifyData extends ActiveRecord
+class AccessToken extends ActiveRecord
 {
     /**
      * @inheritdoc
      */
     public static function tableName(): string
     {
-        return Table::DATA;
+        return Table::ACCESS_TOKENS;
     }
 }

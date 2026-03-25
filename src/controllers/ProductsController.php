@@ -11,7 +11,6 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
-use craft\shopify\helpers\Product as ProductHelper;
 use craft\shopify\Plugin;
 use yii\web\Response;
 
@@ -45,6 +44,9 @@ class ProductsController extends \craft\web\Controller
      */
     public function actionSync(): ?Response
     {
+        // Users must have access to the utility to manage synchronizations:
+        $this->requirePermission('utility:shopify-sync');
+
         $result = Plugin::getInstance()->getBulkOperations()->createProductsBulkOperation();
 
         if ($result === false) {
@@ -52,18 +54,5 @@ class ProductsController extends \craft\web\Controller
         }
 
         return $this->asSuccess(Craft::t('shopify', 'Products sync created'));
-    }
-
-    /**
-     * Renders the card HTML.
-     *
-     * @return string
-     */
-    public function actionRenderCardHtml(): string
-    {
-        $id = (int)Craft::$app->request->getParam('id');
-        /** @var Product $product */
-        $product = Product::find()->id($id)->status(null)->one();
-        return ProductHelper::renderCardHtml($product);
     }
 }
