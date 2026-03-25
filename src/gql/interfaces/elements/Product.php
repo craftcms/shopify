@@ -21,7 +21,7 @@ use GraphQL\Type\Definition\Type;
  * Class Product
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 6.1.0
+ * @since 7.1.0
  */
 class Product extends Element
 {

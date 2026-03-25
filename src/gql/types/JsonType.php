@@ -21,7 +21,7 @@ use GraphQL\Type\Definition\Type;
  * Class JsonType
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 6.1.0
+ * @since 7.1.0
  */
 class JsonType extends ScalarType implements SingularTypeInterface
 {

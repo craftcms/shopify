@@ -195,7 +195,7 @@ class Product extends Element
 
     /**
      * @inheritdoc
-     * @since 3.0
+     * @since 7.1.0
      */
     public static function gqlScopesByContext(mixed $context): array
     {
@@ -205,6 +205,7 @@ class Product extends Element
 
     /**
      * @return string
+     * @since 7.1.0
      */
     public function getGqlTypeName(): string
     {

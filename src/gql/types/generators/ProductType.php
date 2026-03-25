@@ -20,7 +20,7 @@ use craft\shopify\Plugin;
  * Class ProductType
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 6.1.0
+ * @since 7.1.0
  */
 class ProductType implements GeneratorInterface
 {
