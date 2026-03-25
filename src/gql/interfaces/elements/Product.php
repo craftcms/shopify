@@ -100,11 +100,6 @@ class Product extends Element
                 'type' => Type::string(),
                 'description' => 'The product’s type in Shopify.',
             ],
-            'publishedOnCurrentPublication' => [
-                'name' => 'publishedOnCurrentPublication',
-                'type' => Type::boolean(),
-                'description' => 'If the product is published on the current publication in Shopify.',
-            ],
             'shopifyId' => [
                 'name' => 'shopifyId',
                 'type' => Type::string(),
