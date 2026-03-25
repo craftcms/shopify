@@ -263,7 +263,7 @@ class Plugin extends BasePlugin
 
     /**
      * Register the Gql interfaces
-     * @since 6.1.0
+     * @since 7.1.0
      */
     private function _registerGqlInterfaces(): void
     {
@@ -274,7 +274,7 @@ class Plugin extends BasePlugin
 
     /**
      * Register the Gql queries
-     * @since 6.1.0
+     * @since 7.1.0
      */
     private function _registerGqlQueries(): void
     {
@@ -288,7 +288,7 @@ class Plugin extends BasePlugin
 
     /**
      * Register the Gql permissions
-     * @since 6.1.0
+     * @since 7.1.0
      */
     private function _registerGqlComponents(): void
     {
