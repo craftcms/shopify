@@ -11,7 +11,6 @@ use Craft;
 use craft\gql\base\ElementArguments;
 use craft\gql\types\QueryArgument;
 use craft\shopify\elements\Product as ProductElement;
-use craft\shopify\Plugin;
 use GraphQL\Type\Definition\Type;
 
 /**
@@ -63,6 +62,11 @@ class Product extends ElementArguments
                 'type' => Type::listOf(QueryArgument::getType()),
                 'description' => 'Narrows the query results based on the vendor on the product.',
             ],
+            'templateSuffix' => [
+                'name' => 'templateSuffix',
+                'type' => Type::listOf(QueryArgument::getType()),
+                'description' => 'Narrows the query results based on the “template suffix” selected in Shopify.',
+            ],
         ]);
     }
 
@@ -72,7 +76,7 @@ class Product extends ElementArguments
     public static function getContentArguments(): array
     {
         $productFieldsArguments = Craft::$app->getGql()->getContentArguments([
-            Plugin::getInstance()->getSettings()->getProductFieldLayout(),
+            new ProductElement(),
         ], ProductElement::class);
 
         return array_merge(parent::getContentArguments(), $productFieldsArguments);

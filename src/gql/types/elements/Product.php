@@ -37,6 +37,10 @@ class Product extends ElementType
         return match ($fieldName) {
             // @TODO remove this when the conflict in (https://github.com/craftcms/cms/blob/7b889521442ef68be39edf52b55f4747da722e94/src/gql/ElementQueryConditionBuilder.php#L290-L321) is resolved
             'variants' => $source->getVariants(),
+            // Remap metafields to be an array of key/value pairs instead of an associative array
+            'metafields' => collect($source->getMetafields())
+                ->map(fn($value, $key) => ['key' => $key, 'value' => $value])
+                ->all(),
             default => parent::resolve($source, $arguments, $context, $resolveInfo),
         };
     }

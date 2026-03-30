@@ -13,7 +13,10 @@ use craft\gql\interfaces\Element;
 use craft\gql\types\DateTime;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\gql\types\generators\ProductType;
-use craft\shopify\gql\types\JsonType;
+use craft\shopify\gql\types\Image;
+use craft\shopify\gql\types\Metafield;
+use craft\shopify\gql\types\Option;
+use craft\shopify\gql\types\Variant;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
 
@@ -120,30 +123,39 @@ class Product extends Element
                 'type' => Type::string(),
                 'description' => 'The product’s vendor in Shopify.',
             ],
+            'templateSuffix' => [
+                'name' => 'templateSuffix',
+                'type' => Type::string(),
+                'description' => '',
+            ],
+            'totalInventory' => [
+                'name' => 'totalInventory',
+                'type' => Type::int(),
+                'description' => 'The total inventory in Shopify.',
+            ],
             'images' => [
                 'name' => 'images',
-                'type' => JsonType::getType(),
+                'type' => Type::listOf(Image::getType()),
                 'description' => 'The product’s images in Shopify.',
             ],
             'tags' => [
                 'name' => 'tags',
-                'type' => JsonType::getType(),
+                'type' => Type::listOf(Type::string()),
                 'description' => 'The product’s tags in Shopify.',
             ],
             'metafields' => [
                 'name' => 'metafields',
-                'type' => JsonType::getType(),
+                'type' => Type::listOf(Metafield::getType()),
                 'description' => 'The product’s metafields in Shopify.',
             ],
             'variants' => [
                 'name' => 'variants',
-                'type' => JsonType::getType(),
+                'type' => Type::listOf(Variant::getType()),
                 'description' => 'The product’s variants in Shopify.',
             ],
-            'data' => [
-                'name' => 'data',
-                'type' => JsonType::getType(),
-                'description' => 'The product’s synced data from Shopify.',
+            'options' => [
+                'name' => 'options',
+                'type' => Type::listOf(Option::getType()),
             ],
         ]), self::getName());
     }
