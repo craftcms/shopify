@@ -10,6 +10,7 @@ namespace craft\shopify\gql\resolvers\elements;
 use craft\elements\db\ElementQuery;
 use craft\gql\base\ElementResolver;
 use craft\helpers\Gql as GqlHelper;
+use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\elements\Product as ProductElement;
 
 /**
@@ -56,6 +57,7 @@ class Product extends ElementResolver
             return [];
         }
 
+        /** @var ProductQuery $query */
         $query->withAll();
 
         return $query;
