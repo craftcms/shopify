@@ -2,7 +2,13 @@
 
 ## WIP - 7.1.0
 
-- TBC
+- Added `craft\shopify\gql\arguments\elements\Product`.
+- Added `craft\shopify\gql\interfaces\elements\Product`.
+- Added `craft\shopify\gql\types\elements\Product`.
+- Added `craft\shopify\gql\types\Image`.
+- Added `craft\shopify\gql\types\Metafield`.
+- Added `craft\shopify\gql\types\Option`.
+- Added `craft\shopify\gql\types\Variant`.
 
 ## 7.0.2 - 2026-03-24
 
