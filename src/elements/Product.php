@@ -63,6 +63,11 @@ class Product extends Element
     public const SHOPIFY_STATUS_ARCHIVED = 'archived';
 
     /**
+     * @since 7.1.0
+     */
+    public const GQL_TYPE_NAME = 'ShopifyProduct';
+
+    /**
      * @return string|null
      * @since 6.0.0
      */
