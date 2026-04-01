@@ -41,6 +41,7 @@ class Product extends ElementType
             'metafields' => collect($source->getMetafields())
                 ->map(fn($value, $key) => ['key' => $key, 'value' => $value])
                 ->all(),
+            'totalInventory' => $source->data['totalInventory'],
             default => parent::resolve($source, $arguments, $context, $resolveInfo),
         };
     }
