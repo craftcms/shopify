@@ -121,6 +121,16 @@ class Install extends Migration
                 $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->text()) . " GENERATED ALWAYS AS (" .
                 $qb->jsonExtract('data', [$col]) . ") STORED;");
         }
+
+        $intColumns = [
+            'totalInventory' => 'totalInventory',
+        ];
+
+        foreach ($intColumns as $col => $alias) {
+            $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
+                $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->integer()) . " GENERATED ALWAYS AS (" .
+                $qb->jsonExtract('data', [$col]) . ") STORED;");
+        }
     }
 
     /**

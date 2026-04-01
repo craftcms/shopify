@@ -67,6 +67,11 @@ class Product extends ElementArguments
                 'type' => Type::listOf(QueryArgument::getType()),
                 'description' => 'Narrows the query results based on the “template suffix” selected in Shopify.',
             ],
+            'totalInventory' => [
+                'name' => 'totalInventory',
+                'type' => Type::listOf(QueryArgument::getType()),
+                'description' => 'Narrows the query results based on the total inventory on the product.',
+            ],
         ]);
     }
 

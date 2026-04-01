@@ -64,6 +64,12 @@ class ProductQuery extends ElementQuery
 
     /**
      * @var mixed|null
+     * @since 7.1.0
+     */
+    public mixed $totalInventory = null;
+
+    /**
+     * @var mixed|null
      */
     public mixed $vendor = null;
 
@@ -258,6 +264,17 @@ class ProductQuery extends ElementQuery
     }
 
     /**
+     * @param mixed $value
+     * @return ProductQuery
+     * @since 7.1.0
+     */
+    public function totalInventory(mixed $value): ProductQuery
+    {
+        $this->totalInventory = $value;
+        return $this;
+    }
+
+    /**
      * Narrows the query results based on the Shopify product ID
      */
     public function shopifyId(mixed $value): ProductQuery
@@ -395,6 +412,7 @@ class ProductQuery extends ElementQuery
             'data.updatedAt',
             'data.vendor',
             'data.options',
+            'data.totalInventory',
             'data.data',
         ]);
 
@@ -428,6 +446,10 @@ class ProductQuery extends ElementQuery
 
         if (isset($this->templateSuffix)) {
             $this->subQuery->andWhere(Db::parseParam('data.templateSuffix', $this->templateSuffix));
+        }
+
+        if (isset($this->totalInventory)) {
+            $this->subQuery->andWhere(Db::parseParam('data.totalInventory', $this->totalInventory));
         }
 
         return parent::beforePrepare();

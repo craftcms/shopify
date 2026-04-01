@@ -2,6 +2,10 @@
 
 ## WIP - 7.1.0
 
+- Added the `totalInventory` product query param.
+- Added `craft\shopify\elements\db\ProductQuery::$totalInventory`.
+- Added `craft\shopify\elements\db\ProductQuery::totalInventory()`.
+- Added `craft\shopify\elements\Product::$totalInventory`.
 - Added `craft\shopify\gql\arguments\elements\Product`.
 - Added `craft\shopify\gql\interfaces\elements\Product`.
 - Added `craft\shopify\gql\types\elements\Product`.

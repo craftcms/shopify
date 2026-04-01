@@ -139,6 +139,12 @@ class Product extends Element
     public ?string $templateSuffix = null;
 
     /**
+     * @var int|null
+     * @since 7.1.0
+     */
+    public ?int $totalInventory = null;
+
+    /**
      * @var ?DateTime
      */
     public ?DateTime $updatedAt = null;
