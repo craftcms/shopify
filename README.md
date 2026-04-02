@@ -208,7 +208,7 @@ Discover orphaned subscriptions using the [`webhookSubscriptions()`](https://sho
 
 ## Upgrading
 
-This version (7.x) is primarily concerned with Shopify API compatability, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
+This version (7.x) is primarily concerned with Shopify API compatibility, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
 
 Due to significant shifts in Shopify’s developer ecosystem, many of the [front-end cart management](#front-end-sdks) techniques we have recommended (like the _JS Buy SDK_ and _Buy Button JS_) are no longer viable.
 
