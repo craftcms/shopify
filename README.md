@@ -208,12 +208,13 @@ Discover orphaned subscriptions using the [`webhookSubscriptions()`](https://sho
 
 ## Upgrading
 
-This release (7.x) is primarily concerned with Shopify API compatability, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
+This version (7.x) is primarily concerned with Shopify API compatability, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
 
 Due to significant shifts in Shopify’s developer ecosystem, many of the [front-end cart management](#front-end-sdks) techniques we have recommended (like the _JS Buy SDK_ and _Buy Button JS_) are no longer viable.
 
 > [!TIP]
 > We strongly recommend reviewing this same section on the [6.x](https://github.com/craftcms/shopify/blob/6.x/README.md#upgrading) branch, as there were a number of breaking changes and deprecations during the upgrade from 5.x.
+> The [changelog](https://github.com/craftcms/shopify/blob/7.x/CHANGELOG.md) contains specific information about the classes and methods that have been added, removed, or deprecated.
 
 After the upgrade, you **must** [delete and re-create](#set-up-webhooks) webhooks for each environment. Webhooks are registered and delivered with a specific version, and a mismatch will result in errors.
 
