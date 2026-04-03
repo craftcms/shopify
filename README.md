@@ -208,7 +208,7 @@ Discover orphaned subscriptions using the [`webhookSubscriptions()`](https://sho
 
 ## Upgrading
 
-This version (7.x) is primarily concerned with Shopify API compatability, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
+This version (7.x) is primarily concerned with Shopify API compatibility, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
 
 Due to significant shifts in Shopify’s developer ecosystem, many of the [front-end cart management](#front-end-sdks) techniques we have recommended (like the _JS Buy SDK_ and _Buy Button JS_) are no longer viable.
 
@@ -667,10 +667,21 @@ Event::on(
 ```
 
 As long as you keep your “resolver” in sync with your additional selections, you should be able to pass through those values.
-The same strategy can be used to decorate the built-in 
+The same strategy can be used to decorate other [built-in types](https://github.com/craftcms/shopify/tree/7.x/src/gql/types/) for images, metafields, options, and variants.
+You can alter multiple types in a single `EVENT_DEFINE_GQL_TYPE_FIELDS` handler:
 
-> [!NOTE]
-> These values are not dynamically fetched from Shopify!
+```php
+if ($event->typeName === \craft\shopify\elements\Product::GQL_TYPE_NAME) {
+    // Manipulate product element fields...
+}
+
+if ($event->typeName === \craft\shopify\gql\types\Image::getName()) {
+    // Manipulate fields on "image" objects...
+}
+```
+
+> [!WARNING]
+> The fields we’ve added are not dynamically fetched from Shopify at runtime!
 > This method just exposes additional fields that have already been synchronized from Shopify.
 
 
