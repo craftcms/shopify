@@ -211,7 +211,7 @@ class Product extends Element
     public static function gqlScopesByContext(mixed $context): array
     {
         /** @var FieldLayout $context */
-        return ['ShopifyProduct'];
+        return [self::GQL_TYPE_NAME];
     }
 
     /**
@@ -220,7 +220,7 @@ class Product extends Element
      */
     public function getGqlTypeName(): string
     {
-        return 'ShopifyProduct';
+        return self::GQL_TYPE_NAME;
     }
 
     /**
