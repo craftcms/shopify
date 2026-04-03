@@ -4,7 +4,7 @@
 
 ### Development
 
-- Product elements are now available via Craft’s own GraphQL API. ([#206](https://github.com/craftcms/shopify/pull/206))
+- Product elements are now available via Craft’s own GraphQL API. ([#49](https://github.com/craftcms/shopify/discussions/49), [#203](https://github.com/craftcms/shopify/issues/203), [#206](https://github.com/craftcms/shopify/pull/206))
 
 ### Extensibility
 
