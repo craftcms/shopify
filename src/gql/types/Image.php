@@ -10,7 +10,6 @@ namespace craft\shopify\gql\types;
 use Craft;
 use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
-use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 
 /**
