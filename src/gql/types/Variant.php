@@ -10,6 +10,7 @@ namespace craft\shopify\gql\types;
 use Craft;
 use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
+use craft\helpers\Json;
 use craft\shopify\models\Variant as VariantElement;
 use craft\shopify\Plugin;
 use GraphQL\Type\Definition\Type;
@@ -117,7 +118,8 @@ class Variant extends ObjectType
                 'description' => 'Metafields of the variant.',
                 'resolve' => function(VariantElement $source) {
                     return collect($source->getMetafields())
-                        ->map(fn($value, $key) => ['key' => $key, 'value' => $value])
+                        // Ensure value is encoded as we aren't sure of its type
+                        ->map(fn($value, $key) => ['key' => $key, 'value' => !is_string($value) ? Json::encode($value) : $value])
                         ->all();
                 },
             ],

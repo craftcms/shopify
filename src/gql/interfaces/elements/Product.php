@@ -11,6 +11,7 @@ use Craft;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\interfaces\Element;
 use craft\gql\types\DateTime;
+use craft\helpers\Json;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\gql\types\generators\ProductType;
 use craft\shopify\gql\types\Image;
@@ -150,7 +151,8 @@ class Product extends Element
                 'resolve' => function(\craft\shopify\elements\Product $source) {
                     // Remap metafields to be an array of key/value pairs instead of an associative array
                     return collect($source->getMetafields())
-                        ->map(fn($value, $key) => ['key' => $key, 'value' => $value])
+                        // Ensure value is encoded as we aren't sure of its type
+                        ->map(fn($value, $key) => ['key' => $key, 'value' => !is_string($value) ? Json::encode($value) : $value])
                         ->all();
                 },
             ],
