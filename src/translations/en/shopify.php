@@ -98,6 +98,7 @@ return [
     'Variant' => 'Variant',
     'Variants' => 'Variants',
     'Vendor' => 'Vendor',
+    'View products' => 'View products',
     'Webhook deleted' => 'Webhook deleted',
     'Webhooks could not be deleted' => 'Webhooks could not be deleted',
     'Webhooks could not be registered.' => 'Webhooks could not be registered.',

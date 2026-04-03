@@ -121,6 +121,24 @@ class Install extends Migration
                 $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->text()) . " GENERATED ALWAYS AS (" .
                 $qb->jsonExtract('data', [$col]) . ") STORED;");
         }
+
+        $intColumns = [
+            'totalInventory' => 'totalInventory',
+        ];
+
+        foreach ($intColumns as $col => $alias) {
+            $expression = $qb->jsonExtract('data', [$col]);
+
+            if ($db->getIsPgsql()) {
+                $expression = "($expression)::int";
+            } else {
+                $expression = "CAST(JSON_UNQUOTE($expression) AS SIGNED)";
+            }
+
+            $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
+                $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->integer()) . " GENERATED ALWAYS AS (" .
+                $expression . ") STORED;");
+        }
     }
 
     /**

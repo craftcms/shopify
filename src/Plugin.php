@@ -20,6 +20,9 @@ use craft\db\Query;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterGqlQueriesEvent;
+use craft\events\RegisterGqlSchemaComponentsEvent;
+use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\feedme\events\RegisterFeedMeFieldsEvent;
 use craft\fields\Link;
@@ -30,6 +33,7 @@ use craft\models\FieldLayout;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Gc;
+use craft\services\Gql;
 use craft\services\Utilities;
 use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
@@ -39,6 +43,8 @@ use craft\shopify\fieldlayoutelements\MetafieldsField;
 use craft\shopify\fieldlayoutelements\OptionsField;
 use craft\shopify\fieldlayoutelements\VariantsField;
 use craft\shopify\fields\Products as ProductsField;
+use craft\shopify\gql\interfaces\elements\Product as GqlProductInterface;
+use craft\shopify\gql\queries\Product as GqlProductQueries;
 use craft\shopify\handlers\Webhook;
 use craft\shopify\linktypes\Product as ProductLinkType;
 use craft\shopify\models\Settings;
@@ -73,7 +79,7 @@ class Plugin extends BasePlugin
     /**
      * @var string
      */
-    public string $schemaVersion = '7.0.0.1';
+    public string $schemaVersion = '7.1.0.0';
 
     /**
      * @inheritdoc
@@ -137,6 +143,9 @@ class Plugin extends BasePlugin
         $this->_registerResaveCommands();
         $this->_registerGarbageCollection();
         $this->_registerFeedMeEvents();
+        $this->_registerGqlInterfaces();
+        $this->_registerGqlQueries();
+        $this->_registerGqlComponents();
 
         if (!$request->getIsConsoleRequest()) {
             if ($request->getIsCpRequest()) {
@@ -250,6 +259,49 @@ class Plugin extends BasePlugin
             $e->types[] = Product::class;
         });
     }
+
+
+    /**
+     * Register the Gql interfaces
+     * @since 7.1.0
+     */
+    private function _registerGqlInterfaces(): void
+    {
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_TYPES, static function(RegisterGqlTypesEvent $event) {
+            $event->types[] = GqlProductInterface::class;
+        });
+    }
+
+    /**
+     * Register the Gql queries
+     * @since 7.1.0
+     */
+    private function _registerGqlQueries(): void
+    {
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_QUERIES, static function(RegisterGqlQueriesEvent $event) {
+            $event->queries = array_merge(
+                $event->queries,
+                GqlProductQueries::getQueries(),
+            );
+        });
+    }
+
+    /**
+     * Register the Gql permissions
+     * @since 7.1.0
+     */
+    private function _registerGqlComponents(): void
+    {
+        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, static function(RegisterGqlSchemaComponentsEvent $event) {
+            $typeName = (new Product())->getGqlTypeName();
+            $event->queries = array_merge($event->queries, [
+                Craft::t('shopify', 'Shopify Products') => [
+                    $typeName . ':read' => ['label' => Craft::t('shopify', 'View products')],
+                ],
+            ]);
+        });
+    }
+
 
     /**
      * Register Shopify’s fields

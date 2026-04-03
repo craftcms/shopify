@@ -2,7 +2,23 @@
 
 ## WIP - 7.1.0
 
-- TBC
+### Development
+
+- Product elements are now available via Craft’s own GraphQL API. ([#206](https://github.com/craftcms/shopify/pull/206))
+
+### Extensibility
+
+- Added the `totalInventory` product query param.
+- Added `craft\shopify\elements\db\ProductQuery::$totalInventory`.
+- Added `craft\shopify\elements\db\ProductQuery::totalInventory()`.
+- Added `craft\shopify\elements\Product::$totalInventory`.
+- Added `craft\shopify\gql\arguments\elements\Product`.
+- Added `craft\shopify\gql\interfaces\elements\Product`.
+- Added `craft\shopify\gql\types\elements\Product`.
+- Added `craft\shopify\gql\types\Image`.
+- Added `craft\shopify\gql\types\Metafield`.
+- Added `craft\shopify\gql\types\Option`.
+- Added `craft\shopify\gql\types\Variant`.
 
 ## 7.0.2 - 2026-03-24
 
