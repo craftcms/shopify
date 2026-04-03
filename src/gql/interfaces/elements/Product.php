@@ -147,6 +147,12 @@ class Product extends Element
                 'name' => 'metafields',
                 'type' => Type::listOf(Metafield::getType()),
                 'description' => 'The product’s metafields in Shopify.',
+                'resolve' => function(\craft\shopify\elements\Product $source) {
+                    // Remap metafields to be an array of key/value pairs instead of an associative array
+                    return collect($source->getMetafields())
+                        ->map(fn($value, $key) => ['key' => $key, 'value' => $value])
+                        ->all();
+                },
             ],
             'variants' => [
                 'name' => 'variants',

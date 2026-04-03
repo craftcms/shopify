@@ -10,7 +10,9 @@ namespace craft\shopify\gql\types;
 use Craft;
 use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
+use craft\shopify\models\Variant as VariantElement;
 use craft\shopify\Plugin;
+use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 
 /**
@@ -114,6 +116,11 @@ class Variant extends ObjectType
                 'name' => 'metafields',
                 'type' => Type::listOf(Metafield::getType()),
                 'description' => 'Metafields of the variant.',
+                'resolve' => function (VariantElement $source) {
+                    return collect($source->getMetafields())
+                        ->map(fn($value, $key) => ['key' => $key, 'value' => $value])
+                        ->all();
+                }
             ],
             'selectedOptions' => [
                 'name' => 'selectedOptions',
