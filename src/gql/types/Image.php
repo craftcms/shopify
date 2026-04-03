@@ -100,14 +100,4 @@ class Image extends ObjectType
             ],
         ], self::getName());
     }
-
-    protected function resolve(mixed $source, array $arguments, mixed $context, ResolveInfo $resolveInfo): mixed
-    {
-        $fieldName = $resolveInfo->fieldName;
-
-        return match ($fieldName) {
-            'url' => $source['image']['url'],
-            default => parent::resolve($source, $arguments, $context, $resolveInfo),
-        };
-    }
 }
