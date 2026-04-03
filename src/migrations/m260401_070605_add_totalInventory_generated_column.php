@@ -23,9 +23,17 @@ class m260401_070605_add_totalInventory_generated_column extends Migration
         $db = $this->getDb();
         $qb = $db->getQueryBuilder();
 
+        $expression = $qb->jsonExtract('data', [$col]);
+
+        if ($db->getIsPgsql()) {
+            $expression = "($expression)::int";
+        } else {
+            $expression = "CAST(JSON_UNQUOTE($expression) AS SIGNED)";
+        }
+
         $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
             $db->quoteColumnName($col) . ' ' . $qb->getColumnType($this->integer()) . " GENERATED ALWAYS AS (" .
-            $qb->jsonExtract('data', [$col]) . ") STORED;");
+            $expression . ") STORED;");
 
         return true;
     }
