@@ -320,7 +320,7 @@ class Products extends Component
                 });
             }
 
-            $product->setMetafields($variants);
+            $product->setVariants($variants);
         }
 
         return $return;

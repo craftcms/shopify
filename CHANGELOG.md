@@ -1,5 +1,19 @@
 # Release Notes for Shopify
 
+## WIP - 7.1.0
+- Added support for querying for products via GraphQL. ([#49](https://github.com/craftcms/shopify/discussions/49), [#203](https://github.com/craftcms/shopify/issues/203), [#206](https://github.com/craftcms/shopify/pull/206))
+- Added the `totalInventory` product query param.
+- Added `craft\shopify\elements\Product::$totalInventory`.
+- Added `craft\shopify\elements\db\ProductQuery::$totalInventory`.
+- Added `craft\shopify\elements\db\ProductQuery::totalInventory()`.
+- Added `craft\shopify\gql\arguments\elements\Product`.
+- Added `craft\shopify\gql\interfaces\elements\Product`.
+- Added `craft\shopify\gql\types\Image`.
+- Added `craft\shopify\gql\types\Metafield`.
+- Added `craft\shopify\gql\types\Option`.
+- Added `craft\shopify\gql\types\Variant`.
+- Added `craft\shopify\gql\types\elements\Product`.
+
 ## 7.0.2 - 2026-03-24
 
 - Fixed a PHP error that could occur when authorizing the Shopify app. ([#204](https://github.com/craftcms/shopify/issues/204))

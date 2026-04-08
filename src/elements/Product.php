@@ -63,6 +63,11 @@ class Product extends Element
     public const SHOPIFY_STATUS_ARCHIVED = 'archived';
 
     /**
+     * @since 7.1.0
+     */
+    public const GQL_TYPE_NAME = 'ShopifyProduct';
+
+    /**
      * @return string|null
      * @since 6.0.0
      */
@@ -139,6 +144,12 @@ class Product extends Element
     public ?string $templateSuffix = null;
 
     /**
+     * @var int|null
+     * @since 7.1.0
+     */
+    public ?int $totalInventory = null;
+
+    /**
      * @var ?DateTime
      */
     public ?DateTime $updatedAt = null;
@@ -191,6 +202,25 @@ class Product extends Element
     {
         $this->title = $this->title ? StringHelper::shortcodesToEmoji($this->title) : null;
         parent::init();
+    }
+
+    /**
+     * @inheritdoc
+     * @since 7.1.0
+     */
+    public static function gqlScopesByContext(mixed $context): array
+    {
+        /** @var FieldLayout $context */
+        return [self::GQL_TYPE_NAME];
+    }
+
+    /**
+     * @return string
+     * @since 7.1.0
+     */
+    public function getGqlTypeName(): string
+    {
+        return self::GQL_TYPE_NAME;
     }
 
     /**

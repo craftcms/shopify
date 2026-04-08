@@ -208,12 +208,13 @@ Discover orphaned subscriptions using the [`webhookSubscriptions()`](https://sho
 
 ## Upgrading
 
-This release (7.x) is primarily concerned with Shopify API compatability, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
+This version (7.x) is primarily concerned with Shopify API compatibility, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
 
 Due to significant shifts in Shopify’s developer ecosystem, many of the [front-end cart management](#front-end-sdks) techniques we have recommended (like the _JS Buy SDK_ and _Buy Button JS_) are no longer viable.
 
 > [!TIP]
 > We strongly recommend reviewing this same section on the [6.x](https://github.com/craftcms/shopify/blob/6.x/README.md#upgrading) branch, as there were a number of breaking changes and deprecations during the upgrade from 5.x.
+> The [changelog](https://github.com/craftcms/shopify/blob/7.x/CHANGELOG.md) contains specific information about the classes and methods that have been added, removed, or deprecated.
 
 After the upgrade, you **must** [delete and re-create](#set-up-webhooks) webhooks for each environment. Webhooks are registered and delivered with a specific version, and a mismatch will result in errors.
 
@@ -571,6 +572,119 @@ Filter by the vendor information from Shopify.
 > The shorthand `.withAll()` is a future-proof means of eager-loading each additional type of nested record.
 
 You can still access `product.variants`, `product.images`, and `product.metafields` without eager-loading—but it may result in an additional query for each kind of content. Once you’ve retrieved variants, for example, they are memoized on the product element instance for the duration of the request.
+
+### GraphQL
+
+Product elements are also exposed via [Craft’s GraphQL API](https://craftcms.com/docs/5.x/development/graphql.html).
+You can fetch products (and any content added via custom fields) using the `shopifyProducts()` query:
+
+```graphql
+query PowerTools {
+  shopifyProducts(productType: "powertools") {
+    # Native Product element properties:
+    id
+    title
+    shopifyStatus
+    images {
+      image {
+        url
+        altText
+        width
+        height
+      }
+    }
+
+    # Custom fields, from the field layout in Craft:
+    ... on ShopifyProduct {
+      brandName
+      brandFamily
+    }
+  }
+}
+```
+
+Products can be retrieved one at a time with the `shopifyProduct` (singular) query.
+You might use this in a headless front-end to resolve a product by its slug, based on your routing:
+
+```graphql
+query OneProductBySlug($slug: [String]) {
+  shopifyProduct(slug: $slug) {
+    id
+    title
+    # ...
+  }
+}
+
+# Variables:
+# {
+#   slug: Astro.params.slug
+# }
+```
+
+It’s important to note that the GraphQL schema is _not_ the same as directly accessing the Shopify API, and that the built-in documentation only reflects what is accessible via Craft.
+You’ll encounter many _familiar_ objects, but only a subset of the types and fields are available.
+Only the data retrieved during synchronization (plus your custom fields and other native element properties) will be present in the API.
+
+Arguments are also radically different: Shopify’s filtering is primarily accomplished via the single, generic [`query`](https://shopify.dev/docs/api/admin-graphql/latest/queries/products#arguments-query) param.
+Craft uses dedicated field names and types for argument inputs, so the above single- and multi-product queries accept any combination of criteria, including references to custom fields.
+
+> [!TIP]
+> Use the [GraphiQL IDE](https://craftcms.com/docs/5.x/development/graphql.html#using-the-graphiql-ide) in Craft’s control panel to explore the self-documenting API!
+
+#### Extending
+
+GraphQL is inherently strictly “typed,” which means that the arbitrary shape of Products’ `data` attribute is not selectable or navigable.
+
+If you wish to expose [additional fields](#craftshopifyservicesapievent_define_product_gql_fields) you have synchronized from the API, they must be added as Craft builds the product element schema:
+
+```php
+use craft\base\Event;
+use craft\events\DefineGqlTypeFieldsEvent;
+use craft\gql\TypeManager;
+use craft\shopify\elements\Product;
+use GraphQL\Type\Definition\Type;
+
+Event::on(
+    TypeManager::class,
+    TypeManager::EVENT_DEFINE_GQL_TYPE_FIELDS,
+    function(DefineGqlTypeFieldsEvent $event) {
+        // Exit early unless it’s the “type” definition we want to modify:
+        if ($event->typeName !== Product::GQL_TYPE_NAME) {
+            return;
+        }
+
+        // Register a new field that can resolve the supplemental `data`:
+        $event->fields['shopifyCategory'] = [
+            'name' => 'shopifyCategory',
+            'type' => Type::string(),
+            'description' => 'The Shopify “Standard Product Taxonomy” name.',
+            'resolve' => function(Product $source) {
+                return $source->getData()['category']['name'] ?? null;
+            },
+        ];
+    }
+)
+```
+
+As long as you keep your “resolver” in sync with your additional selections, you should be able to pass through those values.
+The same strategy can be used to decorate other [built-in types](https://github.com/craftcms/shopify/tree/7.x/src/gql/types/) for images, metafields, options, and variants.
+You can alter multiple types in a single `EVENT_DEFINE_GQL_TYPE_FIELDS` handler:
+
+```php
+if ($event->typeName === \craft\shopify\elements\Product::GQL_TYPE_NAME) {
+    // Manipulate product element fields...
+}
+
+if ($event->typeName === \craft\shopify\gql\types\Image::getName()) {
+    // Manipulate fields on "image" objects...
+}
+```
+
+> [!WARNING]
+> The fields we’ve added are not dynamically fetched from Shopify at runtime!
+> This method just exposes additional fields that have already been synchronized from Shopify.
+
+
 
 ## Templating
 
