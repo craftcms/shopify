@@ -1,6 +1,7 @@
 # Release Notes for Shopify
 
-## WIP - 7.1.0
+## 7.1.0 - 2026-04-08
+
 - Added support for querying for products via GraphQL. ([#49](https://github.com/craftcms/shopify/discussions/49), [#203](https://github.com/craftcms/shopify/issues/203), [#206](https://github.com/craftcms/shopify/pull/206))
 - Added the `totalInventory` product query param.
 - Added `craft\shopify\elements\Product::$totalInventory`.
