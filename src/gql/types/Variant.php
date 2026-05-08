@@ -50,7 +50,19 @@ class Variant extends ObjectType
             'id' => [
                 'name' => 'id',
                 'type' => Type::string(),
+                'description' => 'ID of the variant.',
+            ],
+            'shopifyId' => [
+                'name' => 'shopifyId',
+                'type' => Type::string(),
+                'description' => 'Shopify ID of the variant.',
+                'resolve' => fn(VariantElement $source) => str_replace('gid://shopify/ProductVariant/', '', $source->shopifyId),
+            ],
+            'shopifyGid' => [
+                'name' => 'shopifyGid',
+                'type' => Type::string(),
                 'description' => 'Shopify GID of the variant.',
+                'resolve' => fn(VariantElement $source) => $source->shopifyId,
             ],
             'title' => [
                 'name' => 'title',
