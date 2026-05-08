@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- `shopifyId` and `shopifyGid` fields are now available when query product variants via GraphQL. ([#211](https://github.com/craftcms/shopify/issues/211))
+
 ## 7.1.0 - 2026-04-08
 
 - Added support for querying for products via GraphQL. ([#49](https://github.com/craftcms/shopify/discussions/49), [#203](https://github.com/craftcms/shopify/issues/203), [#206](https://github.com/craftcms/shopify/pull/206))
