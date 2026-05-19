@@ -57,7 +57,7 @@ class Settings extends Model
                 $hostName = $this->$attribute;
 
                 if (Utils::sanitizeShopDomain($hostName) === null) {
-                    $this->addError($attribute,Craft::t('Shopify', 'The host name must be a valid Shopify store domain.'));
+                    $this->addError($attribute, Craft::t('shopify', 'The host name must be a valid Shopify store domain.'));
                 }
             }, 'skipOnEmpty' => true],
         ];
