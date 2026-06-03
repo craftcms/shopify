@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 7.1.2 - 2026-06-03
 
 - Fixed a PHP error that occurred when editing settings in Craft 4. ([#216](https://github.com/craftcms/shopify/issues/216))
 
