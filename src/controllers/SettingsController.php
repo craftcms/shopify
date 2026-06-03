@@ -156,7 +156,7 @@ class SettingsController extends Controller
                     'id' => 'contextualPricingCountries',
                     'name' => 'settings[contextualPricingCountries]',
                     'value' => $settings->getContextualPricingCountries(false),
-                    'errors' => $settings->getErrors('hostName'),
+                    'errors' => $settings->getErrors('contextualPricingCountries'),
                     'suggestEnvVars' => true,
                 ]) .
 
@@ -170,7 +170,7 @@ class SettingsController extends Controller
             Html::endTag('div')
         ;
 
-        return $this->asCpScreen()
+        $screen = $this->asCpScreen()
             ->title(Craft::t('shopify', 'Settings'))
             ->tabs([
                 ['label' => Craft::t('shopify', 'API Connection'), 'url' => '#api'],
@@ -178,8 +178,14 @@ class SettingsController extends Controller
             ])
             ->action('shopify/settings/save-settings')
             ->redirectUrl('shopify/settings')
-            ->selectedSubnavItem('settings')
-            ->contentHtml($html);
+            ->selectedSubnavItem('settings');
+
+        // @TODO remove when the plugin no longer supports Craft 4
+        if (!$screen->hasMethod('contentHtml')) {
+            return $screen->content($html);
+        }
+
+        return $screen->contentHtml($html);
     }
 
     /**
