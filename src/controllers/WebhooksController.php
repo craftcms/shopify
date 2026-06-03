@@ -159,9 +159,17 @@ class WebhooksController extends Controller
             $this->getView()->registerJs($js);
         }
 
-        return $this->asCpScreen()
+        $screen = $this->asCpScreen()
             ->title(Craft::t('shopify', 'Webhooks'))
-            ->selectedSubnavItem('webhooks')
+            ->selectedSubnavItem('webhooks');
+
+        // @TODO remove when the plugin no longer supports Craft 4
+        if (!$screen->hasMethod('contentHtml')) {
+            /** @phpstan-ignore-next-line */
+            return $screen->content($html);
+        }
+
+        return $screen
             ->contentHtml($html);
     }
 
