@@ -182,6 +182,7 @@ class SettingsController extends Controller
 
         // @TODO remove when the plugin no longer supports Craft 4
         if (!$screen->hasMethod('contentHtml')) {
+            /** @phpstan-ignore-next-line */
             return $screen->content($html);
         }
 
