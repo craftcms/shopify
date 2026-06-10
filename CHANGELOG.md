@@ -1,5 +1,25 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Added support for syncing product translations from Shopify. ([#215](https://github.com/craftcms/shopify/issues/215))
+- It’s now possible to view the required API scopes in the plugin settings.
+- It’s now possible to extend the API scopes with opt-in additional features and custom scopes.
+- It’s now possible to customize the Shopify API context before and after initialization via new events.
+- Added `craft\shopify\controllers\SettingsController::actionGetScopes()`.
+- Added `craft\shopify\events\DefineInitializeApiContextEvent`.
+- Added `craft\shopify\models\Settings::REQUIRED_SCOPES`.
+- Added `craft\shopify\models\Settings::getAdditionalFeatures()`.
+- Added `craft\shopify\models\Settings::getAdditionalFeaturesOptions()`.
+- Added `craft\shopify\models\Settings::getCustomScopes()`.
+- Added `craft\shopify\models\Settings::getScopes()`.
+- Added `craft\shopify\models\Settings::setAdditionalFeatures()`.
+- Added `craft\shopify\models\Settings::setCustomScopes()`.
+- Added `craft\shopify\services\Api::EVENT_AFTER_INITIALIZE_API_CONTEXT`.
+- Added `craft\shopify\services\Api::EVENT_DEFINE_INITIALIZE_API_CONTEXT`.
+- Added `craft\shopify\services\Api::getShopLocalesGql()`.
+- Fixed a bug where validation errors for the "Context Pricing Countries" setting weren't displaying correctly.
+
 ## 7.1.2 - 2026-06-03
 
 - Fixed a PHP error that occurred when editing settings in Craft 4. ([#216](https://github.com/craftcms/shopify/issues/216))
