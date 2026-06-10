@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## 7.1.2 - 2026-06-03
+
+- Fixed a PHP error that occurred when editing settings in Craft 4. ([#216](https://github.com/craftcms/shopify/issues/216))
+
 ## 7.1.1 - 2026-05-12
 
 - `shopifyId` and `shopifyGid` fields are now available when querying product variants via GraphQL. ([#211](https://github.com/craftcms/shopify/issues/211))

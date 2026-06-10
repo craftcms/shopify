@@ -57,7 +57,15 @@ class AuthController extends Controller
 
         $validHmac = Utils::validateHmac(Craft::$app->getRequest()->getQueryParams(), $settings->getClientSecret());
         if (!$validHmac) {
-            return $screen->contentHtml($this->_errorHtml(Craft::t('shopify', 'Error authorizing app'), Craft::t('shopify', 'Invalid or missing HMAC. Please try re-installing the app.')));
+            $html = $this->_errorHtml(Craft::t('shopify', 'Error authorizing app'), Craft::t('shopify', 'Invalid or missing HMAC. Please try re-installing the app.'));
+
+            // @TODO remove when the plugin no longer supports Craft 4
+            if (!$screen->hasMethod('contentHtml')) {
+                /** @phpstan-ignore-next-line */
+                return $screen->content($html);
+            }
+
+            return $screen->contentHtml($html);
         }
 
         // If a code is present, it means the user has been redirected back from Shopify after authorizing the app.
@@ -79,7 +87,7 @@ class AuthController extends Controller
                     throw new InvalidOAuthException('Failed to retrieve access token.');
                 }
 
-                return $screen->contentHtml(
+                $html =
                     Html::beginTag('div', ['class' => 'flex flex-justify-center']) .
                         Html::beginTag('div', ['class' => 'pane centeralign']) .
 
@@ -90,10 +98,29 @@ class AuthController extends Controller
 
                         Html::endTag('div') .
                     Html::endTag('div')
-                );
+                ;
+
+                // @TODO remove when the plugin no longer supports Craft 4
+                if (!$screen->hasMethod('contentHtml')) {
+                    /** @phpstan-ignore-next-line */
+                    return $screen->content($html);
+                }
+
+                return $screen
+                    ->contentHtml($html);
             } catch (\Exception $e) {
                 Craft::error($e->getMessage(), __METHOD__);
-                return $screen->contentHtml($this->_errorHtml(Craft::t('shopify', 'Error authorizing app'), $e->getMessage()));
+
+                $html = $this->_errorHtml(Craft::t('shopify', 'Error authorizing app'), $e->getMessage());
+
+                // @TODO remove when the plugin no longer supports Craft 4
+                if (!$screen->hasMethod('contentHtml')) {
+                    /** @phpstan-ignore-next-line */
+                    return $screen->content($html);
+                }
+
+                return $screen
+                    ->contentHtml($html);
             }
         }
 
@@ -102,18 +129,24 @@ class AuthController extends Controller
         $shop = Craft::$app->getRequest()->getQueryParam('shop');
         $authorizeUrl = OAuth::begin($settings->getHostName(), $path, false, fn(OAuthCookie $oauthCookie) => $this->_setCookies($oauthCookie, $screen));
 
+        $html = Html::beginTag('div', ['class' => 'flex flex-justify-center']) .
+                Html::beginTag('div', ['class' => 'pane centeralign', 'style' => 'max-width: 400px']) .
+
+                    Html::tag('h2', Craft::t('shopify', 'Authorize App')) .
+                    Html::tag('p', Craft::t('shopify', 'The Shopify store {shop} needs to be authorized to connect with this plugin.', ['shop' => Html::tag('strong', $shop)])) .
+                    Html::a(Craft::t('shopify', 'Authorize'), $authorizeUrl, ['class' => 'btn submit']) .
+
+                Html::endTag('div') .
+            Html::endTag('div');
+
+        // @TODO remove when the plugin no longer supports Craft 4
+        if (!$screen->hasMethod('contentHtml')) {
+            /** @phpstan-ignore-next-line */
+            return $screen->content($html);
+        }
+
         return $screen
-            ->contentHtml(
-                Html::beginTag('div', ['class' => 'flex flex-justify-center']) .
-                    Html::beginTag('div', ['class' => 'pane centeralign', 'style' => 'max-width: 400px']) .
-
-                        Html::tag('h2', Craft::t('shopify', 'Authorize App')) .
-                        Html::tag('p', Craft::t('shopify', 'The Shopify store {shop} needs to be authorized to connect with this plugin.', ['shop' => Html::tag('strong', $shop)])) .
-                        Html::a(Craft::t('shopify', 'Authorize'), $authorizeUrl, ['class' => 'btn submit']) .
-
-                    Html::endTag('div') .
-                Html::endTag('div')
-            );
+            ->contentHtml($html);
     }
 
     /**

@@ -259,7 +259,7 @@ class SettingsController extends Controller
         JS;
         $this->getView()->registerJs($js);
 
-        return $this->asCpScreen()
+        $screen = $this->asCpScreen()
             ->title(Craft::t('shopify', 'Settings'))
             ->tabs([
                 ['label' => Craft::t('shopify', 'API Connection'), 'url' => '#api'],
@@ -267,8 +267,15 @@ class SettingsController extends Controller
             ])
             ->action('shopify/settings/save-settings')
             ->redirectUrl('shopify/settings')
-            ->selectedSubnavItem('settings')
-            ->contentHtml($html);
+            ->selectedSubnavItem('settings');
+
+        // @TODO remove when the plugin no longer supports Craft 4
+        if (!$screen->hasMethod('contentHtml')) {
+            /** @phpstan-ignore-next-line */
+            return $screen->content($html);
+        }
+
+        return $screen->contentHtml($html);
     }
 
     /**
