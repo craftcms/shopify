@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+> [!IMPORTANT]
+> If you change the **Additional Features** or **Custom Scopes** settings after the app is already authorized, you must update the scopes in your Shopify app configuration and then re-authorize the app.
+
 - Added support for syncing product translations from Shopify. ([#215](https://github.com/craftcms/shopify/issues/215))
 - It’s now possible to view the required API scopes in the plugin settings.
 - It’s now possible to extend the API scopes with opt-in additional features and custom scopes.
