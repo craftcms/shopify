@@ -10,7 +10,6 @@ namespace craft\shopify\models;
 use Craft;
 use craft\base\Model;
 use craft\helpers\App;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
@@ -295,7 +294,7 @@ class Settings extends Model
                 'label' => Craft::t('shopify', 'Product Translations'),
                 'value' => 'productTranslations',
                 'scope' => 'read_locales',
-            ]
+            ],
         ];
     }
 
