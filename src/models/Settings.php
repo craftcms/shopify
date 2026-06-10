@@ -267,9 +267,9 @@ class Settings extends Model
      * @return array
      * @since 7.2.0
      */
-    public function getAdditionalFeatures(bool $scopes = false): array
+    public function getAdditionalFeatures(bool $asScopes = false): array
     {
-        if ($scopes && !empty($this->_additionalFeatures)) {
+        if ($asScopes && !empty($this->_additionalFeatures)) {
             $scopes = [];
             foreach ($this->_additionalFeatures as $additionalFeature) {
                 $adFeat = $this->getAdditionalFeaturesOptions()[$additionalFeature] ?? null;

@@ -31,6 +31,7 @@ return [
     'Context Pricing Countries' => 'Context Pricing Countries',
     'Copy these scopes into your Shopify app’s configuration in the Dev Dashboard to ensure your integration works correctly.' => 'Copy these scopes into your Shopify app’s configuration in the Dev Dashboard to ensure your integration works correctly.',
     'Couldn’t save settings.' => 'Couldn’t save settings.',
+    'Couldn’t update scopes.' => 'Couldn’t update scopes.',
     'Create all webhooks' => 'Create all webhooks',
     'Create missing webhooks' => 'Create missing webhooks',
     'Created' => 'Created',

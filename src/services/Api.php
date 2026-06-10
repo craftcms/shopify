@@ -261,23 +261,28 @@ class Api extends Component
 
         // Create translations fields (if required)
         $translations = [];
-        try {
-            $locales = $this->query($this->getShopLocalesGql());
+        if (in_array('productTranslations', Plugin::getInstance()->getSettings()->getAdditionalFeatures())) {
+            try {
+                $cacheKey = 'shopify:shopLocales:' . Plugin::getInstance()->getSettings()->getHostName();
+                $locales = Craft::$app->getCache()->getOrSet($cacheKey, function() {
+                    return $this->query($this->getShopLocalesGql());
+                }, 86400);
 
-            if (empty($locales)) {
-                throw new \Exception('Shop locales data not found in the response.');
-            }
-
-            foreach ($locales as $locale) {
-                if ($locale['primary']) {
-                    continue;
+                if (empty($locales)) {
+                    throw new \Exception('Shop locales data not found in the response.');
                 }
 
-                $localeKey = sprintf('translations_%1$s: translations(locale:"%1$s")', $locale['locale']);
-                $translations[$localeKey] = ['key', 'value'];
+                foreach ($locales as $locale) {
+                    if ($locale['primary']) {
+                        continue;
+                    }
+
+                    $localeKey = sprintf('translations_%1$s: translations(locale:"%1$s")', $locale['locale']);
+                    $translations[$localeKey] = ['key', 'value'];
+                }
+            } catch (\Exception $e) {
+                Craft::error($e->getMessage(), __METHOD__);
             }
-        } catch (\Exception $e) {
-            Craft::error($e->getMessage(), __METHOD__);
         }
 
         $fields = [

@@ -234,6 +234,8 @@ class SettingsController extends Controller
                         },
                     }).then(response => {
                         scopesInput.value = response.data.scopes;
+                    }).catch(() => {
+                        Craft.cp.displayError(Craft.t('shopify', 'Couldn't update scopes.'));
                     });
                 };
 
