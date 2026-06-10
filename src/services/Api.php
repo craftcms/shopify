@@ -15,6 +15,7 @@ use craft\helpers\StringHelper;
 use craft\log\MonologTarget;
 use craft\shopify\events\DefineGqlFieldsEvent;
 use craft\shopify\events\DefineGqlQueryArgumentsEvent;
+use craft\shopify\events\DefineInitializeApiContextEvent;
 use craft\shopify\Plugin;
 use craft\shopify\records\AccessToken;
 use craft\shopify\records\ShopifyData;
@@ -80,6 +81,18 @@ class Api extends Component
      * @since 7.0.0
      */
     public const EVENT_DEFINE_GQL_QUERY_ARGUMENTS = 'defineGqlQueryArguments';
+
+    /**
+     * @event DefineInitializeApiContextEvent Trigged before initializing the Shopify API context, which is required for authentication and making API calls.
+     * @since 7.2.0
+     */
+    public const EVENT_DEFINE_INITIALIZE_API_CONTEXT = 'defineInitializeApiContext';
+
+    /**
+     * @event Event Triggered after the Shopify API context has been initialized, which is required for authentication and making API calls.
+     * @since 7.2.0
+     */
+    public const EVENT_AFTER_INITIALIZE_API_CONTEXT = 'afterInitializeApiContext';
 
     /**
      * @var Session|null
@@ -150,6 +163,20 @@ class Api extends Component
     }
 
     /**
+     * @return Query
+     * @since 7.2.0
+     */
+    public function getShopLocalesGql(): Query
+    {
+        return $this->createQuery('shopLocales', [
+            'locale',
+            'primary',
+        ], function(QueryBuilder $builder) {
+            $builder->setArgument('published', true);
+        });
+    }
+
+    /**
      * @param bool $update
      * @return array|null
      * @since 6.0.0
@@ -203,6 +230,7 @@ class Api extends Component
      */
     public function getProductGql(?string $id = null): Query
     {
+        // Create contextual pricing fields (if required)
         $contextualPricingCountries = Plugin::getInstance()->getSettings()->getContextualPricingCountries();
         $contextualPricing = [];
 
@@ -229,6 +257,27 @@ class Api extends Component
                     ],
                 ];
             }
+        }
+
+        // Create translations fields (if required)
+        $translations = [];
+        try {
+            $locales = $this->query($this->getShopLocalesGql());
+
+            if (empty($locales)) {
+                throw new \Exception('Shop locales data not found in the response.');
+            }
+
+            foreach ($locales as $locale) {
+                if ($locale['primary']) {
+                    continue;
+                }
+
+                $localeKey = sprintf('translations_%1$s: translations(locale:"%1$s")', $locale['locale']);
+                $translations[$localeKey] = ['key', 'value'];
+            }
+        } catch (\Exception $e) {
+            Craft::error($e->getMessage(), __METHOD__);
         }
 
         $fields = [
@@ -345,6 +394,8 @@ class Api extends Component
                         ],
                     ],
                     'vendor',
+                    // Add translations to the products query
+                    ...$translations,
                 ],
             ],
         ];
@@ -596,19 +647,28 @@ class Api extends Component
         /** @var MonologTarget $webLogTarget */
         $webLogTarget = Craft::$app->getLog()->targets['web'];
 
-        Context::initialize(
-            apiKey: $pluginSettings->getClientId(),
-            apiSecretKey: $pluginSettings->getClientSecret(),
-            scopes: ['write_products', 'read_products', 'read_inventory'],
+        $contextConfig = [
+            'apiKey' => $pluginSettings->getClientId(),
+            'apiSecretKey' => $pluginSettings->getClientSecret(),
+            'scopes' => $pluginSettings->getScopes(true),
             // This `hostName` is different from the `shop` value used when creating a Session!
             // Shopify wants a name for the host/environment that is *initiating* the API connection.
             // Internally, they appear to use this for starting OAuth flows and creating webhooks (but we handle the latter, manually).
-            hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
-            sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
-            apiVersion: $pluginSettings->getApiVersion(),
-            isEmbeddedApp: false,
-            logger: $webLogTarget->getLogger(),
-        );
+            'hostName' => !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
+            'sessionStorage' => new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
+            'apiVersion' => $pluginSettings->getApiVersion(),
+            'isEmbeddedApp' => false,
+            'logger' => $webLogTarget->getLogger(),
+        ];
+
+        if ($this->hasEventHandlers(self::EVENT_DEFINE_INITIALIZE_API_CONTEXT)) {
+            $event = new DefineInitializeApiContextEvent(['config' => $contextConfig]);
+
+            $this->trigger(self::EVENT_DEFINE_INITIALIZE_API_CONTEXT, $event);
+            $contextConfig = $event->config;
+        }
+
+        Context::initialize(...$contextConfig);
 
         Context::$HTTP_CLIENT_FACTORY = new class() extends HttpClientFactory {
             public function client(): ClientInterface
@@ -617,6 +677,10 @@ class Api extends Component
                 return new Client(['headers' => ['X-Shopify-Api-Features' => 'include-presentment-prices']]);
             }
         };
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_INITIALIZE_API_CONTEXT)) {
+            $this->trigger(self::EVENT_AFTER_INITIALIZE_API_CONTEXT);
+        }
     }
 
     /**

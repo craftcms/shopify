@@ -14,8 +14,12 @@
  * @since     0.0.1
  */
 return [
+    'A comma separated list of additional scopes to add to the API requests.' => 'A comma separated list of additional scopes to add to the API requests.',
+    'A comma separated list of country codes used to return contextual pricing.' => 'A comma separated list of country codes used to return contextual pricing.',
+    'API scopes required for your app integration, including additional features and custom scopes.' => 'API scopes required for your app integration, including additional features and custom scopes.',
     'API Connection' => 'API Connection',
     'Add a product' => 'Add a product',
+    'Additional Features' => 'Additional Features',
     'All products' => 'All products',
     'Archived in Shopify' => 'Archived in Shopify',
     'Are you sure you want to run a complete sync of all products?' => 'Are you sure you want to run a complete sync of all products?',
@@ -23,6 +27,7 @@ return [
     'Are you sure you want to delete this webhook?' => 'Are you sure you want to delete this webhook?',
     'Channel' => 'Channel',
     'Completed' => 'Completed',
+    'Copy these scopes into your Shopify app’s configuration in the Dev Dashboard to ensure your integration works correctly.' => 'Copy these scopes into your Shopify app’s configuration in the Dev Dashboard to ensure your integration works correctly.',
     'Couldn’t save settings.' => 'Couldn’t save settings.',
     'Create' => 'Create',
     'Created' => 'Created',
@@ -60,6 +65,7 @@ return [
     'Published Scope' => 'Published Scope',
     'Published' => 'Published',
     'Queued' => 'Queued',
+    'Scopes' => 'Scopes',
     'Settings saved.' => 'Settings saved.',
     'Settings' => 'Settings',
     'Shopify Client ID' => 'Shopify Client ID',
