@@ -538,6 +538,15 @@ class Product extends Element
     /**
      * @inheritdoc
      */
+    public function getTitleTranslationKey(): string
+    {
+        // Title always comes from Shopify and is the same across all sites
+        return '';
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function hasUris(): bool
     {
         return true;
