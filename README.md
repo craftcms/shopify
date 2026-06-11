@@ -77,7 +77,7 @@ To install an app into a store, one of these statements must describe your accou
         - `read_product_listings`
         - `read_products`
         
-        If you plan to enable any **Additional Features** or **Custom Scopes** in the plugin settings, those will require additional scopes. Once the plugin is installed and configured, use the read-only **Scopes** field in **Shopify** &rarr; **Settings** as the source of truth — it always reflects the full, comma-separated string to paste here.
+        If you plan to enable any **Additional Features** or **Custom Scopes** in the plugin settings, those will require additional scopes. Once the plugin is installed and configured, use the read-only **Scopes** field in **Shopify** &rarr; **Settings** as the source of truth: it always reflects the full, comma-separated string to paste here.
         
         > [!WARNING]
         > If you later change your **Additional Features** or **Custom Scopes** settings, you must update the scopes in your Shopify app configuration and then re-authorize the app from the Craft control panel.
@@ -1221,18 +1221,18 @@ This section describes advanced ways to customize the plugin’s behavior.
 
 The following settings can also be set via a `shopify.php` file in your `config/` directory.
 
-| Setting                      | Type     | Default | Description                                                                                                                                                                                                                                                                                                        |
-|------------------------------|----------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `apiKey`                     | `string` | —       | Shopify API key.                                                                                                                                                                                                                                                                                                   |
-| `apiSecretKey`               | `string` | —       | Shopify API secret key.                                                                                                                                                                                                                                                                                            |
-| `apiVersion`                 | `string` | —       | Shopify [API version](https://shopify.dev/docs/api/usage/versioning) description.                                                                                                                                                                                                                                  |
+| Setting                      | Type       | Default | Description                                                                                                                                                                                                                                                                                                        |
+|------------------------------|------------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `apiKey`                     | `string`   | —       | Shopify API key.                                                                                                                                                                                                                                                                                                   |
+| `apiSecretKey`               | `string`   | —       | Shopify API secret key.                                                                                                                                                                                                                                                                                            |
+| `apiVersion`                 | `string`   | —       | Shopify [API version](https://shopify.dev/docs/api/usage/versioning) description.                                                                                                                                                                                                                                  |
 | `accessToken`                | `string`   | —       | Shopify API access token.                                                                                                                                                                                                                                                                                          |
-| `additionalFeatures`         | `string[]` | `[]`    | Array of additional feature handles to enable (e.g. `['productTranslations']`). Enabling features may add required API scopes — see [Additional Features](#additional-features).                                                                                                                                   |
+| `additionalFeatures`         | `string[]` | `[]`    | Array of additional feature handles to enable (e.g. `['productTranslations']`). Enabling features may add required API scopes; see [Additional Features](#additional-features).                                                                                                                                    |
 | `contextualPricingCountries` | `string`   | —       | Comma-separated list of [two-letter country codes](https://shopify.dev/docs/api/admin-graphql/2026-01/enums/CountryCode) that determine which [contextual prices](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/ProductVariant#field-ProductVariant.fields.contextualPricing) are loaded via the API. |
 | `customScopes`               | `string`   | —       | Comma-separated list of additional API scopes to request beyond the plugin's [required scopes](#create-an-app).                                                                                                                                                                                                    |
-| `hostName`                   | `string` | —       | Your store’s hostname. See the [creating an app](#create-an-app) section for more information.                                                                                                                                                                                                                     |
-| `uriFormat`                  | `string` | —       | Product element URI format.                                                                                                                                                                                                                                                                                        |
-| `template`                   | `string` | —       | Product element template path.                                                                                                                                                                                                                                                                                     |
+| `hostName`                   | `string`   | —       | Your store’s hostname. See the [creating an app](#create-an-app) section for more information.                                                                                                                                                                                                                     |
+| `uriFormat`                  | `string`   | —       | Product element URI format.                                                                                                                                                                                                                                                                                        |
+| `template`                   | `string`   | —       | Product element template path.                                                                                                                                                                                                                                                                                     |
 
 > [!NOTE]
 > Setting `apiKey`, `apiSecretKey`, `apiVersion`, `accessToken`, or `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#connect-to-shopify).
@@ -1240,12 +1240,12 @@ The following settings can also be set via a `shopify.php` file in your `config/
 
 ### Additional Features
 
-Additional features are opt-in capabilities that extend the plugin's default behavior. Enabling a feature may add required API scopes — the **Scopes** field in **Shopify** &rarr; **Settings** always reflects the complete, up-to-date list for your configuration.
+Additional features are opt-in capabilities that extend the plugin's default behavior.
 
 > [!WARNING]
-> Enabling or disabling additional features changes the required API scopes. After saving the settings, you must update the **Access** &rarr; **Scopes** field in your Shopify app configuration and then re-authorize the app from the Craft control panel.
+> Enabling or disabling additional features may change the required API scopes! After saving the settings, you must update the **Access** &rarr; **Scopes** field in your Shopify app configuration and then re-authorize the app from the Craft control panel, _in each environment_.
 
-Features can also be enabled via `shopify.php`:
+Features can also be enabled via `config/shopify.php`:
 
 ```php
 return [
@@ -1259,7 +1259,7 @@ return [
 
 When enabled, the plugin fetches Shopify's published store locales during product sync and includes translation data for each non-primary locale in the product's raw data. This lets you surface translated product content (titles, descriptions, etc.).
 
-Translation data is stored in `product.getData()`, keyed by locale — for example, `translations_fr` for French. Each entry is an array of `key`/`value` pairs corresponding to Shopify's translatable resource keys.
+Translation data is stored in `product.getData()`, keyed by locale, like `translations_fr` for French. Each entry is an array of `key`/`value` pairs corresponding to Shopify's [translatable resource keys](https://shopify.dev/docs/api/admin-graphql/latest/objects/Translation).
 
 ```twig
 {# Loop over French translations for a product #}
@@ -1267,6 +1267,16 @@ Translation data is stored in `product.getData()`, keyed by locale — for examp
 {% for translation in translations %}
   <p>{{ translation.key }}: {{ translation.value }}</p>
 {% endfor %}
+```
+
+To make this data easier to work with, consider indexing it by `key`:
+
+```twig
+{% set translationsByKey = collect(product.getData()['translations_fr'])
+  .keyBy('key')
+  .mapWithKeys((item, k) => { (k): item.value }) %}
+
+{{ translationsByKey.title ?? product.title }}
 ```
 
 ### Emulate Sales Channels
