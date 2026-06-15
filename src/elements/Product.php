@@ -908,6 +908,7 @@ class Product extends Element
             'tags',
             'variants',
         ]) && method_exists(get_parent_class($this), 'tableAttributeHtml')) {
+            /** @phpstan-ignore-next-line */
             return parent::tableAttributeHtml($attribute);
         }
 
