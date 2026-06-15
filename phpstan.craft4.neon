@@ -11,7 +11,7 @@ parameters:
             - src/linktypes/Product.php
     ignoreErrors:
         -
-            message: '#Call to an undefined static method craft\\base\\Element::tableAttributeHtml\(\)\.#'
+            message: '#Call to an undefined static method craft\\base\\Element::attributeHtml\(\)\.#'
             path: src/elements/Product.php
         -
             message: '#Call to an undefined static method craft\\elements\\conditions\\ElementCondition::conditionRuleTypes\(\)\.#'
