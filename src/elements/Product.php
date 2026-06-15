@@ -907,12 +907,12 @@ class Product extends Element
             'options',
             'tags',
             'variants',
-        ]) && method_exists(get_parent_class($this), 'tableAttributeHtml')) {
+        ])) {
             /** @phpstan-ignore-next-line */
             return parent::tableAttributeHtml($attribute);
         }
 
-        return parent::attributeHtml($attribute);
+        return $this->attributeHtml($attribute);
     }
 
     /**
@@ -953,7 +953,7 @@ class Product extends Element
                 return HtmlHelper::tag('code', $this->templateSuffix);
             default:
             {
-                return $this->tableAttributeHtml($attribute);
+                return parent::attributeHtml($attribute);
             }
         }
     }
