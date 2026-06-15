@@ -907,12 +907,12 @@ class Product extends Element
             'options',
             'tags',
             'variants',
-        ])) {
+        ]) && method_exists(get_parent_class($this), 'tableAttributeHtml')) {
             /** @phpstan-ignore-next-line */
             return parent::tableAttributeHtml($attribute);
         }
 
-        return $this->attributeHtml($attribute);
+        return parent::attributeHtml($attribute);
     }
 
     /**
@@ -943,7 +943,12 @@ class Product extends Element
                     ]);
                 })->join('&nbsp;');
             case 'variants':
-                return collect($this->getVariants())->pluck('title')->map(fn($title) => StringHelper::toTitleCase($title))->join(',&nbsp;');
+                $variants = collect($this->getVariants());
+                if ($variants->isEmpty()) {
+                    return '';
+                }
+
+                return $variants->map(fn($v) => StringHelper::toTitleCase($v->title))->join(',&nbsp;');
             case 'templateSuffix':
                 return HtmlHelper::tag('code', $this->templateSuffix);
             default:
