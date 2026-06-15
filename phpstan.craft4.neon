@@ -16,14 +16,5 @@ parameters:
         -
             message: '#Call to an undefined static method craft\\elements\\conditions\\ElementCondition::selectableConditionRules\(\)\.#'
             path: src/elements/conditions/products/ProductCondition.php
-        -
-            message: '#Negated boolean expression is always false\.#'
-            path: src/fieldlayoutelements/MetafieldsField.php
-        -
-            message: '#Negated boolean expression is always false\.#'
-            path: src/fieldlayoutelements/OptionsField.php
-        -
-            message: '#Negated boolean expression is always false\.#'
-            path: src/fieldlayoutelements/VariantsField.php
 
 

@@ -104,6 +104,7 @@ class OptionsField extends BaseNativeField
      */
     private function _editableTableHtml(array $tableConfig): string
     {
+        // @phpstan-ignore booleanNot.alwaysFalse (Craft 4 compatibility: method does not exist in Craft 4)
         if (!is_callable([Cp::class, 'editableTableHtml'])) {
             return Cp::renderTemplate('_includes/forms/editableTable.twig', $tableConfig);
         }
