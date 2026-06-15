@@ -912,8 +912,6 @@ class Product extends Element
             return parent::tableAttributeHtml($attribute);
         }
 
-        // For Craft 4, the parent method is not defined, so we need to ignore the next line for PHPStan
-        /** @phpstan-ignore-next-line */
         return parent::attributeHtml($attribute);
     }
 
