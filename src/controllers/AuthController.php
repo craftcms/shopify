@@ -58,14 +58,7 @@ class AuthController extends Controller
         $validHmac = Utils::validateHmac(Craft::$app->getRequest()->getQueryParams(), $settings->getClientSecret());
         if (!$validHmac) {
             $html = $this->_errorHtml(Craft::t('shopify', 'Error authorizing app'), Craft::t('shopify', 'Invalid or missing HMAC. Please try re-installing the app.'));
-
-            // @TODO remove when the plugin no longer supports Craft 4
-            if (!$screen->hasMethod('contentHtml')) {
-                /** @phpstan-ignore-next-line */
-                return $screen->content($html);
-            }
-
-            return $screen->contentHtml($html);
+            return $this->_screenContent($screen, $html);
         }
 
         // If a code is present, it means the user has been redirected back from Shopify after authorizing the app.
@@ -100,27 +93,13 @@ class AuthController extends Controller
                     Html::endTag('div')
                 ;
 
-                // @TODO remove when the plugin no longer supports Craft 4
-                if (!$screen->hasMethod('contentHtml')) {
-                    /** @phpstan-ignore-next-line */
-                    return $screen->content($html);
-                }
-
-                return $screen
-                    ->contentHtml($html);
+                return $this->_screenContent($screen, $html);
             } catch (\Exception $e) {
                 Craft::error($e->getMessage(), __METHOD__);
 
                 $html = $this->_errorHtml(Craft::t('shopify', 'Error authorizing app'), $e->getMessage());
 
-                // @TODO remove when the plugin no longer supports Craft 4
-                if (!$screen->hasMethod('contentHtml')) {
-                    /** @phpstan-ignore-next-line */
-                    return $screen->content($html);
-                }
-
-                return $screen
-                    ->contentHtml($html);
+                return $this->_screenContent($screen, $html);
             }
         }
 
@@ -139,14 +118,17 @@ class AuthController extends Controller
                 Html::endTag('div') .
             Html::endTag('div');
 
-        // @TODO remove when the plugin no longer supports Craft 4
-        if (!$screen->hasMethod('contentHtml')) {
-            /** @phpstan-ignore-next-line */
-            return $screen->content($html);
-        }
+        return $this->_screenContent($screen, $html);
+    }
 
-        return $screen
-            ->contentHtml($html);
+    /**
+     * Render CP screen content across Craft 4/5.
+     * @TODO remove when the plugin no longer supports Craft 4
+     */
+    private function _screenContent(Response $screen, string $html): YiiResponse
+    {
+        $method = !$screen->hasMethod('contentHtml') ? 'content' : 'contentHtml';
+        return $screen->{$method}($html);
     }
 
     /**

@@ -53,7 +53,7 @@ jobs:
       - name: Run ECS
         run: composer check-cs
       - name: Run PHPStan
-        run: composer phpstan
+        run: vendor/bin/phpstan analyse --configuration=phpstan.craft4.neon --memory-limit=1G
       - name: Install Node dependencies
         run: npm ci
       - name: Run Prettier

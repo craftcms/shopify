@@ -86,12 +86,29 @@ class VariantsField extends BaseNativeField
                 Html::endTag('div');
         }
 
-        return Cp::editableTableHtml([
+        // @TODO remove this when Craft 4 support is dropped
+        $name = method_exists($this, 'baseInputName') ? $this->baseInputName() : $this->attribute();
+
+        $tableConfig = [
             'id' => $this->id(),
-            'name' => $this->baseInputName(),
+            'name' => $name,
             'cols' => $cols,
             'rows' => $variantRows,
             'static' => true,
-        ]);
+        ];
+
+        return $this->_editableTableHtml($tableConfig);
+    }
+
+    /**
+     * @TODO remove this when Craft 4 support is dropped
+     */
+    private function _editableTableHtml(array $tableConfig): string
+    {
+        if (!is_callable([Cp::class, 'editableTableHtml'])) {
+            return Cp::renderTemplate('_includes/forms/editableTable.twig', $tableConfig);
+        }
+
+        return Cp::editableTableHtml($tableConfig);
     }
 }
