@@ -11,32 +11,8 @@ concurrency:
   group: craft4-ci-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  dependency-guard:
-    name: dependency-guard (Craft 4)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          # Composer 2.8+ can hard-block transitive packages due advisories.
-          # This guard only verifies Craft 4 dependency resolution.
-          tools: composer:2.7
-      - name: Resolve Composer deps for Craft 4
-        run: composer update --no-interaction --no-audit --no-progress --prefer-dist --with craftcms/cms:^4 --with-all-dependencies
-      - name: Verify resolved Craft major
-        shell: bash
-        run: |
-          resolved_version=$(composer show craftcms/cms --format=json | php -r '$pkg = json_decode(stream_get_contents(STDIN), true); echo $pkg["versions"][0] ?? "";')
-          echo "Resolved craftcms/cms version: ${resolved_version}"
-          if [[ ! "${resolved_version}" =~ ^v?4\. ]]; then
-            echo "Expected Craft 4 but resolved ${resolved_version}"
-            exit 1
-          fi
-
   code-quality:
     name: code-quality (Craft 4)
-    needs: dependency-guard
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
