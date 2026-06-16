@@ -26,16 +26,24 @@
     "shopify/shopify-api": "^6.0.0"
   },
   "require-dev": {
+    "codeception/codeception": "^5.0.11",
+    "codeception/module-asserts": "^3.0.0",
+    "codeception/module-yii2": "^1.1.9",
     "craftcms/feed-me": "^6.6.1||^5.9.0",
     "craftcms/ecs": "dev-main",
     "craftcms/phpstan": "dev-main",
     "craftcms/rector": "dev-main",
     "craftcms/redactor": "*",
-    "vlucas/phpdotenv": "^3.4"
+    "vlucas/phpdotenv": "^v5.6.3"
   },
   "autoload": {
     "psr-4": {
       "craft\\shopify\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "craft\\shopify\\tests\\": "tests/"
     }
   },
   "extra": {
@@ -48,7 +56,11 @@
   "scripts": {
     "check-cs": "ecs check --ansi",
     "fix-cs": "ecs check --ansi --fix",
-    "phpstan": "phpstan --memory-limit=1G"
+    "phpstan": "phpstan --memory-limit=1G",
+    "testunit": [
+      "Composer\\Config::disableProcessTimeout",
+      "codecept run unit"
+    ]
   },
   "config": {
     "sort-packages": true,
