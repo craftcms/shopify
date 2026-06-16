@@ -250,14 +250,15 @@ class Products extends Component
             $metafields = collect($rows)
                 ->mapWithKeys(function($d, $key) {
                     /** @var ShopifyData $d */
+                    $data = Json::decodeIfJson($d->data);
 
                     // Map if the data has `key` and `value` properties
-                    if (!isset($d->data['key']) || !isset($d->data['value'])) {
+                    if (!is_array($data) || !isset($data['key']) || !isset($data['value'])) {
                         return [];
                     }
 
                     return [
-                        $d->data['key'] => Json::decodeIfJson($d->data['value']),
+                        $data['key'] => Json::decodeIfJson($data['value']),
                     ];
                 })
                 ->all();
@@ -312,8 +313,12 @@ class Products extends Component
                     $metafields = $metafieldsData->get($variant->shopifyId);
                     if (!empty($metafields)) {
                         $variant->setMetafields(collect($metafields)->mapWithKeys(function($d) {
+                            $data = Json::decodeIfJson($d->data);
+                            if (!is_array($data) || !isset($data['key']) || !isset($data['value'])) {
+                                return [];
+                            }
                             return [
-                                $d->data['key'] => Json::decodeIfJson($d->data['value']),
+                                $data['key'] => Json::decodeIfJson($data['value']),
                             ];
                         })->all());
                     }

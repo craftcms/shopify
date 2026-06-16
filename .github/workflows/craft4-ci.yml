@@ -34,3 +34,5 @@ jobs:
         run: npm ci
       - name: Run Prettier
         run: npm run check-prettier
+      - name: Run Tests
+        run: composer run testunit --stop-on-failure
