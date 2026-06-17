@@ -16,6 +16,7 @@ use yii\base\InvalidConfigException;
 /**
  * Variant model.
  *
+ * @property-read string $shopifyGid
  * @property-read string $shopifyId
  * @property-read string $title
  * @property-read string $sku
@@ -31,7 +32,12 @@ class Variant extends Model
     public ?int $id = null;
 
     /**
-     * @var string|null The Shopify ID of the variant.
+     * @var string|null The Shopify GID of the variant (e.g. "gid://shopify/ProductVariant/123456789").
+     */
+    public ?string $shopifyGid = null;
+
+    /**
+     * @var string|null The numeric Shopify ID of the variant (last segment of the GID).
      */
     public ?string $shopifyId = null;
 
@@ -103,7 +109,7 @@ class Variant extends Model
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['id', 'shopifyId', 'type', 'parentId', 'data', 'dateCreated', 'dateUpdated', 'uid'], 'safe'];
+        $rules[] = [['id', 'shopifyGid', 'shopifyId', 'type', 'parentId', 'data', 'dateCreated', 'dateUpdated', 'uid'], 'safe'];
 
         return $rules;
     }
@@ -165,7 +171,7 @@ class Variant extends Model
      */
     public function getMetafields(): array
     {
-        if (!$this->shopifyId) {
+        if (!$this->shopifyGid) {
             return [];
         }
 
@@ -173,7 +179,7 @@ class Variant extends Model
             return $this->_metaFields;
         }
 
-        $data = Plugin::getInstance()->getApi()->getShopifyDataByType('Metafield', $this->shopifyId);
+        $data = Plugin::getInstance()->getApi()->getShopifyDataByType('Metafield', $this->shopifyGid);
 
         $metafields = $data
             ->mapWithKeys(function($d) {

@@ -23,7 +23,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
     /**
      * @var string
      */
-    public string $bulkOperationShopifyId;
+    public string $bulkOperationShopifyGid;
 
     /**
      * @var string
@@ -110,7 +110,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
 
         // Find data records based on their Shopify ID and parent ID. This is to avoid overwriting
         // records with the same ID but different parents (e.g. Metafields, Images etc).
-        $record = ShopifyData::findOne(['shopifyId' => $item['id'], 'parentId' => $parentId]);
+        $record = ShopifyData::findOne(['shopifyGid' => $item['id'], 'parentId' => $parentId]);
         if (!$record) {
             $record = new ShopifyData();
         }
@@ -119,7 +119,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
         $parts = explode('/', str_replace('gid://shopify/', '', $item['id']));
         $type = $parts[0];
 
-        $record->shopifyId = $item['id'];
+        $record->shopifyGid = $item['id'];
         $record->type = $type;
         $record->data = $item;
         $record->parentId = $item['__parentId'] ?? null;
@@ -139,7 +139,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
         parent::before();
 
         // Make sure bulk op is marked as processing
-        $bulkOperation = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyId($this->bulkOperationShopifyId);
+        $bulkOperation = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyGid($this->bulkOperationShopifyGid);
 
         if (!$bulkOperation) {
             return;
@@ -153,7 +153,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
         if ($this->clearData === BulkOperationRecord::CLEAR_DATA_ALL) {
             ShopifyData::deleteAll();
         } elseif ($this->clearData !== BulkOperationRecord::CLEAR_DATA_NONE) {
-            Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyId($this->clearData);
+            Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyGid($this->clearData);
         }
     }
 
@@ -165,7 +165,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
         parent::after();
 
         // Mark bulk op as completed
-        $bulkOperation = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyId($this->bulkOperationShopifyId);
+        $bulkOperation = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyGid($this->bulkOperationShopifyGid);
 
         if (!$bulkOperation) {
             return;

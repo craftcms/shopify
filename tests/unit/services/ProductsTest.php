@@ -63,13 +63,13 @@ class ProductsTest extends Unit
     }
 
     // -------------------------------------------------------------------------
-    // deleteShopifyDataByShopifyId
+    // deleteShopifyDataByShopifyGid
     // -------------------------------------------------------------------------
 
-    public function testDeleteShopifyDataByShopifyIdRemovesProductAndChildren(): void
+    public function testDeleteShopifyDataByShopifyGidRemovesProductAndChildren(): void
     {
         // Verify fixture data exists before deletion
-        $productRow = ShopifyData::find()->where(['shopifyId' => self::PRODUCT_GID, 'type' => 'Product'])->one();
+        $productRow = ShopifyData::find()->where(['shopifyGid' => self::PRODUCT_GID, 'type' => 'Product'])->one();
         self::assertNotNull($productRow, 'Fixture product row must exist before deletion test.');
 
         $variantsBefore = ShopifyData::find()
@@ -77,10 +77,10 @@ class ProductsTest extends Unit
             ->count();
         self::assertGreaterThan(0, $variantsBefore, 'Fixture must have at least one variant.');
 
-        Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyId(self::PRODUCT_GID);
+        Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyGid(self::PRODUCT_GID);
 
         // Product row should be gone
-        $productRow = ShopifyData::find()->where(['shopifyId' => self::PRODUCT_GID, 'type' => 'Product'])->one();
+        $productRow = ShopifyData::find()->where(['shopifyGid' => self::PRODUCT_GID, 'type' => 'Product'])->one();
         self::assertNull($productRow);
 
         // All direct children (variants, images) should also be gone
@@ -88,10 +88,10 @@ class ProductsTest extends Unit
         self::assertEquals(0, $children);
     }
 
-    public function testDeleteShopifyDataByShopifyIdAcceptsNumericId(): void
+    public function testDeleteShopifyDataByShopifyGidAcceptsNumericId(): void
     {
         // Numeric ID should be normalized to GID before lookup — no exception expected
-        Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyId('7136060145715');
+        Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyGid('7136060145715');
         $this->assertTrue(true);
     }
 
@@ -164,7 +164,7 @@ class ProductsTest extends Unit
 
         // Insert a product row and a metafield child
         \Yii::$app->db->createCommand()->insert(Table::DATA, [
-            'shopifyId' => $productGid,
+            'shopifyGid' => $productGid,
             'type' => 'Product',
             'data' => json_encode(['id' => $productGid, 'title' => 'Test']),
             'parentId' => null,
@@ -174,7 +174,7 @@ class ProductsTest extends Unit
         ])->execute();
 
         \Yii::$app->db->createCommand()->insert(Table::DATA, [
-            'shopifyId' => 'gid://shopify/Metafield/test-mf-1',
+            'shopifyGid' => 'gid://shopify/Metafield/test-mf-1',
             'type' => 'Metafield',
             'data' => json_encode(['id' => 'gid://shopify/Metafield/test-mf-1', 'key' => 'my_key', 'value' => 'my_value']),
             'parentId' => $productGid,

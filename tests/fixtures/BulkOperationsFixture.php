@@ -26,7 +26,7 @@ class BulkOperationsFixture extends DbFixture
 
         foreach ($rows as $key => $row) {
             $model = new BulkOperation();
-            $model->shopifyId = $row['shopifyId'];
+            $model->shopifyGid = $row['shopifyGid'];
             $model->url = $row['url'];
             $model->objectCount = (int)($row['objectCount'] ?? 0);
             $model->query = $row['query'] ?? null;

@@ -823,7 +823,7 @@ class Product extends Element
     {
         // Remove all the product shopify data
         if ($this->shopifyGid && $this->getIsCanonical()) {
-            Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyId($this->shopifyGid);
+            Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyGid($this->shopifyGid);
         }
 
         parent::afterDelete();

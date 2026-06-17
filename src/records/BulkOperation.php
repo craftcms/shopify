@@ -17,7 +17,7 @@ use craft\shopify\db\Table;
  * @since 6.0.0
  *
  * @property int $id
- * @property string $shopifyId
+ * @property string $shopifyGid
  * @property string $url
  * @property string $status
  * @property string $shopifyStatus
