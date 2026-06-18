@@ -194,7 +194,7 @@ class SettingsController extends Controller
                 ->redirectUrl('shopify/settings');
         } else {
             // @TODO remove when the plugin no longer support Craft 4
-            if (method_exists(Cp::class, 'readOnlyNoticeHtml')) {
+            if ($screen->hasMethod('noticeHtml') && method_exists(Cp::class, 'readOnlyNoticeHtml')) {
                 $screen->noticeHtml(Cp::readOnlyNoticeHtml());
             }
         }
