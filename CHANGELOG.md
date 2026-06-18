@@ -1,8 +1,9 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 7.1.3 - 2026-06-18
 
 - Fixed a bug where product titles weren't syncing correctly across sites. ([#198](https://github.com/craftcms/shopify/issues/198), [#201](https://github.com/craftcms/shopify/issues/201))
+- Fixed a PHP error that could occur when running Craft 4. ([#218](https://github.com/craftcms/shopify/issues/218))
 
 ## 7.1.2 - 2026-06-03
 
