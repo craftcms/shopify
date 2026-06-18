@@ -1,0 +1,78 @@
+name: craft4-ci
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - '7.x'
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: craft4-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  code-quality:
+    name: code-quality (Craft 4)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:2.7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install Craft 4 dependencies
+        run: composer update --no-interaction --no-audit --no-progress --prefer-dist --with craftcms/cms:^4 --with-all-dependencies
+      - name: Run ECS
+        run: composer check-cs
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --configuration=phpstan.craft4.neon --memory-limit=1G
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Run Prettier
+        run: npm run check-prettier
+
+  tests:
+    name: tests (Craft 4, ${{ matrix.db }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        db: [mysql, pgsql]
+        include:
+          - db: mysql
+            env_file: tests/.env.example.mysql
+          - db: pgsql
+            env_file: tests/.env.example.pgsql
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: craft_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: root
+          POSTGRES_DB: craft_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:2.7
+      - name: Install Craft 4 dependencies
+        run: composer update --no-interaction --no-audit --no-progress --prefer-dist --with craftcms/cms:^4 --with-all-dependencies
+      - name: Create test environment
+        run: cp ${{ matrix.env_file }} tests/.env
+      - name: Run Tests
+        run: composer run testunit

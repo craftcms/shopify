@@ -9,7 +9,6 @@ namespace craft\shopify\fieldlayoutelements;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\enums\Color;
 use craft\fieldlayoutelements\BaseNativeField;
 use craft\helpers\Cp;
 use craft\helpers\Html;
@@ -74,19 +73,42 @@ class OptionsField extends BaseNativeField
                 $tableData[] = [
                     'option' => $i === 0 ? Html::tag('strong', Html::encode($opt['name'])) : '',
                     'values' => Html::encode($val['name']),
-                    'hasVariants' => (bool)$val['hasVariants'] ? Html::tag('div', Cp::iconSvg('check'), [
-                        'class' => array_filter(['thumb', 'cp-icon', Color::Green->value]),
+                    'hasVariants' => (bool)$val['hasVariants'] ? Html::tag('span', '', [
+                        'class' => 'checkbox-icon',
+                        'role' => 'img',
+                        'title' => Craft::t('app', 'Yes'),
+                        'aria' => [
+                            'label' => Craft::t('app', 'Yes'),
+                        ],
                     ]) : '',
                 ];
             }
         }
 
-        return Cp::editableTableHtml([
+        // @TODO remove this when Craft 4 support is dropped
+        $name = method_exists($this, 'baseInputName') ? $this->baseInputName() : $this->attribute();
+
+        $tableConfig = [
             'id' => $this->id(),
-            'name' => $this->baseInputName(),
+            'name' => $name,
             'cols' => $cols,
             'rows' => $tableData,
             'static' => true,
-        ]);
+        ];
+
+        return $this->_editableTableHtml($tableConfig);
+    }
+
+    /**
+     * @TODO remove this when Craft 4 support is dropped
+     */
+    private function _editableTableHtml(array $tableConfig): string
+    {
+        // @phpstan-ignore booleanNot.alwaysFalse (Craft 4 compatibility: method does not exist in Craft 4)
+        if (!is_callable([Cp::class, 'editableTableHtml'])) {
+            return Cp::renderTemplate('_includes/forms/editableTable.twig', $tableConfig);
+        }
+
+        return Cp::editableTableHtml($tableConfig);
     }
 }

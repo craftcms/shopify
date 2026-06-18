@@ -538,6 +538,15 @@ class Product extends Element
     /**
      * @inheritdoc
      */
+    public function getTitleTranslationKey(): string
+    {
+        // Title always comes from Shopify and is the same across all sites
+        return '';
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function hasUris(): bool
     {
         return true;
@@ -721,7 +730,8 @@ class Product extends Element
 
         // Conditionally show metadata in the sidebar dependent on the field layout
         $excludeKeys = [];
-        $this->getFieldLayout()->getFields(function($field) use (&$excludeKeys) {
+        $fieldLayout = $this->getFieldLayout();
+        $checkField = function($field) use (&$excludeKeys) {
             if ($field instanceof VariantsField) {
                 $excludeKeys[] = 'Variants';
                 return true;
@@ -732,9 +742,17 @@ class Product extends Element
                 $excludeKeys[] = 'Metafields';
                 return true;
             }
-
             return false;
-        });
+        };
+
+        // @TODO remove when the plugin no longer supports Craft 4
+        if (!method_exists($fieldLayout, 'getFields')) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
+                $checkField($field);
+            }
+        } else {
+            $fieldLayout->getFields($checkField);
+        }
 
         return ProductHelper::renderCardHtml($this, $excludeKeys) . parent::getSidebarHtml($static);
     }
@@ -925,7 +943,12 @@ class Product extends Element
                     ]);
                 })->join('&nbsp;');
             case 'variants':
-                return collect($this->getVariants())->pluck('title')->map(fn($title) => StringHelper::toTitleCase($title))->join(',&nbsp;');
+                $variants = collect($this->getVariants());
+                if ($variants->isEmpty()) {
+                    return '';
+                }
+
+                return $variants->map(fn($v) => StringHelper::toTitleCase($v->title))->join(',&nbsp;');
             case 'templateSuffix':
                 return HtmlHelper::tag('code', $this->templateSuffix);
             default:

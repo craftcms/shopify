@@ -16,6 +16,7 @@ use craft\shopify\elements\Product;
 use craft\shopify\models\Settings;
 use craft\shopify\Plugin;
 use craft\web\Controller;
+use craft\web\Response as CraftResponse;
 use yii\web\Response;
 
 /**
@@ -269,13 +270,17 @@ class SettingsController extends Controller
             ->redirectUrl('shopify/settings')
             ->selectedSubnavItem('settings');
 
-        // @TODO remove when the plugin no longer supports Craft 4
-        if (!$screen->hasMethod('contentHtml')) {
-            /** @phpstan-ignore-next-line */
-            return $screen->content($html);
-        }
+        return $this->_screenContent($screen, $html);
+    }
 
-        return $screen->contentHtml($html);
+    /**
+     * Render CP screen content across Craft 4/5.
+     * @TODO remove when the plugin no longer supports Craft 4
+     */
+    private function _screenContent(CraftResponse $screen, string $html): Response
+    {
+        $method = !$screen->hasMethod('contentHtml') ? 'content' : 'contentHtml';
+        return $screen->{$method}($html);
     }
 
     /**
