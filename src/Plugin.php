@@ -532,12 +532,10 @@ class Plugin extends BasePlugin
             'url' => 'shopify/products',
         ];
 
-        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            $ret['subnav']['settings'] = [
-                'label' => Craft::t('shopify', 'Settings'),
-                'url' => 'shopify/settings',
-            ];
-        }
+        $ret['subnav']['settings'] = [
+            'label' => Craft::t('shopify', 'Settings'),
+            'url' => 'shopify/settings',
+        ];
 
         if ($session) {
             if (Craft::$app->getUser()->getIsAdmin()) {
