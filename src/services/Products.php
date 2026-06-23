@@ -13,7 +13,6 @@ use craft\helpers\ProjectConfig;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
 use craft\shopify\collections\VariantCollection;
-use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
 use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\models\Variant;
