@@ -96,6 +96,24 @@ class ProductsTest extends Unit
     }
 
     // -------------------------------------------------------------------------
+    // deleteShopifyDataByShopifyId (deprecated)
+    // -------------------------------------------------------------------------
+
+    /**
+     * @deprecated in 8.0.0. Use [[testDeleteShopifyDataByShopifyGidRemovesProductAndChildren()]] instead.
+     */
+    public function testDeleteShopifyDataByShopifyIdDelegatesToGidMethod(): void
+    {
+        $productRow = ShopifyData::find()->where(['shopifyGid' => self::PRODUCT_GID, 'type' => 'Product'])->one();
+        self::assertNotNull($productRow, 'Fixture product row must exist before deletion test.');
+
+        Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyId(self::PRODUCT_GID);
+
+        $productRow = ShopifyData::find()->where(['shopifyGid' => self::PRODUCT_GID, 'type' => 'Product'])->one();
+        self::assertNull($productRow);
+    }
+
+    // -------------------------------------------------------------------------
     // eagerLoadVariantsForProducts
     // -------------------------------------------------------------------------
 

@@ -82,6 +82,22 @@ class BulkOperationsTest extends Unit
     }
 
     // -------------------------------------------------------------------------
+    // getBulkOperationByShopifyId (deprecated)
+    // -------------------------------------------------------------------------
+
+    /**
+     * @deprecated in 8.0.0. Use [[testGetBulkOperationByShopifyGidFindsKnownRecord()]] instead.
+     */
+    public function testGetBulkOperationByShopifyIdDelegatesToGidMethod(): void
+    {
+        $op = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyId(self::FIXTURE_GID);
+
+        self::assertNotNull($op);
+        self::assertInstanceOf(BulkOperation::class, $op);
+        self::assertEquals(self::FIXTURE_GID, $op->shopifyGid);
+    }
+
+    // -------------------------------------------------------------------------
     // saveBulkOperation
     // -------------------------------------------------------------------------
 
