@@ -731,7 +731,7 @@ class Product extends Element
         // Conditionally show metadata in the sidebar dependent on the field layout
         $excludeKeys = [];
         $fieldLayout = $this->getFieldLayout();
-        $checkField = function($field) use (&$excludeKeys) {
+        $fieldLayout->getFields(function($field) use (&$excludeKeys) {
             if ($field instanceof VariantsField) {
                 $excludeKeys[] = 'Variants';
                 return true;
@@ -743,16 +743,7 @@ class Product extends Element
                 return true;
             }
             return false;
-        };
-
-        // @TODO remove when the plugin no longer supports Craft 4
-        if (!method_exists($fieldLayout, 'getFields')) {
-            foreach ($fieldLayout->getCustomFields() as $field) {
-                $checkField($field);
-            }
-        } else {
-            $fieldLayout->getFields($checkField);
-        }
+        });
 
         return ProductHelper::renderCardHtml($this, $excludeKeys) . parent::getSidebarHtml($static);
     }
@@ -890,29 +881,6 @@ class Product extends Element
         ];
 
         return $sortOptions;
-    }
-
-    /**
-     * @param string $attribute
-     * @return string
-     * @throws InvalidConfigException
-     * @TODO remove this method when support for Craft 4 is dropped
-     */
-    protected function tableAttributeHtml(string $attribute): string
-    {
-        if (!in_array($attribute, [
-            'shopifyEdit',
-            'shopifyStatus',
-            'shopifyId',
-            'options',
-            'tags',
-            'variants',
-        ])) {
-            /** @phpstan-ignore-next-line */
-            return parent::tableAttributeHtml($attribute);
-        }
-
-        return $this->attributeHtml($attribute);
     }
 
     /**

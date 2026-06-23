@@ -5,8 +5,3 @@ parameters:
     level: 5
     paths:
         - src
-    # Remove this ignore once Craft 4 support is dropped.
-    ignoreErrors:
-        -
-            message: '#Call to an undefined static method craft\\elements\\conditions\\ElementCondition::conditionRuleTypes\(\)\.#'
-            path: src/elements/conditions/products/ProductCondition.php

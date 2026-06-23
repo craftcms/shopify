@@ -11,7 +11,6 @@ use Craft;
 use craft\helpers\Html;
 use craft\shopify\Plugin;
 use craft\web\Controller;
-use craft\web\Response as CraftResponse;
 use GraphQL\Query;
 use GraphQL\Variable;
 use Shopify\Exception\ShopifyException;
@@ -164,17 +163,7 @@ class WebhooksController extends Controller
             ->title(Craft::t('shopify', 'Webhooks'))
             ->selectedSubnavItem('webhooks');
 
-        return $this->_screenContent($screen, $html);
-    }
-
-    /**
-     * Render CP screen content across Craft 4/5
-     * @TODO remove when the plugin no longer supports Craft 4
-     */
-    private function _screenContent(CraftResponse $screen, string $html): YiiResponse
-    {
-        $method = !$screen->hasMethod('contentHtml') ? 'content' : 'contentHtml';
-        return $screen->{$method}($html);
+        return $screen->contentHtml($html);
     }
 
     /**

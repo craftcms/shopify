@@ -22,3 +22,4 @@
 
 - The `shopify_data` table's `shopifyId` column has been renamed to `shopifyGid`. A new generated `shopifyId` column (the numeric ID at the end of the GID) has been added.
 - The `shopify_bulkoperations` table's `shopifyId` column has been renamed to `shopifyGid`.
+- Shopify for Craft now requires Craft CMS 5.10.7 or later.

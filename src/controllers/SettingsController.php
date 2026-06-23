@@ -16,7 +16,6 @@ use craft\shopify\elements\Product;
 use craft\shopify\models\Settings;
 use craft\shopify\Plugin;
 use craft\web\Controller;
-use craft\web\Response as CraftResponse;
 use yii\web\Response;
 
 /**
@@ -36,8 +35,8 @@ class SettingsController extends Controller
             return false;
         }
 
-        // Only administrators should be allowed to update plugin settings
-        $this->requireAdmin();
+        // Admins can view settings even when allowAdminChanges is false (read-only mode)
+        $this->requireAdmin(false);
 
         return true;
     }
@@ -53,6 +52,7 @@ class SettingsController extends Controller
             $settings = Plugin::getInstance()->getSettings();
         }
 
+        $readOnly = !Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
         $headlessMode = Craft::$app->getConfig()->getGeneral()->headlessMode;
 
         $authUrlFieldConfig = [
@@ -75,6 +75,7 @@ class SettingsController extends Controller
                 'allowAdd' => false,
                 'allowDelete' => false,
                 'allowReorder' => false,
+                'static' => $readOnly,
                 'errors' => array_unique($settings->getErrors('routing')),
                 'cols' => array_filter([
                     'uriFormat' => [
@@ -105,7 +106,10 @@ class SettingsController extends Controller
                 ],
             ]) .
 
-            Cp::fieldLayoutDesignerHtml($settings->getProductFieldLayout()) .
+            Cp::fieldHtml(Cp::fieldLayoutDesignerHtml($settings->getProductFieldLayout(), ['disabled' => $readOnly]), [
+                'label' => Craft::t('app', 'Field Layout'),
+                'disabled' => $readOnly,
+            ]) .
 
             Html::endTag('div') .
 
@@ -121,6 +125,7 @@ class SettingsController extends Controller
                     'errors' => $settings->getErrors('apiVersion'),
                     'suggestEnvVars' => true,
                     'autofocus' => true,
+                    'disabled' => $readOnly,
                 ]) .
 
                 Cp::autosuggestFieldHtml([
@@ -130,6 +135,7 @@ class SettingsController extends Controller
                     'value' => $settings->getClientId(false),
                     'errors' => $settings->getErrors('clientId'),
                     'suggestEnvVars' => true,
+                    'disabled' => $readOnly,
                 ]) .
 
                 Cp::autosuggestFieldHtml([
@@ -139,6 +145,7 @@ class SettingsController extends Controller
                     'value' => $settings->getClientSecret(false),
                     'errors' => $settings->getErrors('clientSecret'),
                     'suggestEnvVars' => true,
+                    'disabled' => $readOnly,
                 ]) .
 
                 Cp::autosuggestFieldHtml([
@@ -149,6 +156,7 @@ class SettingsController extends Controller
                     'value' => $settings->getHostName(false),
                     'errors' => $settings->getErrors('hostName'),
                     'suggestEnvVars' => true,
+                    'disabled' => $readOnly,
                 ]) .
 
                 Cp::autosuggestFieldHtml([
@@ -159,6 +167,7 @@ class SettingsController extends Controller
                     'value' => $settings->getContextualPricingCountries(false),
                     'errors' => $settings->getErrors('contextualPricingCountries'),
                     'suggestEnvVars' => true,
+                    'disabled' => $readOnly,
                 ]) .
 
                 Html::tag('hr') .
@@ -177,21 +186,16 @@ class SettingsController extends Controller
                 ['label' => Craft::t('shopify', 'API Connection'), 'url' => '#api'],
                 ['label' => Craft::t('shopify', 'Products'), 'url' => '#products'],
             ])
-            ->action('shopify/settings/save-settings')
-            ->redirectUrl('shopify/settings')
             ->selectedSubnavItem('settings');
 
-        return $this->_screenContent($screen, $html);
-    }
+        if (!$readOnly) {
+            $screen->action('shopify/settings/save-settings')
+                ->redirectUrl('shopify/settings');
+        } else {
+            $screen->noticeHtml(Cp::readOnlyNoticeHtml());
+        }
 
-    /**
-     * Render CP screen content across Craft 4/5.
-     * @TODO remove when the plugin no longer supports Craft 4
-     */
-    private function _screenContent(CraftResponse $screen, string $html): Response
-    {
-        $method = !$screen->hasMethod('contentHtml') ? 'content' : 'contentHtml';
-        return $screen->{$method}($html);
+        return $screen->contentHtml($html);
     }
 
     /**
@@ -201,6 +205,7 @@ class SettingsController extends Controller
      */
     public function actionSaveSettings(): ?Response
     {
+        $this->requireAdmin();
         $settings = Craft::$app->getRequest()->getParam('settings');
         $plugin = Plugin::getInstance();
         /** @var Settings $pluginSettings */
