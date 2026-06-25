@@ -9,6 +9,7 @@ namespace craft\shopify\models;
 
 use craft\base\Model;
 use craft\helpers\Json;
+use craft\shopify\helpers\Metafield as MetafieldHelper;
 use craft\shopify\Plugin;
 use DateTime;
 use yii\base\InvalidConfigException;
@@ -148,21 +149,21 @@ class Variant extends Model
     }
 
     /**
-     * @param string|array $value
+     * @param string|array $value A list-shaped array of `{key, value}` objects, or a JSON-encoded string of the same.
      * @return void
+     * @throws \InvalidArgumentException if the value is not a list-shaped array or JSON string of one.
      */
     public function setMetafields(string|array $value): void
     {
         if (is_string($value)) {
             $value = Json::decodeIfJson($value);
-            $value = collect($value)->mapWithKeys(function($d) {
-                return [
-                    $d['key'] => Json::decodeIfJson($d['value']),
-                ];
-            });
         }
 
-        $this->_metaFields = $value;
+        if (!is_array($value) || !array_is_list($value)) {
+            throw new \InvalidArgumentException('setMetafields() expects a list-shaped array of {key, value} objects or a JSON-encoded string of the same.');
+        }
+
+        $this->_metaFields = MetafieldHelper::normalizeToMap($value);
     }
 
     /**
@@ -181,14 +182,7 @@ class Variant extends Model
 
         $data = Plugin::getInstance()->getApi()->getShopifyDataByType('Metafield', $this->shopifyGid);
 
-        $metafields = $data
-            ->mapWithKeys(function($d) {
-                return [
-                    $d['key'] => Json::decodeIfJson($d['value']),
-                ];
-            });
-
-        $this->setMetafields($metafields->all());
+        $this->setMetafields($data->all());
 
         return $this->_metaFields ?? [];
     }

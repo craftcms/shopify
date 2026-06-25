@@ -10,6 +10,7 @@ namespace craft\shopify\tests\unit\services;
 use Codeception\Test\Unit;
 use craft\shopify\collections\VariantCollection;
 use craft\shopify\db\Table;
+use craft\shopify\helpers\Metafield as MetafieldHelper;
 use craft\shopify\Plugin;
 use craft\shopify\records\ShopifyData;
 use craft\shopify\tests\fixtures\ShopifyDataFixture;
@@ -242,7 +243,7 @@ class ProductsTest extends Unit
 
                 public function setMetafields(array $metafields): void
                 {
-                    $this->metafields = $metafields;
+                    $this->metafields = MetafieldHelper::normalizeToMap($metafields);
                 }
             };
         }, $shopifyGids);

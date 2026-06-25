@@ -8,7 +8,6 @@ use craft\errors\ElementNotFoundException;
 use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
-use craft\helpers\Json;
 use craft\helpers\ProjectConfig;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
@@ -281,23 +280,7 @@ class Products extends Component
     public function eagerLoadMetafieldsForProducts(array $products): array
     {
         return $this->_eagerLoadTypeOnProducts($products, 'Metafield', function($product, $rows) {
-            $metafields = collect($rows)
-                ->mapWithKeys(function($d, $key) {
-                    /** @var ShopifyData $d */
-                    $data = Json::decodeIfJson($d->data);
-
-                    // Map if the data has `key` and `value` properties
-                    if (!is_array($data) || !isset($data['key']) || !isset($data['value'])) {
-                        return [];
-                    }
-
-                    return [
-                        $data['key'] => Json::decodeIfJson($data['value']),
-                    ];
-                })
-                ->all();
-
-            $product->setMetafields($metafields);
+            $product->setMetafields($rows);
         });
     }
 
@@ -343,18 +326,10 @@ class Products extends Component
             $variants = VariantCollection::make($variantsByProductId[$product->shopifyGid]);
 
             if ($metafieldsData->isNotEmpty()) {
-                $variants->map(function(Variant$variant) use ($metafieldsData) {
+                $variants->map(function(Variant $variant) use ($metafieldsData) {
                     $metafields = $metafieldsData->get($variant->shopifyGid);
                     if (!empty($metafields)) {
-                        $variant->setMetafields(collect($metafields)->mapWithKeys(function($d) {
-                            $data = Json::decodeIfJson($d->data);
-                            if (!is_array($data) || !isset($data['key']) || !isset($data['value'])) {
-                                return [];
-                            }
-                            return [
-                                $data['key'] => Json::decodeIfJson($data['value']),
-                            ];
-                        })->all());
+                        $variant->setMetafields($metafields->all());
                     }
                 });
             }
