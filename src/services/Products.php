@@ -192,21 +192,27 @@ class Products extends Component
      * Deletes a product element by the Shopify GID.
      *
      * @param string $gid
-     * @return void
+     * @return bool Whether the deletion was performed. Returns false if `$gid` is empty.
      * @throws \Throwable
      * @throws StaleObjectException
      * @since 8.0.0
      */
-    public function deleteProductByShopifyGid(string $gid): void
+    public function deleteProductByShopifyGid(string $gid): bool
     {
-        if ($gid) {
-            if ($product = Product::find()->shopifyId($gid)->one()) {
-                // We hard delete because it will have been hard deleted in Shopify
-                Craft::$app->getElements()->deleteElement($product, true);
-            }
-
-            $this->deleteShopifyDataByShopifyGid($this->normalizeShopifyGid($gid));
+        if (!$gid) {
+            return false;
         }
+
+        $gid = $this->normalizeShopifyGid($gid);
+
+        if ($product = Product::find()->shopifyGid($gid)->one()) {
+            // We hard delete because it will have been hard deleted in Shopify
+            Craft::$app->getElements()->deleteElement($product, true);
+        }
+
+        $this->deleteShopifyDataByShopifyGid($gid);
+
+        return true;
     }
 
     /**
