@@ -224,6 +224,10 @@ class Products extends Component
      */
     public function deleteProductByShopifyId($id): void
     {
+        if (!$id) {
+            return;
+        }
+
         $this->deleteProductByShopifyGid($id);
     }
 
