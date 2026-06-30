@@ -11,8 +11,8 @@
 - Added `craft\shopify\services\Products::syncProductByShopifyGid()`.
 - `craft\shopify\models\Variant::$shopifyId` now holds the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
 - `craft\shopify\records\ShopifyData::$shopifyId` is now a generated (read-only) column containing the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
-- Deprecated `craft\shopify\jobs\ProcessBulkOperationData::$bulkOperationShopifyId`. Use `$bulkOperationShopifyGid` instead.
-- Deprecated `craft\shopify\models\BulkOperation::$shopifyId`. Use `$shopifyGid` instead.
+- Renamed `craft\shopify\jobs\ProcessBulkOperationData::$bulkOperationShopifyId` to `$bulkOperationShopifyGid`.
+- Renamed `craft\shopify\models\BulkOperation::$shopifyId` to `$shopifyGid`.
 - Deprecated `craft\shopify\services\BulkOperations::getBulkOperationByShopifyId()`. Use `getBulkOperationByShopifyGid()` instead.
 - Deprecated `craft\shopify\services\Products::deleteProductByShopifyId()`. Use `deleteProductByShopifyGid()` instead.
 - Deprecated `craft\shopify\services\Products::deleteShopifyDataByShopifyId()`. Use `deleteShopifyDataByShopifyGid()` instead.
