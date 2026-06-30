@@ -57,7 +57,7 @@ class Install extends Migration
         $this->archiveTableIfExists(Table::DATA);
         $this->createTable(Table::DATA, [
             'id' => $this->primaryKey(),
-            'shopifyId' => $this->string(),
+            'shopifyGid' => $this->string(),
             'type' => $this->string(),
             'data' => $this->json(),
             'parentId' => $this->string(),
@@ -69,7 +69,7 @@ class Install extends Migration
         $this->archiveTableIfExists(Table::BULK_OPERATIONS);
         $this->createTable(Table::BULK_OPERATIONS, [
             'id' => $this->primaryKey(),
-            'shopifyId' => $this->string(),
+            'shopifyGid' => $this->string(),
             'url' => $this->text(),
             'objectCount' => $this->integer(),
             'query' => $this->text(),
@@ -139,6 +139,17 @@ class Install extends Migration
                 $db->quoteColumnName($alias) . ' ' . $qb->getColumnType($this->integer()) . " GENERATED ALWAYS AS (" .
                 $expression . ") STORED;");
         }
+
+        // Derived shopifyId — the numeric ID at the end of the GID (e.g. "7136060145715" from "gid://shopify/Product/7136060145715")
+        if ($db->getIsPgsql()) {
+            $shopifyIdExpression = "regexp_replace(\"shopifyGid\", '^.*/', '')";
+        } else {
+            $shopifyIdExpression = "SUBSTRING_INDEX(`shopifyGid`, '/', -1)";
+        }
+
+        $this->execute("ALTER TABLE " . Table::DATA . " ADD COLUMN " .
+            $db->quoteColumnName('shopifyId') . ' ' . $qb->getColumnType($this->string()) . " GENERATED ALWAYS AS (" .
+            $shopifyIdExpression . ") STORED;");
     }
 
     /**
@@ -148,7 +159,7 @@ class Install extends Migration
     {
         $this->createIndex(null, Table::PRODUCTS, ['shopifyId'], false);
         $this->createIndex(null, Table::PRODUCTS, ['shopifyGid'], false);
-        $this->createIndex(null, Table::DATA, ['shopifyId'], false);
+        $this->createIndex(null, Table::DATA, ['shopifyGid'], false);
         $this->createIndex(null, Table::DATA, ['parentId'], false);
     }
 

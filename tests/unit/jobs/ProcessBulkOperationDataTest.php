@@ -79,7 +79,7 @@ class ProcessBulkOperationDataTest extends Unit
         $job = $this->_makeJob();
         $job->callProcessItem($json);
 
-        $record = ShopifyData::findOne(['shopifyId' => $variantGid, 'parentId' => $productGid]);
+        $record = ShopifyData::findOne(['shopifyGid' => $variantGid, 'parentId' => $productGid]);
         self::assertNotNull($record);
         self::assertEquals('ProductVariant', $record->type);
         self::assertEquals($productGid, $record->parentId);
@@ -107,7 +107,7 @@ class ProcessBulkOperationDataTest extends Unit
         ]);
         $job->callProcessItem($updatedJson);
 
-        $records = ShopifyData::find()->where(['shopifyId' => $variantGid, 'parentId' => $productGid])->all();
+        $records = ShopifyData::find()->where(['shopifyGid' => $variantGid, 'parentId' => $productGid])->all();
         // Should still only be one record (updated in place)
         self::assertCount(1, $records);
     }
@@ -188,7 +188,7 @@ class ProcessBulkOperationDataTest extends Unit
         // createOrUpdateProduct requires a full element save — mock it out
         Plugin::getInstance()->set('products', $this->makeEmpty(Products::class, [
             'createOrUpdateProduct' => fn() => true,
-            'deleteShopifyDataByShopifyId' => fn() => null,
+            'deleteShopifyDataByShopifyGid' => fn() => null,
         ]));
 
         $job = $this->_makeJob();
@@ -207,7 +207,7 @@ class ProcessBulkOperationDataTest extends Unit
         self::assertEquals(60, $total);
 
         // Product row
-        $productRow = ShopifyData::find()->where(['shopifyId' => $productGid, 'type' => 'Product'])->one();
+        $productRow = ShopifyData::find()->where(['shopifyGid' => $productGid, 'type' => 'Product'])->one();
         self::assertNotNull($productRow);
         self::assertNull($productRow->parentId);
 
@@ -245,7 +245,7 @@ class ProcessBulkOperationDataTest extends Unit
     {
         // Insert a couple of rows that should be wiped
         \Yii::$app->db->createCommand()->insert(\craft\shopify\db\Table::DATA, [
-            'shopifyId' => 'gid://shopify/Product/before-clear-test-001',
+            'shopifyGid' => 'gid://shopify/Product/before-clear-test-001',
             'type' => 'Product',
             'data' => json_encode(['id' => 'gid://shopify/Product/before-clear-test-001']),
             'parentId' => null,
@@ -256,7 +256,7 @@ class ProcessBulkOperationDataTest extends Unit
 
         $service = Plugin::getInstance()->getBulkOperations();
         $model = new BulkOperation();
-        $model->shopifyId = self::BULK_OP_GID;
+        $model->shopifyGid = self::BULK_OP_GID;
         $model->query = 'query {}';
         $model->clearData = 'none';
         $model->setStatus(BulkOperationStatus::Created);
@@ -271,7 +271,7 @@ class ProcessBulkOperationDataTest extends Unit
     public function testBeforeClearDataNoneDoesNotDeleteShopifyData(): void
     {
         \Yii::$app->db->createCommand()->insert(\craft\shopify\db\Table::DATA, [
-            'shopifyId' => 'gid://shopify/Product/before-none-test-001',
+            'shopifyGid' => 'gid://shopify/Product/before-none-test-001',
             'type' => 'Product',
             'data' => json_encode(['id' => 'gid://shopify/Product/before-none-test-001']),
             'parentId' => null,
@@ -284,7 +284,7 @@ class ProcessBulkOperationDataTest extends Unit
 
         $service = Plugin::getInstance()->getBulkOperations();
         $model = new BulkOperation();
-        $model->shopifyId = self::BULK_OP_GID;
+        $model->shopifyGid = self::BULK_OP_GID;
         $model->query = 'query {}';
         $model->clearData = 'none';
         $model->setStatus(BulkOperationStatus::Created);
@@ -303,7 +303,7 @@ class ProcessBulkOperationDataTest extends Unit
     private function _makeJob(string $clearData = 'none'): TestableProcessBulkOperationData
     {
         return new TestableProcessBulkOperationData([
-            'bulkOperationShopifyId' => self::BULK_OP_GID,
+            'bulkOperationShopifyGid' => self::BULK_OP_GID,
             'dataUrl' => 'https://storage.example.com/data.jsonl',
             'objectCount' => 0,
             'clearData' => $clearData,
@@ -324,7 +324,7 @@ class TestableProcessBulkOperationData extends ProcessBulkOperationData
     public function callBefore(): void
     {
         // Call only our override, not BaseBatchedJob::before() which requires queue context
-        $bulkOperation = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyId($this->bulkOperationShopifyId);
+        $bulkOperation = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyGid($this->bulkOperationShopifyGid);
 
         if (!$bulkOperation) {
             return;
@@ -336,7 +336,7 @@ class TestableProcessBulkOperationData extends ProcessBulkOperationData
         if ($this->clearData === \craft\shopify\records\BulkOperation::CLEAR_DATA_ALL) {
             ShopifyData::deleteAll();
         } elseif ($this->clearData !== \craft\shopify\records\BulkOperation::CLEAR_DATA_NONE) {
-            Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyId($this->clearData);
+            Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyGid($this->clearData);
         }
     }
 }

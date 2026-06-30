@@ -42,6 +42,7 @@ class VariantCollection extends Collection
                 $item = Craft::createObject([
                     'class' => Variant::class,
                     'id' => $item->id,
+                    'shopifyGid' => $item->shopifyGid,
                     'shopifyId' => $item->shopifyId,
                     'type' => $item->type,
                     'parentId' => $item->parentId,

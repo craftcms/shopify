@@ -24,10 +24,10 @@ class Webhook implements Handler
         switch ($topic) {
             case Topics::PRODUCTS_UPDATE:
             case Topics::PRODUCTS_CREATE:
-                Plugin::getInstance()->getProducts()->syncProductByShopifyId($body['id']);
+                Plugin::getInstance()->getProducts()->syncProductByShopifyGid($body['id']);
                 break;
             case Topics::PRODUCTS_DELETE:
-                Plugin::getInstance()->getProducts()->deleteProductByShopifyId($body['id']);
+                Plugin::getInstance()->getProducts()->deleteProductByShopifyGid($body['id']);
                 break;
             case Topics::INVENTORY_ITEMS_UPDATE:
                 Plugin::getInstance()->getProducts()->syncProductByInventoryItemId($body['admin_graphql_api_id']);

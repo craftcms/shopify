@@ -131,7 +131,7 @@ class Product
 
         // This is the date updated in the database which represents the last time it was updated from a Shopify webhook or sync.
         /** @var ShopifyData $productData */
-        $productData = ShopifyData::find()->where(['shopifyId' => $product->shopifyGid])->one();
+        $productData = ShopifyData::find()->where(['shopifyGid' => $product->shopifyGid])->one();
         $dateUpdated = DateTimeHelper::toDateTime($productData->dateUpdated);
         $now = new \DateTime();
         $diff = $now->diff($dateUpdated);

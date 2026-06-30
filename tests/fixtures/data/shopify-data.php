@@ -3,7 +3,7 @@
 return [
     'Product_product_7136060145715' => [
         'id' => 64533,
-        'shopifyId' => 'gid://shopify/Product/7136060145715',
+        'shopifyGid' => 'gid://shopify/Product/7136060145715',
         'type' => 'Product',
         'data' => [
             'id' => 'gid://shopify/Product/7136060145715',
@@ -126,7 +126,7 @@ return [
     ],
     'Product_product_7136060964915' => [
         'id' => 64581,
-        'shopifyId' => 'gid://shopify/Product/7136060964915',
+        'shopifyGid' => 'gid://shopify/Product/7136060964915',
         'type' => 'Product',
         'data' => [
             'id' => 'gid://shopify/Product/7136060964915',
@@ -262,7 +262,7 @@ return [
     ],
     'Product_product_7136062865459' => [
         'id' => 64674,
-        'shopifyId' => 'gid://shopify/Product/7136062865459',
+        'shopifyGid' => 'gid://shopify/Product/7136062865459',
         'type' => 'Product',
         'data' => [
             'id' => 'gid://shopify/Product/7136062865459',
@@ -336,7 +336,7 @@ return [
     ],
     'Product_product_7136074399795' => [
         'id' => 65044,
-        'shopifyId' => 'gid://shopify/Product/7136074399795',
+        'shopifyGid' => 'gid://shopify/Product/7136074399795',
         'type' => 'Product',
         'data' => [
             'id' => 'gid://shopify/Product/7136074399795',
@@ -396,7 +396,7 @@ return [
     ],
     'Product_product_7136075251763' => [
         'id' => 65080,
-        'shopifyId' => 'gid://shopify/Product/7136075251763',
+        'shopifyGid' => 'gid://shopify/Product/7136075251763',
         'type' => 'Product',
         'data' => [
             'id' => 'gid://shopify/Product/7136075251763',
@@ -456,7 +456,7 @@ return [
     ],
     'Product_product_7136076070963' => [
         'id' => 65107,
-        'shopifyId' => 'gid://shopify/Product/7136076070963',
+        'shopifyGid' => 'gid://shopify/Product/7136076070963',
         'type' => 'Product',
         'data' => [
             'id' => 'gid://shopify/Product/7136076070963',
@@ -515,7 +515,7 @@ return [
     ],
     'Product_product_7136089669683' => [
         'id' => 65620,
-        'shopifyId' => 'gid://shopify/Product/7136089669683',
+        'shopifyGid' => 'gid://shopify/Product/7136089669683',
         'type' => 'Product',
         'data' => [
             'id' => 'gid://shopify/Product/7136089669683',
@@ -574,7 +574,7 @@ return [
     ],
     'Product_product_7136090816563' => [
         'id' => 65644,
-        'shopifyId' => 'gid://shopify/Product/7136090816563',
+        'shopifyGid' => 'gid://shopify/Product/7136090816563',
         'type' => 'Product',
         'data' => [
             'id' => 'gid://shopify/Product/7136090816563',
@@ -633,7 +633,7 @@ return [
     ],
     'Product_product_7136093863987' => [
         'id' => 65773,
-        'shopifyId' => 'gid://shopify/Product/7136093863987',
+        'shopifyGid' => 'gid://shopify/Product/7136093863987',
         'type' => 'Product',
         'data' => [
             'id' => 'gid://shopify/Product/7136093863987',
@@ -688,7 +688,7 @@ return [
     ],
     'Product_product_7136099500083' => [
         'id' => 66025,
-        'shopifyId' => 'gid://shopify/Product/7136099500083',
+        'shopifyGid' => 'gid://shopify/Product/7136099500083',
         'type' => 'Product',
         'data' => [
             'id' => 'gid://shopify/Product/7136099500083',
@@ -749,7 +749,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117943373875' => [
         'id' => 64534,
-        'shopifyId' => 'gid://shopify/MediaImage/23117943373875',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117943373875',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117943373875',
@@ -772,7 +772,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117943406643' => [
         'id' => 64535,
-        'shopifyId' => 'gid://shopify/MediaImage/23117943406643',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117943406643',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117943406643',
@@ -795,7 +795,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117943439411' => [
         'id' => 64536,
-        'shopifyId' => 'gid://shopify/MediaImage/23117943439411',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117943439411',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117943439411',
@@ -818,7 +818,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117943472179' => [
         'id' => 64537,
-        'shopifyId' => 'gid://shopify/MediaImage/23117943472179',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117943472179',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117943472179',
@@ -841,7 +841,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117943504947' => [
         'id' => 64538,
-        'shopifyId' => 'gid://shopify/MediaImage/23117943504947',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117943504947',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117943504947',
@@ -864,7 +864,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966390083635' => [
         'id' => 64539,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966390083635',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966390083635',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966390083635',
@@ -919,7 +919,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966390116403' => [
         'id' => 64540,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966390116403',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966390116403',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966390116403',
@@ -974,7 +974,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966390149171' => [
         'id' => 64541,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966390149171',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966390149171',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966390149171',
@@ -1029,7 +1029,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966390181939' => [
         'id' => 64542,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966390181939',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966390181939',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966390181939',
@@ -1084,7 +1084,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966390214707' => [
         'id' => 64543,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966390214707',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966390214707',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966390214707',
@@ -1139,7 +1139,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966390247475' => [
         'id' => 64544,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966390247475',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966390247475',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966390247475',
@@ -1194,7 +1194,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966390280243' => [
         'id' => 64545,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966390280243',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966390280243',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966390280243',
@@ -1249,7 +1249,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966390313011' => [
         'id' => 64546,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966390313011',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966390313011',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966390313011',
@@ -1304,7 +1304,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966390345779' => [
         'id' => 64547,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966390345779',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966390345779',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966390345779',
@@ -1359,7 +1359,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117946912819' => [
         'id' => 64582,
-        'shopifyId' => 'gid://shopify/MediaImage/23117946912819',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117946912819',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117946912819',
@@ -1382,7 +1382,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117946945587' => [
         'id' => 64583,
-        'shopifyId' => 'gid://shopify/MediaImage/23117946945587',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117946945587',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117946945587',
@@ -1405,7 +1405,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117946978355' => [
         'id' => 64584,
-        'shopifyId' => 'gid://shopify/MediaImage/23117946978355',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117946978355',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117946978355',
@@ -1428,7 +1428,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117947011123' => [
         'id' => 64585,
-        'shopifyId' => 'gid://shopify/MediaImage/23117947011123',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117947011123',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117947011123',
@@ -1451,7 +1451,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117947043891' => [
         'id' => 64586,
-        'shopifyId' => 'gid://shopify/MediaImage/23117947043891',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117947043891',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117947043891',
@@ -1474,7 +1474,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966393098291' => [
         'id' => 64587,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966393098291',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966393098291',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966393098291',
@@ -1529,7 +1529,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966393131059' => [
         'id' => 64588,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966393131059',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966393131059',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966393131059',
@@ -1584,7 +1584,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966393163827' => [
         'id' => 64589,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966393163827',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966393163827',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966393163827',
@@ -1639,7 +1639,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966393196595' => [
         'id' => 64590,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966393196595',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966393196595',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966393196595',
@@ -1694,7 +1694,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966393229363' => [
         'id' => 64591,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966393229363',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966393229363',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966393229363',
@@ -1749,7 +1749,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966393262131' => [
         'id' => 64592,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966393262131',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966393262131',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966393262131',
@@ -1804,7 +1804,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966393294899' => [
         'id' => 64593,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966393294899',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966393294899',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966393294899',
@@ -1859,7 +1859,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966393327667' => [
         'id' => 64594,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966393327667',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966393327667',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966393327667',
@@ -1914,7 +1914,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966393360435' => [
         'id' => 64595,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966393360435',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966393360435',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966393360435',
@@ -1969,7 +1969,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966393393203' => [
         'id' => 64596,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966393393203',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966393393203',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966393393203',
@@ -2024,7 +2024,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966393425971' => [
         'id' => 64597,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966393425971',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966393425971',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966393425971',
@@ -2079,7 +2079,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117955760179' => [
         'id' => 64675,
-        'shopifyId' => 'gid://shopify/MediaImage/23117955760179',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117955760179',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117955760179',
@@ -2102,7 +2102,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117955825715' => [
         'id' => 64676,
-        'shopifyId' => 'gid://shopify/MediaImage/23117955825715',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117955825715',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117955825715',
@@ -2125,7 +2125,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117955858483' => [
         'id' => 64677,
-        'shopifyId' => 'gid://shopify/MediaImage/23117955858483',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117955858483',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117955858483',
@@ -2148,7 +2148,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23117955891251' => [
         'id' => 64678,
-        'shopifyId' => 'gid://shopify/MediaImage/23117955891251',
+        'shopifyGid' => 'gid://shopify/MediaImage/23117955891251',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23117955891251',
@@ -2171,7 +2171,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966400143411' => [
         'id' => 64679,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966400143411',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966400143411',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966400143411',
@@ -2226,7 +2226,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23118015758387' => [
         'id' => 65045,
-        'shopifyId' => 'gid://shopify/MediaImage/23118015758387',
+        'shopifyGid' => 'gid://shopify/MediaImage/23118015758387',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23118015758387',
@@ -2249,7 +2249,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966466236467' => [
         'id' => 65046,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966466236467',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966466236467',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966466236467',
@@ -2300,7 +2300,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23118019788851' => [
         'id' => 65081,
-        'shopifyId' => 'gid://shopify/MediaImage/23118019788851',
+        'shopifyGid' => 'gid://shopify/MediaImage/23118019788851',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23118019788851',
@@ -2323,7 +2323,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966470201395' => [
         'id' => 65082,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966470201395',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966470201395',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966470201395',
@@ -2374,7 +2374,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23118023426099' => [
         'id' => 65108,
-        'shopifyId' => 'gid://shopify/MediaImage/23118023426099',
+        'shopifyGid' => 'gid://shopify/MediaImage/23118023426099',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23118023426099',
@@ -2397,7 +2397,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966471970867' => [
         'id' => 65109,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966471970867',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966471970867',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966471970867',
@@ -2448,7 +2448,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23118091616307' => [
         'id' => 65621,
-        'shopifyId' => 'gid://shopify/MediaImage/23118091616307',
+        'shopifyGid' => 'gid://shopify/MediaImage/23118091616307',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23118091616307',
@@ -2471,7 +2471,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966558183475' => [
         'id' => 65622,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966558183475',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966558183475',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966558183475',
@@ -2522,7 +2522,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23118095417395' => [
         'id' => 65645,
-        'shopifyId' => 'gid://shopify/MediaImage/23118095417395',
+        'shopifyGid' => 'gid://shopify/MediaImage/23118095417395',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23118095417395',
@@ -2545,7 +2545,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966567358515' => [
         'id' => 65646,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966567358515',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966567358515',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966567358515',
@@ -2596,7 +2596,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23118112358451' => [
         'id' => 65774,
-        'shopifyId' => 'gid://shopify/MediaImage/23118112358451',
+        'shopifyGid' => 'gid://shopify/MediaImage/23118112358451',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23118112358451',
@@ -2619,7 +2619,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966582956083' => [
         'id' => 65775,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966582956083',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966582956083',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966582956083',
@@ -2670,7 +2670,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'MediaImage_mediaimage_23118148141107' => [
         'id' => 66026,
-        'shopifyId' => 'gid://shopify/MediaImage/23118148141107',
+        'shopifyGid' => 'gid://shopify/MediaImage/23118148141107',
         'type' => 'MediaImage',
         'data' => [
             'id' => 'gid://shopify/MediaImage/23118148141107',
@@ -2693,7 +2693,7 @@ Are these two Dogs posed to take a quiet stroll about town, or could they be pla
     ],
     'ProductVariant_productvariant_41966614183987' => [
         'id' => 66027,
-        'shopifyId' => 'gid://shopify/ProductVariant/41966614183987',
+        'shopifyGid' => 'gid://shopify/ProductVariant/41966614183987',
         'type' => 'ProductVariant',
         'data' => [
             'id' => 'gid://shopify/ProductVariant/41966614183987',

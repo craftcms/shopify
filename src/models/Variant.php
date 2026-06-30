@@ -9,6 +9,7 @@ namespace craft\shopify\models;
 
 use craft\base\Model;
 use craft\helpers\Json;
+use craft\shopify\helpers\Metafield as MetafieldHelper;
 use craft\shopify\Plugin;
 use DateTime;
 use yii\base\InvalidConfigException;
@@ -16,6 +17,7 @@ use yii\base\InvalidConfigException;
 /**
  * Variant model.
  *
+ * @property-read string $shopifyGid
  * @property-read string $shopifyId
  * @property-read string $title
  * @property-read string $sku
@@ -31,7 +33,12 @@ class Variant extends Model
     public ?int $id = null;
 
     /**
-     * @var string|null The Shopify ID of the variant.
+     * @var string|null The Shopify GID of the variant (e.g. "gid://shopify/ProductVariant/123456789").
+     */
+    public ?string $shopifyGid = null;
+
+    /**
+     * @var string|null The numeric Shopify ID of the variant (last segment of the GID).
      */
     public ?string $shopifyId = null;
 
@@ -103,7 +110,7 @@ class Variant extends Model
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['id', 'shopifyId', 'type', 'parentId', 'data', 'dateCreated', 'dateUpdated', 'uid'], 'safe'];
+        $rules[] = [['id', 'shopifyGid', 'shopifyId', 'type', 'parentId', 'data', 'dateCreated', 'dateUpdated', 'uid'], 'safe'];
 
         return $rules;
     }
@@ -142,21 +149,21 @@ class Variant extends Model
     }
 
     /**
-     * @param string|array $value
+     * @param string|array $value A list-shaped array of `{key, value}` objects, or a JSON-encoded string of the same.
      * @return void
+     * @throws \InvalidArgumentException if the value is not a list-shaped array or JSON string of one.
      */
     public function setMetafields(string|array $value): void
     {
         if (is_string($value)) {
             $value = Json::decodeIfJson($value);
-            $value = collect($value)->mapWithKeys(function($d) {
-                return [
-                    $d['key'] => Json::decodeIfJson($d['value']),
-                ];
-            });
         }
 
-        $this->_metaFields = $value;
+        if (!is_array($value) || !array_is_list($value)) {
+            throw new \InvalidArgumentException('setMetafields() expects a list-shaped array of {key, value} objects or a JSON-encoded string of the same.');
+        }
+
+        $this->_metaFields = MetafieldHelper::normalizeToMap($value);
     }
 
     /**
@@ -165,7 +172,7 @@ class Variant extends Model
      */
     public function getMetafields(): array
     {
-        if (!$this->shopifyId) {
+        if (!$this->shopifyGid) {
             return [];
         }
 
@@ -173,16 +180,9 @@ class Variant extends Model
             return $this->_metaFields;
         }
 
-        $data = Plugin::getInstance()->getApi()->getShopifyDataByType('Metafield', $this->shopifyId);
+        $data = Plugin::getInstance()->getApi()->getShopifyDataByType('Metafield', $this->shopifyGid);
 
-        $metafields = $data
-            ->mapWithKeys(function($d) {
-                return [
-                    $d['key'] => Json::decodeIfJson($d['value']),
-                ];
-            });
-
-        $this->setMetafields($metafields->all());
+        $this->setMetafields($data->all());
 
         return $this->_metaFields ?? [];
     }

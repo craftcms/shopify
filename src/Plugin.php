@@ -79,7 +79,7 @@ class Plugin extends BasePlugin
     /**
      * @var string
      */
-    public string $schemaVersion = '7.1.0.0';
+    public string $schemaVersion = '8.0.0';
 
     /**
      * @inheritdoc
@@ -450,8 +450,8 @@ class Plugin extends BasePlugin
                     'products.shopifyId',
                 ])
                 ->from(Table::PRODUCTS . ' products')
-                ->leftJoin(Table::DATA . ' data', '[[data.shopifyId]] = [[products.shopifyGid]]')
-                ->where(['data.shopifyId' => null])
+                ->leftJoin(Table::DATA . ' data', '[[data.shopifyGid]] = [[products.shopifyGid]]')
+                ->where(['data.shopifyGid' => null])
                 ->all();
 
             $shopifyIds = ArrayHelper::getColumn($shopifyProductElementsMissingData, 'shopifyId');
