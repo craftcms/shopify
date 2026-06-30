@@ -131,7 +131,7 @@ class Product
 
         // This is the date updated in the database which represents the last time it was updated from a Shopify webhook or sync.
         /** @var ShopifyData $productData */
-        $productData = ShopifyData::find()->where(['shopifyId' => $product->shopifyGid])->one();
+        $productData = ShopifyData::find()->where(['shopifyGid' => $product->shopifyGid])->one();
         $dateUpdated = DateTimeHelper::toDateTime($productData->dateUpdated);
         $now = new \DateTime();
         $diff = $now->diff($dateUpdated);
@@ -153,16 +153,6 @@ class Product
      */
     public static function shopifyStatusHtml(ProductElement $product): string
     {
-        // @TODO update this either when Craft 4 support is dropped or 4 gets enums
-        if (!class_exists(Color::class) || !method_exists(Cp::class, 'statusLabelHtml')) {
-            $color = match (StringHelper::toLowerCase($product->shopifyStatus)) {
-                ProductElement::SHOPIFY_STATUS_ACTIVE => 'green',
-                ProductElement::SHOPIFY_STATUS_ARCHIVED => 'red',
-                default => 'orange', // takes care of draft
-            };
-            return "<span class='status $color'></span>" . StringHelper::titleize($product->shopifyStatus);
-        }
-
         $color = match (StringHelper::toLowerCase($product->shopifyStatus)) {
             ProductElement::SHOPIFY_STATUS_ACTIVE => Color::Green->value,
             ProductElement::SHOPIFY_STATUS_ARCHIVED => Color::Red->value,

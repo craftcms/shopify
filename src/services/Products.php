@@ -8,12 +8,10 @@ use craft\errors\ElementNotFoundException;
 use craft\events\ConfigEvent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
-use craft\helpers\Json;
 use craft\helpers\ProjectConfig;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
 use craft\shopify\collections\VariantCollection;
-use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
 use craft\shopify\events\ShopifyProductSyncEvent;
 use craft\shopify\models\Variant;
@@ -59,15 +57,28 @@ class Products extends Component
     public const EVENT_BEFORE_SYNCHRONIZE_PRODUCT = 'beforeSynchronizeProduct';
 
     /**
+     * @param string $gid
+     * @return void
+     * @throws InvalidConfigException
+     * @throws \yii\db\Exception
+     * @since 8.0.0
+     */
+    public function syncProductByShopifyGid(string $gid): void
+    {
+        $gid = $this->normalizeShopifyGid($gid);
+        Plugin::getInstance()->getBulkOperations()->createBulkOperation((string)Plugin::getInstance()->getApi()->getProductGql($gid), $gid);
+    }
+
+    /**
      * @param string $id
      * @return void
      * @throws InvalidConfigException
      * @throws \yii\db\Exception
+     * @deprecated in 8.0.0. Use [[syncProductByShopifyGid()]] instead.
      */
     public function syncProductByShopifyId(string $id): void
     {
-        $shopifyId = $this->normalizeShopifyGid($id);
-        Plugin::getInstance()->getBulkOperations()->createBulkOperation((string)Plugin::getInstance()->getApi()->getProductGql($id), $shopifyId);
+        $this->syncProductByShopifyGid($id);
     }
 
     /**
@@ -100,7 +111,7 @@ class Products extends Component
 
         $productId = $item['variant']['product']['id'];
 
-        $this->syncProductByShopifyId($productId);
+        $this->syncProductByShopifyGid($productId);
     }
 
     /**
@@ -178,52 +189,72 @@ class Products extends Component
     }
 
     /**
-     * Deletes a product element by the Shopify ID.
+     * Deletes a product element by the Shopify GID.
      *
+     * @param string $gid
+     * @return bool Whether the deletion was performed. Returns false if `$gid` is empty.
+     * @throws \Throwable
+     * @throws StaleObjectException
+     * @since 8.0.0
+     */
+    public function deleteProductByShopifyGid(string $gid): bool
+    {
+        if (!$gid) {
+            return false;
+        }
+
+        $gid = $this->normalizeShopifyGid($gid);
+
+        if ($product = Product::find()->shopifyGid($gid)->one()) {
+            // We hard delete because it will have been hard deleted in Shopify
+            Craft::$app->getElements()->deleteElement($product, true);
+        }
+
+        $this->deleteShopifyDataByShopifyGid($gid);
+
+        return true;
+    }
+
+    /**
      * @param $id
      * @return void
      * @throws \Throwable
      * @throws StaleObjectException
+     * @deprecated in 8.0.0. Use [[deleteProductByShopifyGid()]] instead.
      */
     public function deleteProductByShopifyId($id): void
     {
-        if ($id) {
-            if ($product = Product::find()->shopifyId($id)->one()) {
-                // We hard delete because it will have been hard deleted in Shopify
-                Craft::$app->getElements()->deleteElement($product, true);
-            }
-
-            // Delete data in shopify data table
-            // Delete the product data
-            $shopifyId = $this->normalizeShopifyGid($id);
-            $this->deleteShopifyDataByShopifyId($shopifyId);
+        if (!$id) {
+            return;
         }
+
+        $this->deleteProductByShopifyGid($id);
     }
 
     /**
-     * @param string $shopifyId
+     * @param string $gid
      * @return void
      * @throws StaleObjectException
      * @throws \Throwable
-     * @since 6.0.0
+     * @since 8.0.0
      */
-    public function deleteShopifyDataByShopifyId(string $shopifyId): void
+    public function deleteShopifyDataByShopifyGid(string $gid): void
     {
-        // Support both id and gid
-        $shopifyId = $this->normalizeShopifyGid($shopifyId);
+        // Support both numeric ID and GID
+        $gid = $this->normalizeShopifyGid($gid);
 
         /** @var ShopifyData|null $shopifyData */
-        $shopifyData = ShopifyData::find()->where(['shopifyId' => $shopifyId])->one();
+        $shopifyData = ShopifyData::find()->where(['shopifyGid' => $gid])->one();
 
         // Delete if possible
         $shopifyData?->delete();
 
         // Delete any child data that may still exist
         /** @var ShopifyData[] $shopifyData */
-        $shopifyData = ShopifyData::find()->where(['parentId' => $shopifyId])->all();
+        $shopifyData = ShopifyData::find()->where(['parentId' => $gid])->all();
         $childIds = [];
         foreach ($shopifyData as $data) {
-            $childIds[] = $data->shopifyId;
+            $childIds[] = $data->shopifyGid;
             $data->delete();
         }
 
@@ -233,10 +264,22 @@ class Products extends Component
             /** @var ShopifyData[] $shopifyData */
             $shopifyData = ShopifyData::find()->where(['parentId' => $childId])->all();
             foreach ($shopifyData as $data) {
-                $childIds[] = $data->shopifyId;
+                $childIds[] = $data->shopifyGid;
                 $data->delete();
             }
         }
+    }
+
+    /**
+     * @param string $shopifyId
+     * @return void
+     * @throws StaleObjectException
+     * @throws \Throwable
+     * @deprecated in 8.0.0. Use [[deleteShopifyDataByShopifyGid()]] instead.
+     */
+    public function deleteShopifyDataByShopifyId(string $shopifyId): void
+    {
+        $this->deleteShopifyDataByShopifyGid($shopifyId);
     }
 
     /**
@@ -247,23 +290,7 @@ class Products extends Component
     public function eagerLoadMetafieldsForProducts(array $products): array
     {
         return $this->_eagerLoadTypeOnProducts($products, 'Metafield', function($product, $rows) {
-            $metafields = collect($rows)
-                ->mapWithKeys(function($d, $key) {
-                    /** @var ShopifyData $d */
-                    $data = Json::decodeIfJson($d->data);
-
-                    // Map if the data has `key` and `value` properties
-                    if (!is_array($data) || !isset($data['key']) || !isset($data['value'])) {
-                        return [];
-                    }
-
-                    return [
-                        $data['key'] => Json::decodeIfJson($data['value']),
-                    ];
-                })
-                ->all();
-
-            $product->setMetafields($metafields);
+            $product->setMetafields($rows);
         });
     }
 
@@ -290,7 +317,7 @@ class Products extends Component
         $variantsByProductId = [];
         $return = $this->_eagerLoadTypeOnProducts($products, 'ProductVariant', function($product, $rows) use (&$variantsByProductId, &$variantIds) {
             foreach ($rows as $row) {
-                $variantIds[] = $row->shopifyId;
+                $variantIds[] = $row->shopifyGid;
             }
 
             $variantsByProductId[$product->shopifyGid] = $rows;
@@ -309,18 +336,10 @@ class Products extends Component
             $variants = VariantCollection::make($variantsByProductId[$product->shopifyGid]);
 
             if ($metafieldsData->isNotEmpty()) {
-                $variants->map(function(Variant$variant) use ($metafieldsData) {
-                    $metafields = $metafieldsData->get($variant->shopifyId);
+                $variants->map(function(Variant $variant) use ($metafieldsData) {
+                    $metafields = $metafieldsData->get($variant->shopifyGid);
                     if (!empty($metafields)) {
-                        $variant->setMetafields(collect($metafields)->mapWithKeys(function($d) {
-                            $data = Json::decodeIfJson($d->data);
-                            if (!is_array($data) || !isset($data['key']) || !isset($data['value'])) {
-                                return [];
-                            }
-                            return [
-                                $data['key'] => Json::decodeIfJson($data['value']),
-                            ];
-                        })->all());
+                        $variant->setMetafields($metafields->all());
                     }
                 });
             }

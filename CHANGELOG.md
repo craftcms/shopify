@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- It is now possible to view plugin settings as an admin on environments that do not allow admin changes.
+
 ## 7.1.3 - 2026-06-18
 
 - Fixed a bug where product titles weren't syncing correctly across sites. ([#198](https://github.com/craftcms/shopify/issues/198), [#201](https://github.com/craftcms/shopify/issues/201))

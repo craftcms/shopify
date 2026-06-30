@@ -67,13 +67,25 @@ class BulkOperations extends Component
     }
 
     /**
+     * @param string $gid
+     * @return BulkOperation|null
+     * @throws InvalidConfigException
+     * @since 8.0.0
+     */
+    public function getBulkOperationByShopifyGid(string $gid): ?BulkOperation
+    {
+        return $this->getAllBulkOperations()->firstWhere('shopifyGid', $gid);
+    }
+
+    /**
      * @param string $shopifyId
      * @return BulkOperation|null
      * @throws InvalidConfigException
+     * @deprecated in 8.0.0. Use [[getBulkOperationByShopifyGid()]] instead.
      */
     public function getBulkOperationByShopifyId(string $shopifyId): ?BulkOperation
     {
-        return $this->getAllBulkOperations()->firstWhere('shopifyId', $shopifyId);
+        return $this->getBulkOperationByShopifyGid($shopifyId);
     }
 
     /**
@@ -211,7 +223,7 @@ class BulkOperations extends Component
         }
 
         $bulkOperation->shopifyStatus = $op['status'];
-        $bulkOperation->shopifyId = $op['id'];
+        $bulkOperation->shopifyGid = $op['id'];
         $this->saveBulkOperation($bulkOperation);
 
         return true;
@@ -237,7 +249,7 @@ class BulkOperations extends Component
         }
 
         // Load our local record of the bulk op:
-        $bulkOperation = $this->getBulkOperationByShopifyId($payload['admin_graphql_api_id']);
+        $bulkOperation = $this->getBulkOperationByShopifyGid($payload['admin_graphql_api_id']);
 
         if (!$bulkOperation) {
             // Ok... maybe it was initiated for a different environment?
@@ -321,7 +333,7 @@ class BulkOperations extends Component
         /** @var BulkOperation $bulkOperation */
         $bulkOperation = Craft::createObject(array_merge($nextToProcess, ['class' => BulkOperation::class]));
         if (!Queue::push(new ProcessBulkOperationData([
-            'bulkOperationShopifyId' => $bulkOperation->shopifyId,
+            'bulkOperationShopifyGid' => $bulkOperation->shopifyGid,
             'dataUrl' => $bulkOperation->url,
             'objectCount' => $bulkOperation->objectCount,
             'clearData' => $bulkOperation->clearData,
@@ -351,7 +363,7 @@ class BulkOperations extends Component
         if ($bulkOperation->id) {
             $record = BulkOperationRecord::findOne($bulkOperation->id);
         } else {
-            $record = BulkOperationRecord::findOne(['shopifyId' => $bulkOperation->shopifyId]);
+            $record = BulkOperationRecord::findOne(['shopifyGid' => $bulkOperation->shopifyGid]);
         }
 
         if (!$record) {
@@ -365,7 +377,7 @@ class BulkOperations extends Component
         }
 
         $record->clearData = $bulkOperation->clearData;
-        $record->shopifyId = $bulkOperation->shopifyId;
+        $record->shopifyGid = $bulkOperation->shopifyGid;
         $record->url = $bulkOperation->url;
         $record->objectCount = $bulkOperation->objectCount;
         $record->query = $bulkOperation->query;
@@ -445,7 +457,7 @@ class BulkOperations extends Component
                 'id',
                 'objectCount',
                 'query',
-                'shopifyId',
+                'shopifyGid',
                 'status',
                 'shopifyStatus',
                 'url',

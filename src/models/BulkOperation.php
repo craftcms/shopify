@@ -26,9 +26,9 @@ class BulkOperation extends Model
     public ?int $id = null;
 
     /**
-     * @var string|null The Shopify ID of the bulk operation.
+     * @var string|null The Shopify GID of the bulk operation (e.g. "gid://shopify/BulkOperation/123456789").
      */
-    public ?string $shopifyId = null;
+    public ?string $shopifyGid = null;
 
     /**
      * @var string|null The URL of the bulk operation data.
@@ -80,8 +80,8 @@ class BulkOperation extends Model
         $rules = parent::defineRules();
 
         $rules[] = [['id', 'objectCount'], 'number', 'integerOnly' => true];
-        $rules[] = [['shopifyId', 'url'], 'string'];
-        $rules[] = [['id', 'shopifyId', 'url', 'objectCount', 'status', 'shopifyStatus', 'query', 'dateCreated', 'dateUpdated'], 'safe'];
+        $rules[] = [['shopifyGid', 'url'], 'string'];
+        $rules[] = [['id', 'shopifyGid', 'url', 'objectCount', 'status', 'shopifyStatus', 'query', 'dateCreated', 'dateUpdated'], 'safe'];
 
         return $rules;
     }

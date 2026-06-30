@@ -39,6 +39,6 @@ class Product extends ActiveRecord
 
     public function getData(): ActiveQueryInterface
     {
-        return $this->hasOne(ShopifyData::class, ['shopifyGid' => 'shopifyId']);
+        return $this->hasOne(ShopifyData::class, ['shopifyGid' => 'shopifyGid']);
     }
 }

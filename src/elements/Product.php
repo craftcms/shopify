@@ -23,6 +23,7 @@ use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\fieldlayoutelements\MetafieldsField;
 use craft\shopify\fieldlayoutelements\OptionsField;
 use craft\shopify\fieldlayoutelements\VariantsField;
+use craft\shopify\helpers\Metafield as MetafieldHelper;
 use craft\shopify\helpers\Product as ProductHelper;
 use craft\shopify\models\Variant;
 use craft\shopify\Plugin;
@@ -359,8 +360,9 @@ class Product extends Element
     }
 
     /**
-     * @param string|array $value
+     * @param string|array $value A list-shaped array of `{key, value}` objects, or a JSON-encoded string of the same.
      * @return void
+     * @throws \InvalidArgumentException if the value is not a list-shaped array or JSON string of one.
      */
     public function setMetafields(string|array $value): void
     {
@@ -368,7 +370,11 @@ class Product extends Element
             $value = Json::decodeIfJson($value);
         }
 
-        $this->_metaFields = $value;
+        if (!is_array($value) || !array_is_list($value)) {
+            throw new \InvalidArgumentException('setMetafields() expects a list-shaped array of {key, value} objects or a JSON-encoded string of the same.');
+        }
+
+        $this->_metaFields = MetafieldHelper::normalizeToMap($value);
     }
 
     /**
@@ -387,14 +393,7 @@ class Product extends Element
 
         $data = Plugin::getInstance()->getApi()->getShopifyDataByType('Metafield', $this->shopifyGid);
 
-        $metafields = $data
-            ->mapWithKeys(function($d) {
-                return [
-                    $d['key'] => Json::decodeIfJson($d['value']),
-                ];
-            });
-
-        $this->setMetafields($metafields);
+        $this->setMetafields($data->all());
 
         return $this->_metaFields ?? [];
     }
@@ -731,7 +730,7 @@ class Product extends Element
         // Conditionally show metadata in the sidebar dependent on the field layout
         $excludeKeys = [];
         $fieldLayout = $this->getFieldLayout();
-        $checkField = function($field) use (&$excludeKeys) {
+        $fieldLayout->getFields(function($field) use (&$excludeKeys) {
             if ($field instanceof VariantsField) {
                 $excludeKeys[] = 'Variants';
                 return true;
@@ -743,16 +742,7 @@ class Product extends Element
                 return true;
             }
             return false;
-        };
-
-        // @TODO remove when the plugin no longer supports Craft 4
-        if (!method_exists($fieldLayout, 'getFields')) {
-            foreach ($fieldLayout->getCustomFields() as $field) {
-                $checkField($field);
-            }
-        } else {
-            $fieldLayout->getFields($checkField);
-        }
+        });
 
         return ProductHelper::renderCardHtml($this, $excludeKeys) . parent::getSidebarHtml($static);
     }
@@ -823,7 +813,7 @@ class Product extends Element
     {
         // Remove all the product shopify data
         if ($this->shopifyGid && $this->getIsCanonical()) {
-            Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyId($this->shopifyGid);
+            Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyGid($this->shopifyGid);
         }
 
         parent::afterDelete();
@@ -890,29 +880,6 @@ class Product extends Element
         ];
 
         return $sortOptions;
-    }
-
-    /**
-     * @param string $attribute
-     * @return string
-     * @throws InvalidConfigException
-     * @TODO remove this method when support for Craft 4 is dropped
-     */
-    protected function tableAttributeHtml(string $attribute): string
-    {
-        if (!in_array($attribute, [
-            'shopifyEdit',
-            'shopifyStatus',
-            'shopifyId',
-            'options',
-            'tags',
-            'variants',
-        ])) {
-            /** @phpstan-ignore-next-line */
-            return parent::tableAttributeHtml($attribute);
-        }
-
-        return $this->attributeHtml($attribute);
     }
 
     /**

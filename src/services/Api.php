@@ -203,7 +203,7 @@ class Api extends Component
                 $shopRecord = new ShopifyData();
             }
 
-            $shopRecord->shopifyId = $response['id'];
+            $shopRecord->shopifyGid = $response['id'];
             $shopRecord->type = 'Shop';
             $shopRecord->data = $response;
 

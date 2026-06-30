@@ -55,30 +55,46 @@ class BulkOperationsTest extends Unit
     public function testGetAllBulkOperationsContainsFixtureData(): void
     {
         $ops = Plugin::getInstance()->getBulkOperations()->getAllBulkOperations();
-        $shopifyIds = $ops->pluck('shopifyId')->all();
+        $shopifyIds = $ops->pluck('shopifyGid')->all();
 
         self::assertContains(self::FIXTURE_GID, $shopifyIds);
     }
 
     // -------------------------------------------------------------------------
-    // getBulkOperationByShopifyId
+    // getBulkOperationByShopifyGid
     // -------------------------------------------------------------------------
 
-    public function testGetBulkOperationByShopifyIdFindsKnownRecord(): void
+    public function testGetBulkOperationByShopifyGidFindsKnownRecord(): void
+    {
+        $op = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyGid(self::FIXTURE_GID);
+
+        self::assertNotNull($op);
+        self::assertInstanceOf(BulkOperation::class, $op);
+        self::assertEquals(self::FIXTURE_GID, $op->shopifyGid);
+        self::assertEquals(BulkOperationStatus::Completed, $op->getStatus());
+    }
+
+    public function testGetBulkOperationByShopifyGidReturnsNullForUnknownId(): void
+    {
+        $op = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyGid('gid://shopify/BulkOperation/does-not-exist');
+
+        self::assertNull($op);
+    }
+
+    // -------------------------------------------------------------------------
+    // getBulkOperationByShopifyId (deprecated)
+    // -------------------------------------------------------------------------
+
+    /**
+     * @deprecated in 8.0.0. Use [[testGetBulkOperationByShopifyGidFindsKnownRecord()]] instead.
+     */
+    public function testGetBulkOperationByShopifyIdDelegatesToGidMethod(): void
     {
         $op = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyId(self::FIXTURE_GID);
 
         self::assertNotNull($op);
         self::assertInstanceOf(BulkOperation::class, $op);
-        self::assertEquals(self::FIXTURE_GID, $op->shopifyId);
-        self::assertEquals(BulkOperationStatus::Completed, $op->getStatus());
-    }
-
-    public function testGetBulkOperationByShopifyIdReturnsNullForUnknownId(): void
-    {
-        $op = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyId('gid://shopify/BulkOperation/does-not-exist');
-
-        self::assertNull($op);
+        self::assertEquals(self::FIXTURE_GID, $op->shopifyGid);
     }
 
     // -------------------------------------------------------------------------
@@ -98,12 +114,12 @@ class BulkOperationsTest extends Unit
     public function testSaveBulkOperationUpdatesExistingRecord(): void
     {
         $service = Plugin::getInstance()->getBulkOperations();
-        $op = $service->getBulkOperationByShopifyId(self::FIXTURE_GID);
+        $op = $service->getBulkOperationByShopifyGid(self::FIXTURE_GID);
 
         $op->objectCount = 9999;
         $service->saveBulkOperation($op, false);
 
-        $reloaded = $service->getBulkOperationByShopifyId(self::FIXTURE_GID);
+        $reloaded = $service->getBulkOperationByShopifyGid(self::FIXTURE_GID);
         self::assertEquals(9999, $reloaded->objectCount);
     }
 
@@ -121,7 +137,7 @@ class BulkOperationsTest extends Unit
         $result = $service->deleteBulkOperationById($id);
 
         self::assertTrue($result);
-        self::assertNull($service->getBulkOperationByShopifyId('gid://shopify/BulkOperation/delete-test-001'));
+        self::assertNull($service->getBulkOperationByShopifyGid('gid://shopify/BulkOperation/delete-test-001'));
     }
 
     public function testDeleteBulkOperationByIdReturnsTrueForMissingRecord(): void
@@ -140,7 +156,7 @@ class BulkOperationsTest extends Unit
         $result = $service->deleteBulkOperationById($model->id);
 
         self::assertFalse($result);
-        self::assertNotNull($service->getBulkOperationByShopifyId('gid://shopify/BulkOperation/processing-test-001'));
+        self::assertNotNull($service->getBulkOperationByShopifyGid('gid://shopify/BulkOperation/processing-test-001'));
     }
 
     // -------------------------------------------------------------------------
@@ -180,7 +196,7 @@ class BulkOperationsTest extends Unit
 
         $service->handleBulkOperationFinished(['admin_graphql_api_id' => $gid]);
 
-        $reloaded = $service->getBulkOperationByShopifyId($gid);
+        $reloaded = $service->getBulkOperationByShopifyGid($gid);
         self::assertNotNull($reloaded);
         self::assertEquals(BulkOperationStatus::Completed, $reloaded->getStatus());
         self::assertEquals('CANCELED', $reloaded->shopifyStatus);
@@ -207,7 +223,7 @@ class BulkOperationsTest extends Unit
 
         $service->handleBulkOperationFinished(['admin_graphql_api_id' => $gid]);
 
-        $reloaded = $service->getBulkOperationByShopifyId($gid);
+        $reloaded = $service->getBulkOperationByShopifyGid($gid);
         self::assertNotNull($reloaded);
         self::assertEquals('COMPLETED', $reloaded->shopifyStatus);
         self::assertEquals($dataUrl, $reloaded->url);
@@ -241,19 +257,19 @@ class BulkOperationsTest extends Unit
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function _makeQueuedOp(string $shopifyId): BulkOperation
+    private function _makeQueuedOp(string $gid): BulkOperation
     {
         $model = new BulkOperation();
-        $model->shopifyId = $shopifyId;
+        $model->shopifyGid = $gid;
         $model->query = 'query { products { edges { node { id } } } }';
         $model->clearData = 'none';
         $model->setStatus(BulkOperationStatus::Queued);
         return $model;
     }
 
-    private function _makeCreatedOp(string $shopifyId): BulkOperation
+    private function _makeCreatedOp(string $gid): BulkOperation
     {
-        $model = $this->_makeQueuedOp($shopifyId);
+        $model = $this->_makeQueuedOp($gid);
         $model->setStatus(BulkOperationStatus::Created);
         return $model;
     }
