@@ -23,7 +23,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
     /**
      * @var string
      */
-    public string $bulkOperationShopifyGid;
+    public string $bulkOperationShopifyGid = '';
 
     /**
      * @var string
