@@ -1434,13 +1434,13 @@ The event object has one property:
 
 ```php
 use craft\base\Event;
-use craft\shopify\events\DefineInitializeApiContextEvent;
+use craft\shopify\events\DefineContextConfigEvent;
 use craft\shopify\services\Api;
 
 Event::on(
     Api::class,
-    Api::EVENT_DEFINE_INITIALIZE_API_CONTEXT,
-    function(DefineInitializeApiContextEvent $event) {
+    Api::EVENT_DEFINE_CONTEXT_CONFIG,
+    function(DefineContextConfigEvent $event) {
         // Disable the Shopify API logger:
         $event->config['logger'] = null;
     }
@@ -1458,7 +1458,7 @@ use Shopify\Context;
 
 Event::on(
     Api::class,
-    Api::EVENT_AFTER_INITIALIZE_API_CONTEXT,
+    Api::EVENT_CONTEXT_INITIALIZED,
     function(Event $event) {
         // Replace the HTTP client factory with a custom implementation:
         Context::$HTTP_CLIENT_FACTORY = new MyHttpClientFactory();

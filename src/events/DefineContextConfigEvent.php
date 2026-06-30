@@ -15,7 +15,7 @@ use craft\base\Event;
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 7.2.0
  */
-class DefineInitializeApiContextEvent extends Event
+class DefineContextConfigEvent extends Event
 {
     /**
      * @var array Array of the arguments used to initialize the API context (`Context::initialize()`).

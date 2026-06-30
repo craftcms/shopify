@@ -15,7 +15,7 @@ use craft\helpers\StringHelper;
 use craft\log\MonologTarget;
 use craft\shopify\events\DefineGqlFieldsEvent;
 use craft\shopify\events\DefineGqlQueryArgumentsEvent;
-use craft\shopify\events\DefineInitializeApiContextEvent;
+use craft\shopify\events\DefineContextConfigEvent;
 use craft\shopify\Plugin;
 use craft\shopify\records\AccessToken;
 use craft\shopify\records\ShopifyData;
@@ -83,16 +83,16 @@ class Api extends Component
     public const EVENT_DEFINE_GQL_QUERY_ARGUMENTS = 'defineGqlQueryArguments';
 
     /**
-     * @event DefineInitializeApiContextEvent Trigged before initializing the Shopify API context, which is required for authentication and making API calls.
+     * @event DefineContextConfigEvent Trigged before initializing the Shopify API context, which is required for authentication and making API calls.
      * @since 7.2.0
      */
-    public const EVENT_DEFINE_INITIALIZE_API_CONTEXT = 'defineInitializeApiContext';
+    public const EVENT_DEFINE_CONTEXT_CONFIG = 'defineContextConfig';
 
     /**
      * @event Event Triggered after the Shopify API context has been initialized, which is required for authentication and making API calls.
      * @since 7.2.0
      */
-    public const EVENT_AFTER_INITIALIZE_API_CONTEXT = 'afterInitializeApiContext';
+    public const EVENT_CONTEXT_INITIALIZED = 'contextInitialized';
 
     /**
      * @var Session|null
@@ -666,10 +666,10 @@ class Api extends Component
             'logger' => $webLogTarget->getLogger(),
         ];
 
-        if ($this->hasEventHandlers(self::EVENT_DEFINE_INITIALIZE_API_CONTEXT)) {
-            $event = new DefineInitializeApiContextEvent(['config' => $contextConfig]);
+        if ($this->hasEventHandlers(self::EVENT_DEFINE_CONTEXT_CONFIG)) {
+            $event = new DefineContextConfigEvent(['config' => $contextConfig]);
 
-            $this->trigger(self::EVENT_DEFINE_INITIALIZE_API_CONTEXT, $event);
+            $this->trigger(self::EVENT_DEFINE_CONTEXT_CONFIG, $event);
             $contextConfig = $event->config;
         }
 
@@ -683,8 +683,8 @@ class Api extends Component
             }
         };
 
-        if ($this->hasEventHandlers(self::EVENT_AFTER_INITIALIZE_API_CONTEXT)) {
-            $this->trigger(self::EVENT_AFTER_INITIALIZE_API_CONTEXT);
+        if ($this->hasEventHandlers(self::EVENT_CONTEXT_INITIALIZED)) {
+            $this->trigger(self::EVENT_CONTEXT_INITIALIZED);
         }
     }
 
