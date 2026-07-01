@@ -1424,9 +1424,9 @@ Event::on(
 
 Using this event, after the queries have been built, you have the opportunity to add custom arguments to the main query. For example, you can tailor a query for products using the [ProductConnection arguments](https://shopify.dev/docs/api/admin-graphql/2026-01/queries/products#arguments) (like `query`, `reverse`, or `savedSearchId`).
 
-#### `craft\shopify\services\Api::EVENT_DEFINE_INITIALIZE_API_CONTEXT`
+#### `craft\shopify\services\Api::EVENT_DEFINE_CONTEXT_CONFIG`
 
-Emitted before the Shopify API context is initialized. The `craft\shopify\events\DefineInitializeApiContextEvent` object exposes a `$config` array containing the arguments that will be passed to [`Context::initialize()`](https://github.com/Shopify/shopify-api-php/blob/main/docs/getting_started.md), allowing you to customize the context before it is applied.
+Emitted before the Shopify API context is initialized. The `craft\shopify\events\DefineContextConfigEvent` object exposes a `$config` array containing the arguments that will be passed to [`Context::initialize()`](https://github.com/Shopify/shopify-api-php/blob/main/docs/getting_started.md), allowing you to customize the context before it is applied.
 
 The event object has one property:
 
@@ -1447,7 +1447,7 @@ Event::on(
 );
 ```
 
-#### `craft\shopify\services\Api::EVENT_AFTER_INITIALIZE_API_CONTEXT`
+#### `craft\shopify\services\Api::EVENT_CONTEXT_INITIALIZED`
 
 Emitted after the Shopify API context has been fully initialized. Use this event to perform setup that depends on a ready context, such as overriding the HTTP client factory.
 

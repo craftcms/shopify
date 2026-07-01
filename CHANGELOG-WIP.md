@@ -13,7 +13,7 @@
 ### Extensibility
 
 - Added `craft\shopify\controllers\SettingsController::actionGetScopes()`.
-- Added `craft\shopify\events\DefineInitializeApiContextEvent`.
+- Added `craft\shopify\events\DefineContextConfigEvent`.
 - Added `craft\shopify\models\BulkOperation::$shopifyGid`.
 - Added `craft\shopify\models\Settings::REQUIRED_SCOPES`.
 - Added `craft\shopify\models\Settings::getAdditionalFeatures()`.
@@ -28,8 +28,8 @@
 - Added `craft\shopify\services\Products::deleteProductByShopifyGid()`.
 - Added `craft\shopify\services\Products::deleteShopifyDataByShopifyGid()`.
 - Added `craft\shopify\services\Products::syncProductByShopifyGid()`.
-- Added `craft\shopify\services\Api::EVENT_AFTER_INITIALIZE_API_CONTEXT`.
-- Added `craft\shopify\services\Api::EVENT_DEFINE_INITIALIZE_API_CONTEXT`.
+- Added `craft\shopify\services\Api::EVENT_CONTEXT_INITIALIZED`.
+- Added `craft\shopify\services\Api::EVENT_DEFINE_CONTEXT_CONFIG`.
 - Added `craft\shopify\services\Api::getShopLocalesGql()`.
 - `craft\shopify\models\Variant::$shopifyId` now holds the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
 - `craft\shopify\records\ShopifyData::$shopifyId` is now a generated (read-only) column containing the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
