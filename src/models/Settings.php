@@ -32,9 +32,13 @@ class Settings extends Model
     private string $_accessToken = '';
 
     private string $_hostName = '';
+    private array $_additionalFeatures = [];
+    private string $_customScopes = '';
     public string $uriFormat = '';
     public string $template = '';
     private mixed $_productFieldLayout;
+
+    public const REQUIRED_SCOPES = ['read_inventory', 'read_product_listings', 'read_products'];
 
     /**
      * @var string|null Comma separated list of country codes to use for contextual pricing.
@@ -53,6 +57,8 @@ class Settings extends Model
         return [
             [['clientSecret', 'clientId', 'hostName', 'apiVersion'], 'required'],
             [['apiVersion'], 'in', 'range' => Plugin::getInstance()->getApi()->getSupportedApiVersions()],
+            [['additionalFeatures'], 'in', 'range' => array_keys($this->getAdditionalFeaturesOptions()), 'allowArray' => true],
+            [['customScopes'], 'string', 'skipOnEmpty' => true],
             [['hostName'], function($attribute) {
                 $hostName = $this->$attribute;
 
@@ -66,10 +72,12 @@ class Settings extends Model
     public function attributes()
     {
         $names = parent::attributes();
+        $names[] = 'additionalFeatures';
         $names[] = 'apiVersion';
         $names[] = 'clientId';
         $names[] = 'clientSecret';
         $names[] = 'contextualPricingCountries';
+        $names[] = 'customScopes';
         $names[] = 'hostName';
         $names[] = 'uriFormat';
         $names[] = 'template';
@@ -80,10 +88,12 @@ class Settings extends Model
     public function fields(): array
     {
         return [
+            'additionalFeatures' => fn() => $this->getAdditionalFeatures(),
             'apiVersion' => fn() => $this->getApiVersion(false),
             'clientId' => fn() => $this->getClientId(false),
             'clientSecret' => fn() => $this->getClientSecret(false),
             'contextualPricingCountries' => fn() => $this->getContextualPricingCountries(false),
+            'customScopes' => fn() => $this->getCustomScopes(false),
             'hostName' => fn() => $this->getHostName(false),
             'uriFormat' => 'uriFormat',
             'template' => 'template',
@@ -96,14 +106,17 @@ class Settings extends Model
     public function attributeLabels(): array
     {
         return [
+            'additionalFeatures' => Craft::t('app', 'Additional Features'),
+            'apiVersion' => Craft::t('shopify', 'Shopify API Version'),
             'authUrl' => Craft::t('shopify', 'Shopify App Auth URL'),
             'clientId' => Craft::t('shopify', 'Shopify Client ID'),
             'clientSecret' => Craft::t('shopify', 'Shopify Client Secret Key'),
-            'apiVersion' => Craft::t('shopify', 'Shopify API Version'),
             'contextualPricingCountries' => Craft::t('shopify', 'Context Pricing Countries'),
+            'customScopes' => Craft::t('shopify', 'Custom Scopes'),
             'hostName' => Craft::t('shopify', 'Shopify Host Name'),
-            'uriFormat' => Craft::t('shopify', 'Product URI format'),
+            'scopes' => Craft::t('shopify', 'Scopes'),
             'template' => Craft::t('shopify', 'Product Template'),
+            'uriFormat' => Craft::t('shopify', 'Product URI format'),
         ];
     }
 
@@ -215,7 +228,6 @@ class Settings extends Model
         return ($parse ? App::parseEnv($this->_clientSecret) : $this->_clientSecret) ?? '';
     }
 
-
     /**
      * @param string $hostName
      * @return void
@@ -234,6 +246,112 @@ class Settings extends Model
     public function getHostName(bool $parse = true): string
     {
         return ($parse ? App::parseEnv($this->_hostName) : $this->_hostName) ?? '';
+    }
+
+    /**
+     * @param array $additionalFeatures
+     * @return void
+     * @since 7.2.0
+     */
+    public function setAdditionalFeatures(array|string $additionalFeatures): void
+    {
+        if ($additionalFeatures === '*') {
+            $additionalFeatures = array_keys($this->getAdditionalFeaturesOptions());
+        }
+
+        $this->_additionalFeatures = $additionalFeatures;
+    }
+
+    /**
+     * @return array
+     * @since 7.2.0
+     */
+    public function getAdditionalFeatures(bool $asScopes = false): array
+    {
+        if ($asScopes && !empty($this->_additionalFeatures)) {
+            $scopes = [];
+            foreach ($this->_additionalFeatures as $additionalFeature) {
+                $adFeat = $this->getAdditionalFeaturesOptions()[$additionalFeature] ?? null;
+                if ($adFeat) {
+                    $scopes[] = $adFeat['scope'];
+                }
+            }
+
+            return $scopes;
+        }
+
+        return $this->_additionalFeatures;
+    }
+
+    /**
+     * @return array<string, array{label: string, value: string, scope: string}>
+     * @since 7.2.0
+     */
+    public function getAdditionalFeaturesOptions(): array
+    {
+        return [
+            'productTranslations' => [
+                'label' => Craft::t('shopify', 'Product Translations'),
+                'value' => 'productTranslations',
+                'scope' => 'read_locales',
+            ],
+        ];
+    }
+
+
+    /**
+     * @param string $additionalScopes
+     * @return void
+     * @since 7.2.0
+     */
+    public function setCustomScopes(string $additionalScopes): void
+    {
+        // Preserve env var references as-is; normalize plain-text values
+        if (!str_starts_with($additionalScopes, '$')) {
+            $additionalScopes = implode(',', array_filter(array_map(
+                fn($s) => preg_match('/^[a-z0-9_]+$/', $normalized = strtolower(trim($s))) ? $normalized : '',
+                explode(',', $additionalScopes)
+            )));
+        }
+
+        $this->_customScopes = $additionalScopes;
+    }
+
+    /**
+     * @param bool $parse
+     * @return string
+     * @since 7.2.0
+     */
+    public function getCustomScopes(bool $parse = true): string
+    {
+        return ($parse ? App::parseEnv($this->_customScopes) : $this->_customScopes) ?? '';
+    }
+
+    /**
+     * @param bool $asArray
+     * @return array|string
+     * @since 7.2.0
+     */
+    public function getScopes(bool $asArray = false): array|string
+    {
+        $scopes = array_merge(self::REQUIRED_SCOPES, $this->getAdditionalFeatures(true));
+
+        $customScopes = $this->getCustomScopes();
+        if ($customScopes) {
+            $scopes = array_merge($scopes, array_filter(array_map(
+                fn($s) => preg_match('/^[a-z0-9_]+$/', $normalized = strtolower(trim($s))) ? $normalized : '',
+                explode(',', $customScopes)
+            )));
+        }
+
+        $scopes = array_unique($scopes);
+        asort($scopes);
+
+        if ($asArray) {
+            return $scopes;
+        }
+
+        return implode(',', $scopes);
     }
 
     /**
