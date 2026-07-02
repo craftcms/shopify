@@ -20,5 +20,5 @@ class DefineContextConfigEvent extends Event
     /**
      * @var array Array of the arguments used to initialize the API context (`Context::initialize()`).
      */
-    public array $config;
+    public array $config = [];
 }
