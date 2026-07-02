@@ -245,7 +245,7 @@ class SettingsController extends Controller
                     }).then(response => {
                         scopesInput.value = response.data.scopes;
                     }).catch(() => {
-                        Craft.cp.displayError(Craft.t('shopify', 'Couldn't update scopes.'));
+                        Craft.cp.displayError(Craft.t('shopify', 'Couldn’t update scopes.'));
                     });
                 };
 
@@ -253,9 +253,6 @@ class SettingsController extends Controller
                     if (e.target.name === 'settings[additionalFeatures][]' || e.target.name === 'settings[additionalFeatures]') {
                         // Defer so Craft's checkbox-select JS can toggle related checkboxes first
                         setTimeout(updateScopes, 0);
-                    } else if (e.target.id === 'customScopes') {
-                        clearTimeout(debounceTimer);
-                        debounceTimer = setTimeout(updateScopes, 300);
                     }
                 });
 
@@ -268,6 +265,10 @@ class SettingsController extends Controller
             })();
         JS;
         $this->getView()->registerJs($js);
+
+        $this->getView()->registerTranslations('shopify', [
+            'Couldn’t update scopes.'
+        ]);
 
         $screen = $this->asCpScreen()
             ->title(Craft::t('shopify', 'Settings'))
@@ -322,8 +323,10 @@ class SettingsController extends Controller
         $pluginSettings = $plugin->getSettings();
         $originalUriFormat = $pluginSettings->uriFormat;
 
+        $settings['additionalFeatures'] = $settings['additionalFeatures'] ?: [];
+
         // Expand the checkboxSelect "All" wildcard to the full list of feature handles
-        if (($settings['additionalFeatures'] ?? null) === '*') {
+        if ($settings['additionalFeatures'] === '*') {
             $settings['additionalFeatures'] = array_keys($pluginSettings->getAdditionalFeaturesOptions());
         }
 
