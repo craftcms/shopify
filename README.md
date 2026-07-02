@@ -209,6 +209,20 @@ Discover orphaned subscriptions using the [`webhookSubscriptions()`](https://sho
 
 ## Upgrading
 
+### From 7.x
+
+> [!WARNING]
+> Ensure the Craft queue is fully drained before upgrading. Any pending sync jobs will be unable to update their status after the migration runs.
+
+Shopify for Craft 8.0 requires **Craft CMS 5.10.7 or later** and drops support for Craft 4.
+
+`craft\shopify\models\Variant::$shopifyId` now holds only the **numeric** Shopify ID (e.g. `”123456789”`). The full GID (e.g. `”gid://shopify/ProductVariant/123456789”`) is available via the new `$shopifyGid` property. Update any templates or custom code that compared or used `$variant->shopifyId` as a GID string.
+
+> [!TIP]
+> The [changelog](https://github.com/craftcms/shopify/blob/8.x/CHANGELOG.md) contains a full list of added, changed, and deprecated classes and methods.
+
+### From 6.x
+
 This version (7.x) is primarily concerned with Shopify API compatibility, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
 
 Due to significant shifts in Shopify’s developer ecosystem, many of the [front-end cart management](#front-end-sdks) techniques we have recommended (like the _JS Buy SDK_ and _Buy Button JS_) are no longer viable.
