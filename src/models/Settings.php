@@ -305,7 +305,7 @@ class Settings extends Model
         // Preserve env var references as-is; normalize plain-text values
         if (!str_starts_with($additionalScopes, '$')) {
             $additionalScopes = implode(',', array_filter(array_map(
-                fn($s) => preg_match('/^[a-z0-9_]+$/', $normalized = strtolower(trim($s))) ? $normalized : '',
+                fn($s) => self::_normalizeScope($s),
                 explode(',', $additionalScopes)
             )));
         }
@@ -335,7 +335,7 @@ class Settings extends Model
         $customScopes = $this->getCustomScopes();
         if ($customScopes) {
             $scopes = array_merge($scopes, array_filter(array_map(
-                fn($s) => preg_match('/^[a-z0-9_]+$/', $normalized = strtolower(trim($s))) ? $normalized : '',
+                fn($s) => self::_normalizeScope($s),
                 explode(',', $customScopes)
             )));
         }
@@ -348,6 +348,16 @@ class Settings extends Model
         }
 
         return implode(',', $scopes);
+    }
+
+    /**
+     * Normalizes a single scope string: lowercases, trims whitespace, and returns an empty string if the result
+     * contains characters outside `[a-z0-9_]`.
+     */
+    private static function _normalizeScope(string $scope): string
+    {
+        $normalized = strtolower(trim($scope));
+        return preg_match('/^[a-z0-9_]+$/', $normalized) ? $normalized : '';
     }
 
     /**
