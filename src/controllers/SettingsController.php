@@ -267,7 +267,7 @@ class SettingsController extends Controller
         $this->getView()->registerJs($js);
 
         $this->getView()->registerTranslations('shopify', [
-            'Couldn’t update scopes.'
+            'Couldn’t update scopes.',
         ]);
 
         $screen = $this->asCpScreen()
