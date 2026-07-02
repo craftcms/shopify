@@ -253,12 +253,8 @@ class Settings extends Model
      * @return void
      * @since 7.2.0
      */
-    public function setAdditionalFeatures(array|string $additionalFeatures): void
+    public function setAdditionalFeatures(array $additionalFeatures): void
     {
-        if ($additionalFeatures === '*') {
-            $additionalFeatures = array_keys($this->getAdditionalFeaturesOptions());
-        }
-
         $this->_additionalFeatures = $additionalFeatures;
     }
 

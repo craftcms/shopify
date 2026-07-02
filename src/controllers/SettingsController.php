@@ -322,6 +322,11 @@ class SettingsController extends Controller
         $pluginSettings = $plugin->getSettings();
         $originalUriFormat = $pluginSettings->uriFormat;
 
+        // Expand the checkboxSelect "All" wildcard to the full list of feature handles
+        if (($settings['additionalFeatures'] ?? null) === '*') {
+            $settings['additionalFeatures'] = array_keys($pluginSettings->getAdditionalFeaturesOptions());
+        }
+
         // Remove from editable table namespace
         $settings['uriFormat'] = $settings['routing']['uriFormat'];
         // Could be blank if in headless mode
