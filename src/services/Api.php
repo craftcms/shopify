@@ -415,8 +415,8 @@ class Api extends Component
 
         return $this->createQuery('products', $fields, function(QueryBuilder $builder) use ($id) {
             if ($id) {
-                // Strip Shopify prefix if it exists
-                $id = str_replace('gid://shopify/Product/', '', $id);
+                // Extract the numeric ID from a full GID or pass through a bare numeric ID
+                $id = StringHelper::afterLast($id, '/') ?: $id;
 
                 $builder->setArgument('query', sprintf('id:%s', $id));
             }
