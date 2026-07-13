@@ -62,7 +62,7 @@ class SettingsController extends Controller
             'name' => 'settings[authUrl]',
             'value' => $settings->getAuthUrl(),
             'readonly' => true,
-            'warning' => !Plugin::getInstance()->getApi()->getSession() ? Craft::t('shopify', 'Unable to connect to custom app. Syncing will be unavailable until the app has been authorized.') : null,
+            'warning' => !Plugin::getInstance()->getApi()->connect() ? Craft::t('shopify', 'Unable to connect to custom app. Syncing will be unavailable until the app has been authorized.') : null,
         ];
 
         $scopesFieldConfig = [

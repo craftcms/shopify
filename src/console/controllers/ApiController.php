@@ -11,7 +11,7 @@ use Craft;
 use craft\console\Controller;
 use craft\helpers\Console;
 use craft\shopify\Plugin;
-use Shopify\Exception\ShopifyException;
+use craft\shopify\exceptions\ShopifyApiException;
 use yii\console\ExitCode;
 
 /**
@@ -43,7 +43,7 @@ class ApiController extends Controller
             $this->stdout("Running query... ");
 
             $data = Plugin::getInstance()->getApi()->query($gql);
-        } catch (ShopifyException $e) {
+        } catch (ShopifyApiException $e) {
             $err = $e->getMessage();
         }
 

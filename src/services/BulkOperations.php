@@ -23,7 +23,7 @@ use GraphQL\InlineFragment;
 use GraphQL\Mutation;
 use GraphQL\Variable;
 use Illuminate\Support\Collection;
-use Shopify\Exception\ShopifyException;
+use craft\shopify\exceptions\ShopifyApiException;
 use yii\base\InvalidConfigException;
 use yii\db\Exception;
 use yii\db\StaleObjectException;
@@ -176,7 +176,7 @@ class BulkOperations extends Component
 
         try {
             $bulkOpStatusResponse = Plugin::getInstance()->getApi()->query($bulkOpsStatusQuery);
-        } catch (ShopifyException $e) {
+        } catch (ShopifyApiException $e) {
             return false;
         }
 
@@ -206,7 +206,7 @@ class BulkOperations extends Component
 
         try {
             $data = Plugin::getInstance()->getApi()->query($mutation, ['query' => $bulkOperation->query]);
-        } catch (ShopifyException $e) {
+        } catch (ShopifyApiException $e) {
             // If there was an issue creating the operation that we haven’t accounted for, just mark it as completed:
             Craft::error('Could not start bulk operation: ' . $e->getMessage(), __METHOD__);
 

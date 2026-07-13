@@ -14,10 +14,10 @@ use craft\helpers\Cp;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
+use craft\shopify\enums\ApiVersion;
 use craft\shopify\Plugin;
 use craft\shopify\records\AccessToken;
-use Shopify\ApiVersion;
-use Shopify\Utils;
+use craft\shopify\helpers\ShopifyHelper;
 
 /**
  * Shopify Settings model.
@@ -50,7 +50,7 @@ class Settings extends Model
      * @see setApiVersion()
      * @see getApiVersion()
      */
-    private string $_apiVersion = ApiVersion::JANUARY_2026;
+    private string $_apiVersion = ApiVersion::January2026->value;
 
     public function rules(): array
     {
@@ -62,7 +62,7 @@ class Settings extends Model
             [['hostName'], function($attribute) {
                 $hostName = $this->$attribute;
 
-                if (Utils::sanitizeShopDomain($hostName) === null) {
+                if (ShopifyHelper::sanitizeShopDomain($hostName) === null) {
                     $this->addError($attribute, Craft::t('shopify', 'The host name must be a valid Shopify store domain.'));
                 }
             }, 'skipOnEmpty' => true],

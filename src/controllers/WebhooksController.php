@@ -10,10 +10,11 @@ namespace craft\shopify\controllers;
 use Craft;
 use craft\helpers\Html;
 use craft\shopify\Plugin;
+use craft\shopify\webhooks\WebhookTopics;
 use craft\web\Controller;
 use GraphQL\Query;
 use GraphQL\Variable;
-use Shopify\Exception\ShopifyException;
+use craft\shopify\exceptions\ShopifyApiException;
 use yii\web\ConflictHttpException;
 use yii\web\Response as YiiResponse;
 
@@ -47,16 +48,18 @@ class WebhooksController extends Controller
      */
     public function actionEdit(): YiiResponse
     {
-        $view = $this->getView();
         $api = Plugin::getInstance()->getApi();
 
         try {
             $webhooks = $api->getWebhooks();
-        } catch (ShopifyException $e) {
+        } catch (ShopifyApiException $e) {
             throw new ConflictHttpException('There was an issue connecting to the Shopify API. Please check your credentials.');
         }
 
-        $requiredTopics = array_flip($api::WEBHOOK_TOPICS);
+        $requiredTopics = array_flip(array_map(
+            fn($t) => $t->toGraphQLEnum(),
+            $api::WEBHOOK_TOPICS,
+        ));
 
         foreach ($webhooks as $hook) {
             // When we discover a new topic, yank from the “required” array:
@@ -178,7 +181,7 @@ class WebhooksController extends Controller
 
         try {
             $webhooks = $api->getWebhooks();
-        } catch (ShopifyException $e) {
+        } catch (ShopifyApiException $e) {
             throw new ConflictHttpException('There was an issue connecting to the Shopify API. Please check your credentials.');
         }
 
@@ -187,7 +190,7 @@ class WebhooksController extends Controller
         // Check each required topic and create missing subscriptions:
         foreach ($api::WEBHOOK_TOPICS as $topic) {
             // Is there at least one webhook with this topic?
-            if ($webhooks->contains('topic', $topic)) {
+            if ($webhooks->contains('topic', $topic->toGraphQLEnum())) {
                 continue;
             }
 
@@ -218,7 +221,7 @@ class WebhooksController extends Controller
                 ]);
 
             $variables = [
-                'topic' => $topic,
+                'topic' => $topic->toGraphQLEnum(),
                 'webhookSubscription' => [
                     'format' => 'JSON',
                     'uri' => Plugin::getInstance()->getSettings()->getWebhookUrl(),
@@ -228,7 +231,7 @@ class WebhooksController extends Controller
             try {
                 // Fire it off; if anything goes wrong, we’ll just catch + log it.
                 $api->query($query, $variables);
-            } catch (ShopifyException $e) {
+            } catch (ShopifyApiException $e) {
                 Craft::error('Could not register webhooks with Shopify API: ' . $e->getMessage(), __METHOD__);
                 $errors[] = $e->getMessage();
             }
@@ -253,7 +256,7 @@ class WebhooksController extends Controller
 
         try {
             Plugin::getInstance()->getApi()->deleteWebhookById($id);
-        } catch (ShopifyException $e) {
+        } catch (ShopifyApiException $e) {
             return $this->asFailure(Craft::t('shopify', 'Webhook could not be deleted'));
         }
 

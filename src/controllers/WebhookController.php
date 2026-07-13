@@ -9,8 +9,8 @@ namespace craft\shopify\controllers;
 
 use Craft;
 use craft\shopify\Plugin;
+use craft\shopify\webhooks\WebhookRegistry;
 use craft\web\Controller;
-use Shopify\Webhooks\Registry;
 use yii\web\MethodNotAllowedHttpException;
 use yii\web\Response as YiiResponse;
 
@@ -35,16 +35,16 @@ class WebhookController extends Controller
     {
         $request = Craft::$app->getRequest();
 
-        if (!Plugin::getInstance()->getApi()->getSession()) {
+        if (!Plugin::getInstance()->getApi()->connect()) {
             throw new MethodNotAllowedHttpException('No Shopify API session found, check credentials in settings.');
         }
 
         try {
-            $response = Registry::process($request->headers->toArray(), $request->getRawBody());
-
-            if (!$response->isSuccess()) {
-                Craft::error("Webhook handler failed with message:" . $response->getErrorMessage());
-            }
+            WebhookRegistry::process(
+                $request->headers->toArray(),
+                $request->getRawBody(),
+                Plugin::getInstance()->getSettings()->getClientSecret(),
+            );
         } catch (\Exception $error) {
             Craft::error($error->getMessage());
         }
