@@ -54,10 +54,10 @@ use craft\shopify\services\Products;
 use craft\shopify\services\Store;
 use craft\shopify\utilities\Sync;
 use craft\shopify\web\twig\CraftVariableBehavior;
+use craft\shopify\webhooks\WebhookRegistry;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use GraphQL\Query as GqlQuery;
-use craft\shopify\webhooks\WebhookRegistry;
 use yii\base\Event;
 use yii\base\InvalidConfigException;
 

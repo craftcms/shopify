@@ -10,8 +10,8 @@ namespace craft\shopify\console\controllers;
 use Craft;
 use craft\console\Controller;
 use craft\helpers\Console;
-use craft\shopify\Plugin;
 use craft\shopify\exceptions\ShopifyApiException;
+use craft\shopify\Plugin;
 use yii\console\ExitCode;
 
 /**

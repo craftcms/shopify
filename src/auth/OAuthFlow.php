@@ -8,7 +8,6 @@
 namespace craft\shopify\auth;
 
 use craft\helpers\StringHelper;
-use craft\helpers\UrlHelper;
 use craft\shopify\Plugin;
 
 /**

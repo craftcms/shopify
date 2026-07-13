@@ -15,9 +15,9 @@ use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\shopify\elements\Product;
 use craft\shopify\enums\ApiVersion;
+use craft\shopify\helpers\ShopifyHelper;
 use craft\shopify\Plugin;
 use craft\shopify\records\AccessToken;
-use craft\shopify\helpers\ShopifyHelper;
 
 /**
  * Shopify Settings model.

@@ -9,12 +9,11 @@ namespace craft\shopify\controllers;
 
 use Craft;
 use craft\helpers\Html;
+use craft\shopify\exceptions\ShopifyApiException;
 use craft\shopify\Plugin;
-use craft\shopify\webhooks\WebhookTopics;
 use craft\web\Controller;
 use GraphQL\Query;
 use GraphQL\Variable;
-use craft\shopify\exceptions\ShopifyApiException;
 use yii\web\ConflictHttpException;
 use yii\web\Response as YiiResponse;
 
