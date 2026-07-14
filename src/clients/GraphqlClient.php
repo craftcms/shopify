@@ -8,7 +8,7 @@
 namespace craft\shopify\clients;
 
 use Craft;
-use craft\shopify\exceptions\ShopifyApiException;
+use craft\shopify\exceptions\ShopifyApiCommunicationException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -42,7 +42,7 @@ class GraphqlClient
      *
      * @param array $data An array with at minimum a `query` key, optionally `variables`.
      * @return array The decoded response body.
-     * @throws ShopifyApiException on HTTP or communication failure.
+     * @throws ShopifyApiCommunicationException on HTTP or communication failure.
      */
     public function query(array $data, array $extraHeaders = []): array
     {
@@ -59,7 +59,7 @@ class GraphqlClient
 
             return json_decode((string)$response->getBody(), true) ?? [];
         } catch (GuzzleException $e) {
-            throw new ShopifyApiException($e->getMessage(), $e->getCode(), $e);
+            throw new ShopifyApiCommunicationException($e->getMessage(), $e->getCode(), $e);
         }
     }
 }

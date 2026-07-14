@@ -18,6 +18,7 @@ use craft\shopify\enums\ApiVersion;
 use craft\shopify\enums\WebhookTopics;
 use craft\shopify\events\DefineGqlFieldsEvent;
 use craft\shopify\events\DefineGqlQueryArgumentsEvent;
+use craft\shopify\exceptions\ShopifyApiCommunicationException;
 use craft\shopify\exceptions\ShopifyApiException;
 use craft\shopify\Plugin;
 use craft\shopify\records\AccessToken;
@@ -451,14 +452,12 @@ class Api extends Component
      * If you need to control how a response is unpacked, use {@see getGqlClient()} directly.
      *
      * Under normal circumstances, the selected fields (including `userErrors`, when requested) are returned as an array.
-     * A `false` return value indicates a low-level communication failure.
-     *
-     * All other issues should trigger a {@see ShopifyApiException}.
      *
      * @param Query|string $query
      * @param array|null $variables
      * @return mixed Typically an array with the same structure as the selection, or `null` for nonexistent nodes.
-     * @throws ShopifyApiException when the response looks unusual (i.e. an `errors` key is present, or a `data` key was not returned)
+     * @throws ShopifyApiException when the response looks unusual (i.e. an `errors` key is present, a `data` key was not returned, or `userErrors` was populated)
+     * @throws ShopifyApiCommunicationException on a low-level communication failure
      * @throws \RuntimeException if a session can't be established
      * @since 6.0.0
      */
@@ -510,12 +509,12 @@ class Api extends Component
             }
 
             return $data;
-        } catch (ShopifyApiException $e) {
+        } catch (ShopifyApiCommunicationException $e) {
             // We only intercept communication-related exceptions, here.
             // Everything else (like a query or mutation issue) is allowed to bubble out so it can be reported to the user.
             Craft::error('Could not run GraphQL query: ' . $e->getMessage(), __METHOD__);
 
-            // Re-throw as an API error:
+            // Re-throw as a generic API error:
             throw new ShopifyApiException('An issue occurred while communicating with the Shopify API. Check the logs for more information.', 0, $e);
         }
     }

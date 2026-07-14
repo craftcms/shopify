@@ -36,6 +36,7 @@
 - Added `craft\shopify\enums\ApiVersion`.
 - Added `craft\shopify\enums\WebhookTopics`.
 - Added `craft\shopify\exceptions\InvalidOAuthException`.
+- Added `craft\shopify\exceptions\ShopifyApiCommunicationException`.
 - Added `craft\shopify\exceptions\ShopifyApiException`.
 - Added `craft\shopify\helpers\ShopifyHelper`.
 - Added `craft\shopify\webhooks\WebhookRegistry`.
