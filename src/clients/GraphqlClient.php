@@ -7,6 +7,7 @@
 
 namespace craft\shopify\clients;
 
+use Craft;
 use craft\shopify\exceptions\ShopifyApiException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -26,7 +27,7 @@ class GraphqlClient
         string $accessToken,
         private string $apiVersion,
     ) {
-        $this->_client = new Client([
+        $this->_client = Craft::createGuzzleClient([
             'base_uri' => "https://{$shop}",
             'headers' => [
                 'X-Shopify-Access-Token' => $accessToken,

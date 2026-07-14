@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d3aea8b0ac73aaddae88a754879fc7b5",
+    "content-hash": "8a28934dc4bbbf935e64de127ce7e47e",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -7926,16 +7926,16 @@
         },
         {
             "name": "cakephp/core",
-            "version": "5.3.6",
+            "version": "5.3.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cakephp/core.git",
-                "reference": "9c458b0e9322ec88bc4c758b33cde6a0abf49d12"
+                "reference": "ffd32d2deab2076b31b18d8239cd6b8ed8c17a05"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cakephp/core/zipball/9c458b0e9322ec88bc4c758b33cde6a0abf49d12",
-                "reference": "9c458b0e9322ec88bc4c758b33cde6a0abf49d12",
+                "url": "https://api.github.com/repos/cakephp/core/zipball/ffd32d2deab2076b31b18d8239cd6b8ed8c17a05",
+                "reference": "ffd32d2deab2076b31b18d8239cd6b8ed8c17a05",
                 "shasum": ""
             },
             "require": {
@@ -7989,20 +7989,20 @@
                 "issues": "https://github.com/cakephp/cakephp/issues",
                 "source": "https://github.com/cakephp/core"
             },
-            "time": "2026-05-15T03:31:14+00:00"
+            "time": "2026-06-07T21:44:48+00:00"
         },
         {
             "name": "cakephp/utility",
-            "version": "5.3.6",
+            "version": "5.3.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cakephp/utility.git",
-                "reference": "4c703a010b9d955fed44731669e35d3043425cc7"
+                "reference": "0ce9d1fb015d3389d0170fc438f2a3b8374fe389"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cakephp/utility/zipball/4c703a010b9d955fed44731669e35d3043425cc7",
-                "reference": "4c703a010b9d955fed44731669e35d3043425cc7",
+                "url": "https://api.github.com/repos/cakephp/utility/zipball/0ce9d1fb015d3389d0170fc438f2a3b8374fe389",
+                "reference": "0ce9d1fb015d3389d0170fc438f2a3b8374fe389",
                 "shasum": ""
             },
             "require": {
@@ -8053,7 +8053,7 @@
                 "issues": "https://github.com/cakephp/cakephp/issues",
                 "source": "https://github.com/cakephp/utility"
             },
-            "time": "2026-05-21T19:38:13+00:00"
+            "time": "2026-06-07T21:44:48+00:00"
         },
         {
             "name": "codeception/codeception",

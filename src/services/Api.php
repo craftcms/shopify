@@ -26,7 +26,6 @@ use GraphQL\Mutation;
 use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
 use GraphQL\Variable;
-use GuzzleHttp\Client;
 use Illuminate\Support\Collection;
 use yii\base\InvalidConfigException;
 
@@ -623,7 +622,7 @@ class Api extends Component
         }
 
         try {
-            $httpClient = new Client();
+            $httpClient = Craft::createGuzzleClient();
             $response = $httpClient->post('https://' . $shop . OAuthFlow::ACCESS_TOKEN_POST_PATH, [
                 'json' => [
                     'client_id' => Plugin::getInstance()->getSettings()->getClientId(true),
