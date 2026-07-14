@@ -7,6 +7,8 @@
 
 namespace craft\shopify\webhooks;
 
+use craft\shopify\enums\WebhookTopics;
+
 /**
  * Registry for Shopify webhook handlers.
  *

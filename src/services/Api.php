@@ -21,7 +21,7 @@ use craft\shopify\exceptions\ShopifyApiException;
 use craft\shopify\Plugin;
 use craft\shopify\records\AccessToken;
 use craft\shopify\records\ShopifyData;
-use craft\shopify\webhooks\WebhookTopics;
+use craft\shopify\enums\WebhookTopics;
 use GraphQL\Mutation;
 use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
@@ -40,20 +40,6 @@ use yii\base\InvalidConfigException;
  */
 class Api extends Component
 {
-    /**
-     * @var string[]
-     * @since 6.0.0
-     */
-    public const WEBHOOK_TOPICS = [
-        WebhookTopics::ProductsCreate,
-        WebhookTopics::ProductsUpdate,
-        WebhookTopics::ProductsDelete,
-        WebhookTopics::InventoryLevelsUpdate,
-        WebhookTopics::InventoryItemsUpdate,
-        WebhookTopics::BulkOperationsFinish,
-        WebhookTopics::ShopUpdate,
-    ];
-
     /**
      * @since 7.0.0
      */
@@ -88,6 +74,15 @@ class Api extends Component
     public function getSupportedApiVersions(): array
     {
         return array_column(ApiVersion::cases(), 'value');
+    }
+
+    /**
+     * @return WebhookTopics[]
+     * @since 8.0.0
+     */
+    public function getWebhookTopics(): array
+    {
+        return WebhookTopics::cases();
     }
 
     /**

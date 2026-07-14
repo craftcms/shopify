@@ -8,7 +8,7 @@
 namespace craft\shopify\handlers;
 
 use craft\shopify\Plugin;
-use craft\shopify\webhooks\WebhookTopics;
+use craft\shopify\enums\WebhookTopics;
 
 /**
  * Webhook handler.

@@ -5,7 +5,7 @@
  * @license https://craftcms.github.io/license/
  */
 
-namespace craft\shopify\webhooks;
+namespace craft\shopify\enums;
 
 /**
  * Shopify webhook topic constants.

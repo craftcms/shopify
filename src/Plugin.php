@@ -163,7 +163,7 @@ class Plugin extends BasePlugin
             ->onRemove(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, [$productsService, 'handleDeletedFieldLayout']);
 
         // Globally register shopify webhooks registry event handlers
-        foreach ($this->getApi()::WEBHOOK_TOPICS as $topic) {
+        foreach ($this->getApi()->getWebhookTopics() as $topic) {
             WebhookRegistry::addHandler($topic, new Webhook());
         }
     }

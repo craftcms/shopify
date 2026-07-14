@@ -30,19 +30,19 @@
 - Added `craft\shopify\services\Products::syncProductByShopifyGid()`.
 - Added `craft\shopify\services\Api::getShopLocalesGql()`.
 - Added `craft\shopify\services\Api::connect()`.
+- Added `craft\shopify\services\Api::getWebhookTopics()`.
 - Added `craft\shopify\auth\OAuthFlow`.
 - Added `craft\shopify\clients\GraphqlClient`.
 - Added `craft\shopify\enums\ApiVersion`.
+- Added `craft\shopify\enums\WebhookTopics`.
 - Added `craft\shopify\exceptions\InvalidOAuthException`.
 - Added `craft\shopify\exceptions\ShopifyApiException`.
 - Added `craft\shopify\helpers\ShopifyHelper`.
 - Added `craft\shopify\webhooks\WebhookRegistry`.
-- Added `craft\shopify\webhooks\WebhookTopics`.
 - `craft\shopify\models\Variant::$shopifyId` now holds the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
 - `craft\shopify\records\ShopifyData::$shopifyId` is now a generated (read-only) column containing the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
 - `craft\shopify\services\Api::getGqlClient()` now returns a `craft\shopify\clients\GraphqlClient` instance instead of `Shopify\Clients\Graphql`.
-- `craft\shopify\services\Api::WEBHOOK_TOPICS` now contains `craft\shopify\webhooks\WebhookTopics` enum cases instead of plain strings.
-- `craft\shopify\handlers\Webhook::handle()` no longer implements `Shopify\Webhooks\Handler`, and its `$topic` argument is now a `craft\shopify\webhooks\WebhookTopics` enum instead of a string.
+- `craft\shopify\handlers\Webhook::handle()` no longer implements `Shopify\Webhooks\Handler`, and its `$topic` argument is now a `craft\shopify\enums\WebhookTopics` enum instead of a string.
 - API and webhook errors are now thrown as `craft\shopify\exceptions\ShopifyApiException` and `craft\shopify\exceptions\InvalidOAuthException`, rather than the `Shopify\Exception\*` classes from the (now-removed) `shopify/shopify-api` package.
 - Renamed `craft\shopify\jobs\ProcessBulkOperationData::$bulkOperationShopifyId` to `$bulkOperationShopifyGid`.
 - Renamed `craft\shopify\models\BulkOperation::$shopifyId` to `$shopifyGid`.
@@ -52,6 +52,7 @@
 - Deprecated `craft\shopify\services\Products::syncProductByShopifyId()`. Use `syncProductByShopifyGid()` instead.
 - Removed `craft\shopify\services\Api::getSession()`. Use `connect()` instead.
 - Removed `craft\shopify\services\Api::initializeContext()`.
+- Removed `craft\shopify\services\Api::WEBHOOK_TOPICS`. Use `getWebhookTopics()` instead.
 
 ### System
 

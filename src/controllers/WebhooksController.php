@@ -57,7 +57,7 @@ class WebhooksController extends Controller
 
         $requiredTopics = array_flip(array_map(
             fn($t) => $t->toGraphQLEnum(),
-            $api::WEBHOOK_TOPICS,
+            $api->getWebhookTopics(),
         ));
 
         foreach ($webhooks as $hook) {
@@ -187,7 +187,7 @@ class WebhooksController extends Controller
         $errors = [];
 
         // Check each required topic and create missing subscriptions:
-        foreach ($api::WEBHOOK_TOPICS as $topic) {
+        foreach ($api->getWebhookTopics() as $topic) {
             // Is there at least one webhook with this topic?
             if ($webhooks->contains('topic', $topic->toGraphQLEnum())) {
                 continue;
