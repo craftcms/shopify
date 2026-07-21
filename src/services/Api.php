@@ -456,8 +456,7 @@ class Api extends Component
      * @param Query|string $query
      * @param array|null $variables
      * @return mixed Typically an array with the same structure as the selection, or `null` for nonexistent nodes.
-     * @throws ShopifyApiException when the response looks unusual (i.e. an `errors` key is present, a `data` key was not returned, or `userErrors` was populated)
-     * @throws ShopifyApiCommunicationException on a low-level communication failure
+     * @throws ShopifyApiException when the response looks unusual (i.e. an `errors` key is present, a `data` key was not returned, or `userErrors` was populated), or on a low-level communication failure
      * @throws \RuntimeException if a session can't be established
      * @since 6.0.0
      */
