@@ -219,7 +219,19 @@ Shopify for Craft 8.0 requires **Craft CMS 5.10.7 or later** and drops support f
 `craft\shopify\models\Variant::$shopifyId` now holds only the **numeric** Shopify ID (e.g. `”123456789”`). The full GID (e.g. `”gid://shopify/ProductVariant/123456789”`) is available via the new `$shopifyGid` property. Update any templates or custom code that compared or used `$variant->shopifyId` as a GID string.
 
 > [!WARNING]
+> This also changes the plugin’s GraphQL API: querying a variant’s `shopifyId` field previously returned the full GID, and now returns the numeric ID only. Use the `shopifyGid` field if you need the full GID. If you have external clients or headless front-ends querying this plugin’s GraphQL API, audit them for this change.
+
+The following methods are deprecated in favor of GID-based equivalents. Update any direct calls:
+
+- `craft\shopify\services\BulkOperations::getBulkOperationByShopifyId()` → `getBulkOperationByShopifyGid()`
+- `craft\shopify\services\Products::deleteProductByShopifyId()` → `deleteProductByShopifyGid()`
+- `craft\shopify\services\Products::deleteShopifyDataByShopifyId()` → `deleteShopifyDataByShopifyGid()`
+- `craft\shopify\services\Products::syncProductByShopifyId()` → `syncProductByShopifyGid()`
+
+> [!WARNING]
 > The `shopify/shopify-api` package is no longer a dependency of this plugin. If any custom code references its classes directly—like `Shopify\Clients\Graphql`, `Shopify\Exception\ShopifyException`, `Shopify\Webhooks\Registry`, `Shopify\Auth\OAuth`, or `Shopify\Context`—update it to use the plugin’s own equivalents (`craft\shopify\clients\GraphqlClient`, `craft\shopify\exceptions\ShopifyApiException`, `craft\shopify\webhooks\WebhookRegistry`, `craft\shopify\auth\OAuthFlow`) instead.
+
+If you plan to enable any of the new [Additional Features](#additional-features) or the `customScopes` setting as part of this upgrade, see the scope re-authorization requirements described there—enabling them after the app is already authorized requires updating your Shopify app’s scopes and re-authorizing.
 
 > [!TIP]
 > The [changelog](https://github.com/craftcms/shopify/blob/8.x/CHANGELOG.md) contains a full list of added, changed, and deprecated classes and methods.
