@@ -55,6 +55,11 @@
 - Deprecated `craft\shopify\services\Products::deleteProductByShopifyId()`. Use `deleteProductByShopifyGid()` instead.
 - Deprecated `craft\shopify\services\Products::deleteShopifyDataByShopifyId()`. Use `deleteShopifyDataByShopifyGid()` instead.
 - Deprecated `craft\shopify\services\Products::syncProductByShopifyId()`. Use `syncProductByShopifyGid()` instead.
+- Removed `craft\shopify\console\controllers\SyncController::$throttle`.
+- Removed `craft\shopify\models\Settings::getApiKey()`. Use `getClientId()` instead.
+- Removed `craft\shopify\models\Settings::getApiSecretKey()`. Use `getClientSecret()` instead.
+- Removed `craft\shopify\models\Settings::setApiKey()`. Use `setClientId()` instead.
+- Removed `craft\shopify\models\Settings::setApiSecretKey()`. Use `setClientSecret()` instead.
 - Removed `craft\shopify\services\Api::getSession()`. Use `connect()` instead.
 - Removed `craft\shopify\services\Api::initializeContext()`.
 - Removed `craft\shopify\services\Api::WEBHOOK_TOPICS`. Use `getWebhookTopics()` instead.

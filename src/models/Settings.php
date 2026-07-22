@@ -141,30 +141,6 @@ class Settings extends Model
     }
 
     /**
-     * @param string $apiKey
-     * @return void
-     * @since 6.0.0
-     * @deprecated in 7.0.0. Use [[setClientId()]] instead.
-     */
-    public function setApiKey(string $apiKey): void
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, '`setApiKey()` method has been deprecated. Use `setClientId()` instead.');
-        return;
-    }
-
-    /**
-     * @param bool $parse
-     * @return string
-     * @since 6.0.0
-     * @deprecated in 7.0.0. Use [[getClientId()]] instead.
-     */
-    public function getApiKey(bool $parse = true): string
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, '`getApiKey()` method has been deprecated. Use `getClientId()` instead.');
-        return $this->getClientId($parse);
-    }
-
-    /**
      * @param string $clientId
      * @return void
      * @since 7.0.0
@@ -182,30 +158,6 @@ class Settings extends Model
     public function getClientId(bool $parse = true): string
     {
         return ($parse ? App::parseEnv($this->_clientId) : $this->_clientId) ?? '';
-    }
-
-    /**
-     * @param string $apiSecretKey
-     * @return void
-     * @since 6.0.0
-     * @deprecated in 7.0.0. Use [[setClientSecret()]] instead.
-     */
-    public function setApiSecretKey(string $apiSecretKey): void
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, '`setApiSecretKey()` method has been deprecated. Use `setClientSecret()` instead.');
-        return;
-    }
-
-    /**
-     * @param bool $parse
-     * @return string
-     * @since 6.0.0
-     * @deprecated in 7.0.0. Use [[getClientSecret()]] instead.
-     */
-    public function getApiSecretKey(bool $parse = true): string
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, '`getApiSecretKey()` method has been deprecated. Use `getClientSecret()` instead.');
-        return $this->getClientSecret($parse);
     }
 
     /**
