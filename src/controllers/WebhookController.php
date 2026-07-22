@@ -9,10 +9,11 @@ namespace craft\shopify\controllers;
 
 use Craft;
 use craft\shopify\Plugin;
+use craft\shopify\webhooks\WebhookRegistry;
 use craft\web\Controller;
-use Shopify\Webhooks\Registry;
 use yii\web\MethodNotAllowedHttpException;
 use yii\web\Response as YiiResponse;
+use yii\web\ServerErrorHttpException;
 
 /**
  * The WebhookController handles the Shopify webhook request.
@@ -30,23 +31,26 @@ class WebhookController extends Controller
      * Handles the webhooks from Shopify for all topics
      *
      * @return YiiResponse
+     * @throws MethodNotAllowedHttpException if no Shopify API session is available
+     * @throws ServerErrorHttpException if the webhook could not be processed (e.g. HMAC failure, unknown topic, or a handler error)
      */
     public function actionHandle(): YiiResponse
     {
         $request = Craft::$app->getRequest();
 
-        if (!Plugin::getInstance()->getApi()->getSession()) {
+        if (!Plugin::getInstance()->getApi()->connect()) {
             throw new MethodNotAllowedHttpException('No Shopify API session found, check credentials in settings.');
         }
 
         try {
-            $response = Registry::process($request->headers->toArray(), $request->getRawBody());
-
-            if (!$response->isSuccess()) {
-                Craft::error("Webhook handler failed with message:" . $response->getErrorMessage());
-            }
+            WebhookRegistry::process(
+                $request->headers->toArray(),
+                $request->getRawBody(),
+                Plugin::getInstance()->getSettings()->getClientSecret(),
+            );
         } catch (\Exception $error) {
             Craft::error($error->getMessage());
+            throw new ServerErrorHttpException('Could not process Shopify webhook. Check the logs for more information.', 0, $error);
         }
 
         $this->response->setStatusCode(200);

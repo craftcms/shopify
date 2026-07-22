@@ -54,10 +54,10 @@ use craft\shopify\services\Products;
 use craft\shopify\services\Store;
 use craft\shopify\utilities\Sync;
 use craft\shopify\web\twig\CraftVariableBehavior;
+use craft\shopify\webhooks\WebhookRegistry;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use GraphQL\Query as GqlQuery;
-use Shopify\Webhooks\Registry;
 use yii\base\Event;
 use yii\base\InvalidConfigException;
 
@@ -163,8 +163,8 @@ class Plugin extends BasePlugin
             ->onRemove(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, [$productsService, 'handleDeletedFieldLayout']);
 
         // Globally register shopify webhooks registry event handlers
-        foreach ($this->getApi()::WEBHOOK_TOPICS as $topic) {
-            Registry::addHandler($topic, new Webhook());
+        foreach ($this->getApi()->getWebhookTopics() as $topic) {
+            WebhookRegistry::addHandler($topic, new Webhook());
         }
     }
 
@@ -388,8 +388,7 @@ class Plugin extends BasePlugin
     private function _registerCpRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
-            $session = Plugin::getInstance()->getApi()->getSession();
-            $event->rules['shopify'] = ['template' => 'shopify/_index', 'variables' => ['hasSession' => (bool)$session]];
+            $event->rules['shopify'] = ['template' => 'shopify/_index', 'variables' => ['hasSession' => Plugin::getInstance()->getApi()->connect()]];
 
             $event->rules['shopify/products'] = 'shopify/products/product-index';
             $event->rules['shopify/sync-products'] = 'shopify/products/sync';
@@ -525,7 +524,7 @@ class Plugin extends BasePlugin
         $ret = parent::getCpNavItem();
         $ret['label'] = Craft::t('shopify', 'Shopify');
 
-        $session = Plugin::getInstance()->getApi()->getSession();
+        $connected = Plugin::getInstance()->getApi()->connect();
 
         $ret['subnav']['products'] = [
             'label' => Craft::t('shopify', 'Products'),
@@ -537,7 +536,7 @@ class Plugin extends BasePlugin
             'url' => 'shopify/settings',
         ];
 
-        if ($session) {
+        if ($connected) {
             if (Craft::$app->getUser()->getIsAdmin()) {
                 $ret['subnav']['webhooks'] = [
                     'label' => Craft::t('shopify', 'Webhooks'),

@@ -218,6 +218,9 @@ Shopify for Craft 8.0 requires **Craft CMS 5.10.7 or later** and drops support f
 
 `craft\shopify\models\Variant::$shopifyId` now holds only the **numeric** Shopify ID (e.g. `”123456789”`). The full GID (e.g. `”gid://shopify/ProductVariant/123456789”`) is available via the new `$shopifyGid` property. Update any templates or custom code that compared or used `$variant->shopifyId` as a GID string.
 
+> [!WARNING]
+> The `shopify/shopify-api` package is no longer a dependency of this plugin. If any custom code references its classes directly—like `Shopify\Clients\Graphql`, `Shopify\Exception\ShopifyException`, `Shopify\Webhooks\Registry`, `Shopify\Auth\OAuth`, or `Shopify\Context`—update it to use the plugin’s own equivalents (`craft\shopify\clients\GraphqlClient`, `craft\shopify\exceptions\ShopifyApiException`, `craft\shopify\webhooks\WebhookRegistry`, `craft\shopify\auth\OAuthFlow`) instead.
+
 > [!TIP]
 > The [changelog](https://github.com/craftcms/shopify/blob/8.x/CHANGELOG.md) contains a full list of added, changed, and deprecated classes and methods.
 
@@ -1437,48 +1440,6 @@ Event::on(
 ```
 
 Using this event, after the queries have been built, you have the opportunity to add custom arguments to the main query. For example, you can tailor a query for products using the [ProductConnection arguments](https://shopify.dev/docs/api/admin-graphql/2026-01/queries/products#arguments) (like `query`, `reverse`, or `savedSearchId`).
-
-#### `craft\shopify\services\Api::EVENT_DEFINE_CONTEXT_CONFIG`
-
-Emitted before the Shopify API context is initialized. The `craft\shopify\events\DefineContextConfigEvent` object exposes a `$config` array containing the arguments that will be passed to [`Context::initialize()`](https://github.com/Shopify/shopify-api-php/blob/main/docs/getting_started.md), allowing you to customize the context before it is applied.
-
-The event object has one property:
-
-- `config`: Array of arguments passed to `Context::initialize()`, including `apiKey`, `apiSecretKey`, `scopes`, `hostName`, `sessionStorage`, `apiVersion`, `isEmbeddedApp`, and `logger`.
-
-```php
-use craft\base\Event;
-use craft\shopify\events\DefineContextConfigEvent;
-use craft\shopify\services\Api;
-
-Event::on(
-    Api::class,
-    Api::EVENT_DEFINE_CONTEXT_CONFIG,
-    function(DefineContextConfigEvent $event) {
-        // Disable the Shopify API logger:
-        $event->config['logger'] = null;
-    }
-);
-```
-
-#### `craft\shopify\services\Api::EVENT_CONTEXT_INITIALIZED`
-
-Emitted after the Shopify API context has been fully initialized. Use this event to perform setup that depends on a ready context, such as overriding the HTTP client factory.
-
-```php
-use craft\base\Event;
-use craft\shopify\services\Api;
-use Shopify\Context;
-
-Event::on(
-    Api::class,
-    Api::EVENT_CONTEXT_INITIALIZED,
-    function(Event $event) {
-        // Replace the HTTP client factory with a custom implementation:
-        Context::$HTTP_CLIENT_FACTORY = new MyHttpClientFactory();
-    }
-);
-```
 
 ### GraphQL Playground
 

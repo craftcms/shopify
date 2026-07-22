@@ -7,9 +7,8 @@
 
 namespace craft\shopify\handlers;
 
+use craft\shopify\enums\WebhookTopics;
 use craft\shopify\Plugin;
-use Shopify\Webhooks\Handler;
-use Shopify\Webhooks\Topics;
 
 /**
  * Webhook handler.
@@ -17,28 +16,18 @@ use Shopify\Webhooks\Topics;
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 6.0.0
  */
-class Webhook implements Handler
+class Webhook
 {
-    public function handle(string $topic, string $shop, array $body): void
+    public function handle(WebhookTopics $topic, string $shop, array $body): void
     {
-        switch ($topic) {
-            case Topics::PRODUCTS_UPDATE:
-            case Topics::PRODUCTS_CREATE:
-                Plugin::getInstance()->getProducts()->syncProductByShopifyGid($body['id']);
-                break;
-            case Topics::PRODUCTS_DELETE:
-                Plugin::getInstance()->getProducts()->deleteProductByShopifyGid($body['id']);
-                break;
-            case Topics::INVENTORY_ITEMS_UPDATE:
-                Plugin::getInstance()->getProducts()->syncProductByInventoryItemId($body['admin_graphql_api_id']);
-                break;
-            case Topics::BULK_OPERATIONS_FINISH:
-                Plugin::getInstance()->getBulkOperations()->handleBulkOperationFinished($body);
-                break;
-            case Topics::SHOP_UPDATE:
-                // Unfortunately, the shop data in the webhook differs to that returned by the GraphQl API.
-                Plugin::getInstance()->getApi()->getShop(true);
-                break;
-        }
+        match ($topic) {
+            WebhookTopics::ProductsCreate,
+            WebhookTopics::ProductsUpdate => Plugin::getInstance()->getProducts()->syncProductByShopifyGid($body['id']),
+            WebhookTopics::ProductsDelete => Plugin::getInstance()->getProducts()->deleteProductByShopifyGid($body['id']),
+            WebhookTopics::InventoryLevelsUpdate => Plugin::getInstance()->getProducts()->syncProductByInventoryItemId($body['inventory_item_id']),
+            WebhookTopics::InventoryItemsUpdate => Plugin::getInstance()->getProducts()->syncProductByInventoryItemId($body['admin_graphql_api_id']),
+            WebhookTopics::BulkOperationsFinish => Plugin::getInstance()->getBulkOperations()->handleBulkOperationFinished($body),
+            WebhookTopics::ShopUpdate => Plugin::getInstance()->getApi()->getShop(true),
+        };
     }
 }

@@ -23,7 +23,7 @@
     "php": "^8.2",
     "carnage/php-graphql-client": "^1.14",
     "craftcms/cms": "^5.10.7",
-    "shopify/shopify-api": "^6.0.0"
+    "guzzlehttp/guzzle": "^7.2"
   },
   "require-dev": {
     "codeception/codeception": "^5.0.11",
