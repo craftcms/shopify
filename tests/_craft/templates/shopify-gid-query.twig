@@ -1,0 +1,3 @@
+{# Mirrors the README's `#### shopifyGid` query-param example. #}
+{% set product = craft.shopifyProducts.shopifyGid(gid).one() %}
+{{- product ? product.shopifyGid : '' -}}

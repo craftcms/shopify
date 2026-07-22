@@ -486,7 +486,7 @@ Filter by [Shopify GIDs](https://shopify.dev/docs/api/admin-graphql/2026-01/scal
 ```twig
 {# Watch out—these aren't the same as element IDs! #}
 {% set singleProduct = craft.shopifyProducts
-  .shopifyId('gid://shopify/Product/123456789')
+  .shopifyGid('gid://shopify/Product/123456789')
   .one() %}
 ```
 
@@ -546,9 +546,9 @@ Tags are stored as a JSON array, which may complicate direct comparisons. You ma
 Options are stored as a JSON array, which may complicate direct comparisons. You may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/system/searching.html#development).
 
 ```twig
-{# Find products whose options include a `size` key: #}
+{# Find products with an option value like "Large": #}
 {% set clogs = craft.shopifyProducts
-  .tags('*"size"*')
+  .search('*Large*')
   .all() %}
 ```
 
@@ -842,7 +842,7 @@ If you want to let customers pick from _options_ instead of directly select from
         id: 'variant',
         data: {
             variants: product.variants | map(v => {
-                gid: v.shopifyId,
+                gid: v.shopifyGid,
                 selectedOptions: v.data.selectedOptions,
             }),
         },
@@ -1006,7 +1006,7 @@ See the [usage examples](https://github.com/Shopify/shopify-app-js/tree/main/pac
 
 ```twig
 {% for variant in product.variants %}
-  <button class="buy-button" data-variant-gid="{{ variant.shopifyId }}">Buy {{ variant.title }}</button>
+  <button class="buy-button" data-variant-gid="{{ variant.shopifyGid }}">Buy {{ variant.title }}</button>
 {% endfor %}
 ```
 
@@ -1240,8 +1240,8 @@ The following settings can also be set via a `shopify.php` file in your `config/
 
 | Setting                      | Type       | Default | Description                                                                                                                                                                                                                                                                                                        |
 |------------------------------|------------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `apiKey`                     | `string`   | —       | Shopify API key.                                                                                                                                                                                                                                                                                                   |
-| `apiSecretKey`               | `string`   | —       | Shopify API secret key.                                                                                                                                                                                                                                                                                            |
+| `clientId`                   | `string`   | —       | Shopify API client ID.                                                                                                                                                                                                                                                                                             |
+| `clientSecret`               | `string`   | —       | Shopify API client secret key.                                                                                                                                                                                                                                                                                     |
 | `apiVersion`                 | `string`   | —       | Shopify [API version](https://shopify.dev/docs/api/usage/versioning) description.                                                                                                                                                                                                                                  |
 | `accessToken`                | `string`   | —       | Shopify API access token.                                                                                                                                                                                                                                                                                          |
 | `additionalFeatures`         | `string[]` | `[]`    | Array of additional feature handles to enable (e.g. `['productTranslations']`). Enabling features may add required API scopes; see [Additional Features](#additional-features).                                                                                                                                    |
@@ -1252,7 +1252,7 @@ The following settings can also be set via a `shopify.php` file in your `config/
 | `template`                   | `string`   | —       | Product element template path.                                                                                                                                                                                                                                                                                     |
 
 > [!NOTE]
-> Setting `apiKey`, `apiSecretKey`, `apiVersion`, `accessToken`, or `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#connect-to-shopify).
+> Setting `clientId`, `clientSecret`, `apiVersion`, `accessToken`, or `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#connect-to-shopify).
 > You can still reference environment values from the config file with `craft\helpers\App::env()`.
 
 ### Additional Features
@@ -1526,7 +1526,7 @@ query getProductPrice($id: ID!) {
 
 {# Execute the query #}
 {% set response = craft.shopify.api.query(priceQuery, {
-  id: product.shopifyId
+  id: product.shopifyGid
 }) %}
 
 {# Access the pricing data #}
@@ -1546,7 +1546,7 @@ Key elements of this approach:
 
 - `contextualPricing(context: {country: XX})` returns market-specific prices (use the country code directly, e.g., `GB`, `US`, `DE`)
 - Use an alias like `gbPricing:` to name the result for easy access in Twig
-- Pass the product's `shopifyId` (already a GID) directly to the query
+- Pass the product's `shopifyGid` (already a GID) directly to the query
 - The `query()` method returns the first result directly, so access `response.variants` (not `response.data.product.variants`)
 - Falls back to the default `variant.price` if contextual pricing is not available
 
