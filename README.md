@@ -346,7 +346,7 @@ The product element has a few methods you might find useful in your [templates](
 
 #### `Product::getVariants()`
 
-Returns an array of [variants](#variants-and-pricing) belonging to the product.
+Returns a collection of [variants](#variants-and-pricing) belonging to the product.
 Variants are _not_ elements (just regular models), but you can use the same dot notation to access their properties:
 
 ```twig
@@ -354,10 +354,14 @@ Variants are _not_ elements (just regular models), but you can use the same dot 
 
 <select name="variantId">
   {% for variant in variants %}
-    <option value="{{ variant.id }}">{{ variant.title }}</option>
+    <option value="{{ variant.shopifyId }}">{{ variant.title }}</option>
   {% endfor %}
 </select>
 ```
+
+> [!NOTICE]
+> Like products, variants’ `id`s are Craft-specific identifiers.
+> Use `shopifyGid` or `shopifyId` for the canonical Shopify values.
 
 You can [eager-load](#eager-loading) variants alongside products using the [product query](#querying-products)’s `.withVariants()` method.
 
