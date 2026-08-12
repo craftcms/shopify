@@ -250,23 +250,23 @@ After the upgrade, you **must** [delete and re-create](#set-up-webhooks) webhook
 
 Your “legacy custom app” can be left as-is or deleted, once all your environments have been migrated to the Dev Dashboard connection. While this plugin has no need for those credentials, confirm with the store owner that no other external services depend on them!
 
-### Credentials
+#### Credentials
 
 At the beginning of 2026, Shopify overhauled how “apps” are created, moving them to the new [Dev Dashboard](https://shopify.dev/docs/apps/build/dev-dashboard).
 
 You should be able to [create a new app](#create-an-app), and [install it](#install-in-a-store) using the new OAuth mechanism, without disruption to product synchronization.
 
-### Publishing and Status
+#### Publishing and Status
 
 Shopify has eliminated [sales channels for custom apps](https://shopify.dev/docs/apps/build/sales-channels/start-building), and therefore the [`publishedOnCurrentPublication` field](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product#field-Product.fields.publishedOnCurrentChannel) is no longer available in Product queries.
 
 This means that there is no official way to “publish” products to the Craft integration, but we cover some alternatives in the [sales channel emulation](#emulate-sales-channels) section.
 
-### Product Field Layouts
+#### Product Field Layouts
 
 The product element editor has received a major overhaul. You can now choose exactly where Shopify data is placed, within the [field layout](#custom-fields).
 
-### Front-End SDKs
+#### Front-End SDKs
 
 Shopify has retired many of its pre-built client-side frameworks, in favor of directly communicating with the generic [Storefront GraphQL API](#storefront-api-client).
 You will need to revise how you query and mutate data, if your front-end currently depends on the JS Buy SDK or Buy Button JS.
