@@ -308,7 +308,7 @@ Going forward, your products are automatically kept in sync via [webhooks](#set-
 
 ### Native Attributes
 
-In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains direct accessors for these canonical Shopify [Product attributes](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product):
+In addition to the standard [element](https://craftcms.com/docs/5.x/system/elements.html) attributes like `id`, `title`, and `status`, each Shopify product element contains direct accessors for these canonical Shopify [Product attributes](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product):
 
 | Attribute                                | Description                                                                                                                                                                                           | Type      |
 |------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
