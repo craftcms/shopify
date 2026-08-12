@@ -26,7 +26,6 @@ See the [upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgra
 - `craft\shopify\handlers\Webhook::handle()` no longer implements `Shopify\Webhooks\Handler`, and its `$topic` argument is now a `craft\shopify\enums\WebhookTopics` enum instead of a string.
 - `craft\shopify\elements\Product::setMetafields()` and `craft\shopify\models\Variant::setMetafields()` now require a list-shaped array of `{key, value}` objects (or a JSON-encoded string of the same), and throw `\InvalidArgumentException` for anything else. Previously, an associative `key => value` map was also accepted without validation.
 - API and webhook errors are now thrown as `craft\shopify\exceptions\ShopifyApiException` and `craft\shopify\exceptions\InvalidOAuthException`, rather than the `Shopify\Exception\*` classes from the (now-removed) `shopify/shopify-api` package.
--
 - Added `craft\shopify\auth\OAuthFlow`.
 - Added `craft\shopify\clients\GraphqlClient`.
 - Added `craft\shopify\controllers\SettingsController::actionGetScopes()`.
