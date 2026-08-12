@@ -208,6 +208,8 @@ Discover orphaned subscriptions using the [`webhookSubscriptions()`](https://sho
 
 ## Upgrading
 
+> While it is technically possible to upgrade directly from 6.x to the latest 8.x version, we strongly recommend reviewing the [6.x upgrade guide](#from-6x), as an intermediate step.
+
 ### From 7.x
 
 > [!WARNING]
