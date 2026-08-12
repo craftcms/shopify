@@ -515,7 +515,7 @@ Filter by legacy numeric Shopify product IDs.
 Filter by [Shopify GIDs](https://shopify.dev/docs/api/admin-graphql/2026-01/scalars/ID).
 
 ```twig
-{# Watch out—these aren't the same as element IDs! #}
+{# Watch out! These aren’t the same as element IDs or Shopify IDs. #}
 {% set singleProduct = craft.shopifyProducts
   .shopifyGid('gid://shopify/Product/123456789')
   .one() %}
