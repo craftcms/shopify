@@ -20,6 +20,13 @@ See the [upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgra
 
 ### Extensibility
 
+- `craft\shopify\models\Variant::$shopifyId` now holds the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
+- `craft\shopify\records\ShopifyData::$shopifyId` is now a generated (read-only) column containing the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
+- `craft\shopify\services\Api::getGqlClient()` now returns a `craft\shopify\clients\GraphqlClient` instance instead of `Shopify\Clients\Graphql`.
+- `craft\shopify\handlers\Webhook::handle()` no longer implements `Shopify\Webhooks\Handler`, and its `$topic` argument is now a `craft\shopify\enums\WebhookTopics` enum instead of a string.
+- `craft\shopify\elements\Product::setMetafields()` and `craft\shopify\models\Variant::setMetafields()` now require a list-shaped array of `{key, value}` objects (or a JSON-encoded string of the same), and throw `\InvalidArgumentException` for anything else. Previously, an associative `key => value` map was also accepted without validation.
+- API and webhook errors are now thrown as `craft\shopify\exceptions\ShopifyApiException` and `craft\shopify\exceptions\InvalidOAuthException`, rather than the `Shopify\Exception\*` classes from the (now-removed) `shopify/shopify-api` package.
+-
 - Added `craft\shopify\auth\OAuthFlow`.
 - Added `craft\shopify\clients\GraphqlClient`.
 - Added `craft\shopify\controllers\SettingsController::actionGetScopes()`.
@@ -48,12 +55,6 @@ See the [upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgra
 - Added `craft\shopify\services\Products::deleteShopifyDataByShopifyGid()`.
 - Added `craft\shopify\services\Products::syncProductByShopifyGid()`.
 - Added `craft\shopify\webhooks\WebhookRegistry`.
-- `craft\shopify\models\Variant::$shopifyId` now holds the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
-- `craft\shopify\records\ShopifyData::$shopifyId` is now a generated (read-only) column containing the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
-- `craft\shopify\services\Api::getGqlClient()` now returns a `craft\shopify\clients\GraphqlClient` instance instead of `Shopify\Clients\Graphql`.
-- `craft\shopify\handlers\Webhook::handle()` no longer implements `Shopify\Webhooks\Handler`, and its `$topic` argument is now a `craft\shopify\enums\WebhookTopics` enum instead of a string.
-- `craft\shopify\elements\Product::setMetafields()` and `craft\shopify\models\Variant::setMetafields()` now require a list-shaped array of `{key, value}` objects (or a JSON-encoded string of the same), and throw `\InvalidArgumentException` for anything else. Previously, an associative `key => value` map was also accepted without validation.
-- API and webhook errors are now thrown as `craft\shopify\exceptions\ShopifyApiException` and `craft\shopify\exceptions\InvalidOAuthException`, rather than the `Shopify\Exception\*` classes from the (now-removed) `shopify/shopify-api` package.
 - Renamed `craft\shopify\jobs\ProcessBulkOperationData::$bulkOperationShopifyId` to `$bulkOperationShopifyGid`.
 - Renamed `craft\shopify\models\BulkOperation::$shopifyId` to `$shopifyGid`.
 - Deprecated `craft\shopify\services\BulkOperations::getBulkOperationByShopifyId()`. Use `getBulkOperationByShopifyGid()` instead.
