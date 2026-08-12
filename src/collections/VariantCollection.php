@@ -37,7 +37,7 @@ class VariantCollection extends Collection
                 continue;
             } elseif (is_array($item)) {
                 $item += ['class' => Variant::class];
-                $item = \Craft::createObject($item);
+                $item = Craft::createObject($item);
             } elseif ($item instanceof ShopifyData) {
                 $item = Craft::createObject([
                     'class' => Variant::class,
