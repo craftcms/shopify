@@ -69,6 +69,7 @@ See the [upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgra
 - Removed `craft\shopify\services\Api::getSession()`. Use `connect()` instead.
 - Removed `craft\shopify\services\Api::initializeContext()`.
 - Removed `craft\shopify\services\Api::WEBHOOK_TOPICS`. Use `getWebhookTopics()` instead.
+- Removed `craft\shopify\events\DefineContextConfigEvent` and `craft\shopify\services\Api::EVENT_DEFINE_CONTEXT_CONFIG`.
 
 ### System
 
