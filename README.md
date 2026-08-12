@@ -154,7 +154,8 @@ In this step, we’ll perform the [authorization code grant](https://shopify.dev
    > If you do not see a blue banner confirming **This app is exclusive to your store**, _do not proceed_!
    > A banner saying **This app can’t be installed on this store** (or landing on a generic Shopify error page) usually means that the hostname is not valid for the distribution.
 1. You will be redirected to the Craft control panel “auth” URL you used when creating the Shopify app. (If you were not already logged in, Craft will ask for your username and password; your user must have the **Access Shopify** permission or be an administrator to complete the authorization flow.)
-1. Press **Authorize** in the dialog.
+1. Confirm the store’s hostname and press **Authorize** in the dialog:
+    ![Completing the OAuth flow in Craft](docs/shopify-authorize-cp.png)
 1. Craft and Shopify will perform the OAuth handshake, and you should land on a confirmation screen in the Craft control panel saying **Your Shopify app has been successfully authorized**.
 
 🎊 Congratulations! Your Craft project can now communicate with the Shopify API.
