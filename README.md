@@ -213,14 +213,23 @@ Discover orphaned subscriptions using the [`webhookSubscriptions()`](https://sho
 ### From 7.x
 
 > [!WARNING]
-> Ensure the Craft queue is fully drained before upgrading. Any pending sync jobs will be unable to update their status after the migration runs.
+> Ensure the Craft queue is empty, before upgrading.
+> Any pending [sync](#synchronization) jobs will be unable to update their status after the migration runs.
+> In-progress bulk-synchronization operations (in Shopify) should be unaffected, unless you opt in to [additional features](#additional-features) during the upgrade.
 
-Shopify for Craft 8.0 requires **Craft CMS 5.10.7 or later** and drops support for Craft 4.
+Shopify 8.0 requires **Craft CMS 5.10.7 or later**, and drops support for Craft 4.x.
 
-`craft\shopify\models\Variant::$shopifyId` now holds only the **numeric** Shopify ID (e.g. `”123456789”`). The full GID (e.g. `”gid://shopify/ProductVariant/123456789”`) is available via the new `$shopifyGid` property. Update any templates or custom code that compared or used `$variant->shopifyId` as a GID string.
+The most significant change for most developers will be our handling of Shopify IDs and GIDs.
+`craft\shopify\models\Variant::$shopifyId` now holds only the **numeric** Shopify ID (e.g. `”123456789”`).
+The full GID (e.g. `”gid://shopify/ProductVariant/123456789”`) is available via the new `$shopifyGid` property.
+**Update any templates or custom code that compared or used `$variant->shopifyId` as a GID string.**
+
+Examples in this document reflect this change; you should no longer need to to manipulate the GID string for add-to-cart forms or other situations that required the numeric ID.
 
 > [!WARNING]
-> This also changes the plugin’s GraphQL API: querying a variant’s `shopifyId` field previously returned the full GID, and now returns the numeric ID only. Use the `shopifyGid` field if you need the full GID. If you have external clients or headless front-ends querying this plugin’s GraphQL API, audit them for this change.
+> This also changes the plugin’s GraphQL API: querying a variant’s `shopifyId` field previously returned the full GID, and now returns the numeric ID only.
+> Use the `shopifyGid` field if you need the full GID.
+> If you have external clients or headless front-ends querying this plugin’s GraphQL API, audit them for this change.
 
 The following methods are deprecated in favor of GID-based equivalents. Update any direct calls:
 
