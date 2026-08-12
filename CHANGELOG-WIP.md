@@ -1,9 +1,14 @@
 # WIP Release Notes for Shopify 8.0
 
 > [!IMPORTANT]
-> Ensure the Craft queue is fully drained before upgrading. Any pending sync jobs will be unable to update their status after the migration runs.
+> Ensure the Craft queue is empty before upgrading. Any pending sync jobs will be unable to update their status after the migration runs.
 >
 > If you change the **Additional Features** or **Custom Scopes** settings after the app is already authorized, you must update the scopes in your Shopify app configuration and then re-authorize the app.
+
+This is primarily a maintenance release, focusing on Shopify API compatibility, authorization, and overall consistency.
+
+Developers should review their templates and extensions for potentially breaking changes to products’ and variants’ `shopifyId` property.
+See the [upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgrading) section in the readme for more information.
 
 ### Store Management
 
