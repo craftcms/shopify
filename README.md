@@ -248,7 +248,10 @@ If you plan to enable any of the new [Additional Features](#additional-features)
 
 ### From 6.x
 
-This version (7.x) is primarily concerned with Shopify API compatibility, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
+> These instructions were originally published with the release of 7.x, but we have adapted them here for convenience.
+> You only need to follow these instructions if you are upgrading from 6.x directly to 8.x.
+
+Version 7.0 was primarily concerned with Shopify API compatibility, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
 
 Due to significant shifts in Shopify’s developer ecosystem, many of the [front-end cart management](#front-end-sdks) techniques we have recommended (like the _JS Buy SDK_ and _Buy Button JS_) are no longer viable.
 
