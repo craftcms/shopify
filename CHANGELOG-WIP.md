@@ -36,8 +36,6 @@ See the [upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgra
 - Added `craft\shopify\exceptions\ShopifyApiException`.
 - Added `craft\shopify\helpers\Metafield`.
 - Added `craft\shopify\helpers\ShopifyHelper`.
-- Added `craft\shopify\jobs\ProcessBulkOperationData::$bulkOperationShopifyGid`.
-- Added `craft\shopify\models\BulkOperation::$shopifyGid`.
 - Added `craft\shopify\models\Settings::REQUIRED_SCOPES`.
 - Added `craft\shopify\models\Settings::getAdditionalFeatures()`.
 - Added `craft\shopify\models\Settings::getAdditionalFeaturesOptions()`.
@@ -68,7 +66,6 @@ See the [upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgra
 - Removed `craft\shopify\services\Api::getSession()`. Use `connect()` instead.
 - Removed `craft\shopify\services\Api::initializeContext()`.
 - Removed `craft\shopify\services\Api::WEBHOOK_TOPICS`. Use `getWebhookTopics()` instead.
-- Removed `craft\shopify\events\DefineContextConfigEvent` and `craft\shopify\services\Api::EVENT_DEFINE_CONTEXT_CONFIG`.
 
 ### System
 
