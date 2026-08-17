@@ -23,6 +23,21 @@ use yii\web\Response;
 class ProductsController extends \craft\web\Controller
 {
     /**
+     * @inheritdoc
+     */
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        // All actions in this controller should be restricted to users with explicit plugin permissions:
+        $this->requirePermission('accessPlugin-' . $this->module->id);
+
+        return true;
+    }
+
+    /**
      * Displays the product index page.
      *
      * @return Response
