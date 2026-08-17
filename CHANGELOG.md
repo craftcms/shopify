@@ -3,6 +3,7 @@
 ## Unreleased
 
 - It is now possible to view plugin settings as an admin on environments that do not allow admin changes.
+- Fixed a bug where CSRF validation wasn’t being enforced for the settings, product sync, and sync-deletion actions.
 
 ## 7.1.3 - 2026-06-18
 

@@ -46,6 +46,7 @@ class ProductsController extends \craft\web\Controller
     {
         // Users must have access to the utility to manage synchronizations:
         $this->requirePermission('utility:shopify-sync');
+        $this->requirePostRequest();
 
         $result = Plugin::getInstance()->getBulkOperations()->createProductsBulkOperation();
 
