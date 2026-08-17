@@ -991,7 +991,7 @@ class Product extends Element
      */
     public function canCreateDrafts(User $user): bool
     {
-        return true;
+        return $user->can('accessPlugin-shopify');
     }
 
     /**
@@ -999,7 +999,7 @@ class Product extends Element
      */
     public function canSave(User $user): bool
     {
-        return true;
+        return $user->can('accessPlugin-shopify');
     }
 
     /**
@@ -1007,7 +1007,7 @@ class Product extends Element
      */
     public function canView(User $user): bool
     {
-        return true;
+        return $user->can('accessPlugin-shopify');
     }
 
     /**
@@ -1017,7 +1017,7 @@ class Product extends Element
     {
         // We normally cant delete shopify elements, but we can if we are in a draft state.
         if ($this->getIsDraft()) {
-            return true;
+            return $user->can('accessPlugin-shopify');
         }
 
         return false;

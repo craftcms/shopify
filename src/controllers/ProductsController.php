@@ -32,7 +32,7 @@ class ProductsController extends \craft\web\Controller
         }
 
         // All actions in this controller should be restricted to users with explicit plugin permissions:
-        $this->requirePermission('accessPlugin-' . $this->module->id);
+        $this->requirePermission('accessPlugin-shopify');
 
         return true;
     }
