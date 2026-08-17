@@ -317,6 +317,7 @@ class SettingsController extends Controller
     public function actionSaveSettings(): ?Response
     {
         $this->requireAdmin();
+        $this->requirePostRequest();
         $settings = Craft::$app->getRequest()->getParam('settings');
         $plugin = Plugin::getInstance();
         /** @var Settings $pluginSettings */

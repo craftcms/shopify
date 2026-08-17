@@ -23,6 +23,21 @@ use yii\web\Response;
 class ProductsController extends \craft\web\Controller
 {
     /**
+     * @inheritdoc
+     */
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        // All actions in this controller should be restricted to users with explicit plugin permissions:
+        $this->requirePermission('accessPlugin-shopify');
+
+        return true;
+    }
+
+    /**
      * Displays the product index page.
      *
      * @return Response
@@ -46,6 +61,7 @@ class ProductsController extends \craft\web\Controller
     {
         // Users must have access to the utility to manage synchronizations:
         $this->requirePermission('utility:shopify-sync');
+        $this->requirePostRequest();
 
         $result = Plugin::getInstance()->getBulkOperations()->createProductsBulkOperation();
 
