@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 7.1.4 - 2026-08-17
 
 - It is now possible to view plugin settings as an admin on environments that do not allow admin changes.
 - Fixed a bug where CSRF validation wasn’t being enforced for the settings, product sync, and sync-deletion actions.
