@@ -34,6 +34,7 @@ class SyncController extends Controller
     {
         // Users must have access to the utility to manage synchronizations:
         $this->requirePermission('utility:shopify-sync');
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
         $id = Craft::$app->getRequest()->getBodyParam('id');
 
