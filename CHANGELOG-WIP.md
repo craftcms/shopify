@@ -8,24 +8,18 @@
 This is primarily a maintenance release, focusing on Shopify API compatibility, authorization, and overall consistency.
 
 Developers should review their templates and extensions for potentially breaking changes to products’ and variants’ `shopifyId` property.
-See the [upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgrading) section in the readme for more information.
+See [Upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgrading) for details.
 
 ### Store Management
 
 - Added support for syncing product translations from Shopify. ([#215](https://github.com/craftcms/shopify/issues/215))
 - It’s now possible to view the required API scopes in the plugin settings.
 - It’s now possible to extend the API scopes with opt-in additional features and custom scopes.
-- Added support for the 2026-04 and 2026-07 Shopify API versions.
-- Product inventory now also syncs when Shopify sends an `inventory_items/update` webhook.
+- Added support for Shopify API versions `2026-04` and `2026-07`.
+- Product inventory is now synced when Shopify sends `inventory_items/update` webhooks.
 
 ### Extensibility
 
-- `craft\shopify\models\Variant::$shopifyId` now holds the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
-- `craft\shopify\records\ShopifyData::$shopifyId` is now a generated (read-only) column containing the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
-- `craft\shopify\services\Api::getGqlClient()` now returns a `craft\shopify\clients\GraphqlClient` instance instead of `Shopify\Clients\Graphql`.
-- `craft\shopify\handlers\Webhook::handle()` no longer implements `Shopify\Webhooks\Handler`, and its `$topic` argument is now a `craft\shopify\enums\WebhookTopics` enum instead of a string.
-- `craft\shopify\elements\Product::setMetafields()` and `craft\shopify\models\Variant::setMetafields()` now require a list-shaped array of `{key, value}` objects (or a JSON-encoded string of the same), and throw `\InvalidArgumentException` for anything else. Previously, an associative `key => value` map was also accepted without validation.
-- API and webhook errors are now thrown as `craft\shopify\exceptions\ShopifyApiException` and `craft\shopify\exceptions\InvalidOAuthException`, rather than the `Shopify\Exception\*` classes from the (now-removed) `shopify/shopify-api` package.
 - Added `craft\shopify\auth\OAuthFlow`.
 - Added `craft\shopify\clients\GraphqlClient`.
 - Added `craft\shopify\controllers\SettingsController::actionGetScopes()`.
@@ -52,6 +46,12 @@ See the [upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgra
 - Added `craft\shopify\services\Products::deleteShopifyDataByShopifyGid()`.
 - Added `craft\shopify\services\Products::syncProductByShopifyGid()`.
 - Added `craft\shopify\webhooks\WebhookRegistry`.
+- `craft\shopify\elements\Product::setMetafields()` and `craft\shopify\models\Variant::setMetafields()` now require a list-shaped array of `{key, value}` objects (or a JSON-encoded string of the same), and throw `\InvalidArgumentException` for anything else. Previously, an associative `key => value` map was also accepted without validation.
+- `craft\shopify\handlers\Webhook::handle()` no longer implements `Shopify\Webhooks\Handler`, and its `$topic` argument is now a `craft\shopify\enums\WebhookTopics` enum instead of a string.
+- `craft\shopify\models\Variant::$shopifyId` now holds the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
+- `craft\shopify\records\ShopifyData::$shopifyId` is now a generated (read-only) column containing the numeric Shopify ID. The full GID is now available via `$shopifyGid`.
+- `craft\shopify\services\Api::getGqlClient()` now returns a `craft\shopify\clients\GraphqlClient` instance instead of `Shopify\Clients\Graphql`.
+- API and webhook errors are now thrown as `craft\shopify\exceptions\ShopifyApiException` and `craft\shopify\exceptions\InvalidOAuthException`, rather than the `Shopify\Exception\*` classes from the (now-removed) `shopify/shopify-api` package.
 - Renamed `craft\shopify\jobs\ProcessBulkOperationData::$bulkOperationShopifyId` to `$bulkOperationShopifyGid`.
 - Renamed `craft\shopify\models\BulkOperation::$shopifyId` to `$shopifyGid`.
 - Deprecated `craft\shopify\services\BulkOperations::getBulkOperationByShopifyId()`. Use `getBulkOperationByShopifyGid()` instead.
@@ -63,15 +63,15 @@ See the [upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgra
 - Removed `craft\shopify\models\Settings::getApiSecretKey()`. Use `getClientSecret()` instead.
 - Removed `craft\shopify\models\Settings::setApiKey()`. Use `setClientId()` instead.
 - Removed `craft\shopify\models\Settings::setApiSecretKey()`. Use `setClientSecret()` instead.
+- Removed `craft\shopify\services\Api::WEBHOOK_TOPICS`. Use `getWebhookTopics()` instead.
 - Removed `craft\shopify\services\Api::getSession()`. Use `connect()` instead.
 - Removed `craft\shopify\services\Api::initializeContext()`.
-- Removed `craft\shopify\services\Api::WEBHOOK_TOPICS`. Use `getWebhookTopics()` instead.
 
 ### System
 
-- The `shopify_data` table's `shopifyId` column has been renamed to `shopifyGid`. A new generated `shopifyId` column (the numeric ID at the end of the GID) has been added.
-- The `shopify_bulkoperations` table's `shopifyId` column has been renamed to `shopifyGid`.
-- Fixed a bug where validation errors for the "Context Pricing Countries" setting weren't displaying correctly.
-- Fixed a bug where `inventory_levels/update` webhooks weren't triggering a product sync.
-- Removed the `shopify/shopify-api` Composer dependency.
 - Shopify for Craft now requires Craft CMS 5.10.7 or later. Craft 4 is no longer supported.
+- The `shopify_data` table’s `shopifyId` column has been renamed to `shopifyGid`. A new `shopifyId` generated column has been added, set to the numeric ID at the end of the GID.
+- The `shopify_bulkoperations` table’s `shopifyId` column has been renamed to `shopifyGid`.
+- Removed the `shopify/shopify-api` Composer dependency.
+- Fixed a bug where validation errors for the “Context Pricing Countries” setting weren’t displaying correctly.
+- Fixed a bug where `inventory_levels/update` webhooks weren’t triggering a product sync.
