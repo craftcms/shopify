@@ -22,14 +22,14 @@
   "require": {
     "php": "^8.2",
     "carnage/php-graphql-client": "^1.14",
-    "craftcms/cms": "^5.0.0-beta.10||^4.15.0",
-    "shopify/shopify-api": "^6.0.0"
+    "craftcms/cms": "^5.10.7",
+    "guzzlehttp/guzzle": "^7.2"
   },
   "require-dev": {
     "codeception/codeception": "^5.0.11",
     "codeception/module-asserts": "^3.0.0",
     "codeception/module-yii2": "^1.1.9",
-    "craftcms/feed-me": "^6.6.1||^5.9.0",
+    "craftcms/feed-me": "^6.6.1",
     "craftcms/ecs": "dev-main",
     "craftcms/phpstan": "dev-main",
     "craftcms/rector": "dev-main",

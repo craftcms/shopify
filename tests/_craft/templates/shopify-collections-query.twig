@@ -1,0 +1,15 @@
+{# Mirrors the README's "API Service" `craft.shopify.api.query()` example. #}
+{% set gql %}
+  {
+    collections(first: 10) {
+      nodes {
+        id
+        title
+      }
+    }
+  }
+{% endset %}
+
+{% set response = craft.shopify.api.query(gql) %}
+{% set collections = response.nodes ?? [] %}
+{{- collections|length -}}

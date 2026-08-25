@@ -5,8 +5,7 @@
 Build a content-driven storefront by synchronizing [Shopify](https://shopify.com) products into [Craft CMS](https://craftcms.com/).
 
 > [!IMPORTANT]
-> Version 7.x of Shopify for Craft uses a new app-based authorization system.
-> You must follow the [upgrade instructions](#upgrading) to get new credentials.
+> Please review the [upgrade instructions](#upgrading) for some important changes.
 
 ## Topics
 
@@ -18,7 +17,7 @@ Build a content-driven storefront by synchronizing [Shopify](https://shopify.com
 
 ## Installation
 
-Shopify requires Craft CMS 4.15.0+ or 5.0.0+.
+Shopify requires Craft CMS 5.10.7+.
 
 To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/shopify) from your Craft project, or follow these instructions.
 
@@ -72,14 +71,15 @@ To install an app into a store, one of these statements must describe your accou
         ```bash
         SHOPIFY_WEBHOOK_VERSION="2026-01"
         ```
-    - **Access** &rarr; **Scopes**: The following scopes are required for the plugin to function correctly:
+    - **Access** &rarr; **Scopes**: The following scopes are always required:
         - `read_inventory`
         - `read_product_listings`
         - `read_products`
-        - Shopify requires these to be in a comma-separated list:
-        ```
-        read_inventory,read_product_listings,read_products
-        ```
+        
+        If you plan to enable any **Additional Features** or **Custom Scopes** in the plugin settings, those will require additional scopes. Once the plugin is installed and configured, use the read-only **Scopes** field in **Shopify** &rarr; **Settings** as the source of truth: it always reflects the full, comma-separated string to paste here.
+        
+        > [!WARNING]
+        > If you later change your **Additional Features** or **Custom Scopes** settings, you must update the scopes in your Shopify app configuration and then re-authorize the app from the Craft control panel.
     - Do _not_ enable the **Use legacy install flow** as it can result in mismatched scopes during installation.
 1. Press **Release** to deploy the configuration. You may give it a name and description, or let Shopify tag it with an incrementing number.
 1. Switch to the **Settings** screen of the new app, and copy the credentials into your `.env` file:
@@ -154,7 +154,8 @@ In this step, we’ll perform the [authorization code grant](https://shopify.dev
    > If you do not see a blue banner confirming **This app is exclusive to your store**, _do not proceed_!
    > A banner saying **This app can’t be installed on this store** (or landing on a generic Shopify error page) usually means that the hostname is not valid for the distribution.
 1. You will be redirected to the Craft control panel “auth” URL you used when creating the Shopify app. (If you were not already logged in, Craft will ask for your username and password; your user must have the **Access Shopify** permission or be an administrator to complete the authorization flow.)
-1. Press **Authorize** in the dialog.
+1. Confirm the store’s hostname and press **Authorize** in the dialog:
+    ![Completing the OAuth flow in Craft](docs/shopify-authorize-cp.png)
 1. Craft and Shopify will perform the OAuth handshake, and you should land on a confirmation screen in the Craft control panel saying **Your Shopify app has been successfully authorized**.
 
 🎊 Congratulations! Your Craft project can now communicate with the Shopify API.
@@ -208,7 +209,50 @@ Discover orphaned subscriptions using the [`webhookSubscriptions()`](https://sho
 
 ## Upgrading
 
-This version (7.x) is primarily concerned with Shopify API compatibility, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
+> While it is technically possible to upgrade directly from 6.x to the latest 8.x version, we strongly recommend reviewing the [6.x upgrade guide](#from-6x), as an intermediate step.
+
+### From 7.x
+
+> [!WARNING]
+> Ensure the Craft queue is empty, before upgrading.
+> Any pending [sync](#synchronization) jobs will be unable to update their status after the migration runs.
+> In-progress bulk-synchronization operations (in Shopify) should be unaffected, unless you opt in to [additional features](#additional-features) during the upgrade.
+
+Shopify 8.0 requires **Craft CMS 5.10.7 or later**, and drops support for Craft 4.x.
+
+The most significant change for most developers will be our handling of Shopify IDs and GIDs.
+`craft\shopify\models\Variant::$shopifyId` now holds only the **numeric** Shopify ID (e.g. `”123456789”`).
+The full GID (e.g. `”gid://shopify/ProductVariant/123456789”`) is available via the new `$shopifyGid` property.
+**Update any templates or custom code that compared or used `$variant->shopifyId` as a GID string.**
+
+Examples in this document reflect this change; you should no longer need to to manipulate the GID string for add-to-cart forms or other situations that required the numeric ID.
+
+> [!WARNING]
+> This also changes the plugin’s GraphQL API: querying a variant’s `shopifyId` field previously returned the full GID, and now returns the numeric ID only.
+> Use the `shopifyGid` field if you need the full GID.
+> If you have external clients or headless front-ends querying this plugin’s GraphQL API, audit them for this change.
+
+The following methods are deprecated in favor of GID-based equivalents. Update any direct calls:
+
+- `craft\shopify\services\BulkOperations::getBulkOperationByShopifyId()` → `getBulkOperationByShopifyGid()`
+- `craft\shopify\services\Products::deleteProductByShopifyId()` → `deleteProductByShopifyGid()`
+- `craft\shopify\services\Products::deleteShopifyDataByShopifyId()` → `deleteShopifyDataByShopifyGid()`
+- `craft\shopify\services\Products::syncProductByShopifyId()` → `syncProductByShopifyGid()`
+
+> [!WARNING]
+> The `shopify/shopify-api` package is no longer a dependency of this plugin. If any custom code references its classes directly—like `Shopify\Clients\Graphql`, `Shopify\Exception\ShopifyException`, `Shopify\Webhooks\Registry`, `Shopify\Auth\OAuth`, or `Shopify\Context`—update it to use the plugin’s own equivalents (`craft\shopify\clients\GraphqlClient`, `craft\shopify\exceptions\ShopifyApiException`, `craft\shopify\webhooks\WebhookRegistry`, `craft\shopify\auth\OAuthFlow`) instead.
+
+If you plan to enable any of the new [Additional Features](#additional-features) or the `customScopes` setting as part of this upgrade, see the scope re-authorization requirements described there—enabling them after the app is already authorized requires updating your Shopify app’s scopes and re-authorizing.
+
+> [!TIP]
+> The [changelog](https://github.com/craftcms/shopify/blob/8.x/CHANGELOG.md) contains a full list of added, changed, and deprecated classes and methods.
+
+### From 6.x
+
+> These instructions were originally published with the release of 7.x, but we have adapted them here for convenience.
+> You only need to follow these instructions if you are upgrading from 6.x directly to 8.x.
+
+Version 7.0 was primarily concerned with Shopify API compatibility, but the [new authentication mechanism](#connect-to-shopify) means that you’ll need to re-establish the connection to Shopify using the authentication scheme [described above](#connect-to-shopify).
 
 Due to significant shifts in Shopify’s developer ecosystem, many of the [front-end cart management](#front-end-sdks) techniques we have recommended (like the _JS Buy SDK_ and _Buy Button JS_) are no longer viable.
 
@@ -216,27 +260,29 @@ Due to significant shifts in Shopify’s developer ecosystem, many of the [front
 > We strongly recommend reviewing this same section on the [6.x](https://github.com/craftcms/shopify/blob/6.x/README.md#upgrading) branch, as there were a number of breaking changes and deprecations during the upgrade from 5.x.
 > The [changelog](https://github.com/craftcms/shopify/blob/7.x/CHANGELOG.md) contains specific information about the classes and methods that have been added, removed, or deprecated.
 
-After the upgrade, you **must** [delete and re-create](#set-up-webhooks) webhooks for each environment. Webhooks are registered and delivered with a specific version, and a mismatch will result in errors.
+After the upgrade, you **must** [delete and re-create webhooks](#set-up-webhooks) for each environment.
+Webhooks are registered and delivered with a specific version, and a mismatch will result in errors.
 
-Your “legacy custom app” can be left as-is or deleted, once all your environments have been migrated to the Dev Dashboard connection. While this plugin has no need for those credentials, confirm with the store owner that no other external services depend on them!
+Your “legacy custom app” can be left as-is or deleted, once all your environments have been migrated to the Dev Dashboard connection.
+While this plugin has no need for those credentials, confirm with the store owner that no other external services depend on them!
 
-### Credentials
+#### Credentials
 
 At the beginning of 2026, Shopify overhauled how “apps” are created, moving them to the new [Dev Dashboard](https://shopify.dev/docs/apps/build/dev-dashboard).
 
 You should be able to [create a new app](#create-an-app), and [install it](#install-in-a-store) using the new OAuth mechanism, without disruption to product synchronization.
 
-### Publishing and Status
+#### Publishing and Status
 
 Shopify has eliminated [sales channels for custom apps](https://shopify.dev/docs/apps/build/sales-channels/start-building), and therefore the [`publishedOnCurrentPublication` field](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product#field-Product.fields.publishedOnCurrentChannel) is no longer available in Product queries.
 
 This means that there is no official way to “publish” products to the Craft integration, but we cover some alternatives in the [sales channel emulation](#emulate-sales-channels) section.
 
-### Product Field Layouts
+#### Product Field Layouts
 
 The product element editor has received a major overhaul. You can now choose exactly where Shopify data is placed, within the [field layout](#custom-fields).
 
-### Front-End SDKs
+#### Front-End SDKs
 
 Shopify has retired many of its pre-built client-side frameworks, in favor of directly communicating with the generic [Storefront GraphQL API](#storefront-api-client).
 You will need to revise how you query and mutate data, if your front-end currently depends on the JS Buy SDK or Buy Button JS.
@@ -263,7 +309,7 @@ Going forward, your products are automatically kept in sync via [webhooks](#set-
 
 ### Native Attributes
 
-In addition to the standard element attributes like `id`, `title`, and `status`, each Shopify product element contains direct accessors for these canonical Shopify [Product attributes](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product):
+In addition to the standard [element](https://craftcms.com/docs/5.x/system/elements.html) attributes like `id`, `title`, and `status`, each Shopify product element contains direct accessors for these canonical Shopify [Product attributes](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product):
 
 | Attribute                                | Description                                                                                                                                                                                           | Type      |
 |------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
@@ -301,7 +347,7 @@ The product element has a few methods you might find useful in your [templates](
 
 #### `Product::getVariants()`
 
-Returns an array of [variants](#variants-and-pricing) belonging to the product.
+Returns a collection of [variants](#variants-and-pricing) belonging to the product.
 Variants are _not_ elements (just regular models), but you can use the same dot notation to access their properties:
 
 ```twig
@@ -309,10 +355,14 @@ Variants are _not_ elements (just regular models), but you can use the same dot 
 
 <select name="variantId">
   {% for variant in variants %}
-    <option value="{{ variant.id }}">{{ variant.title }}</option>
+    <option value="{{ variant.shopifyId }}">{{ variant.title }}</option>
   {% endfor %}
 </select>
 ```
+
+> [!NOTICE]
+> Like products, variants’ `id`s are Craft-specific identifiers.
+> Use `shopifyGid` or `shopifyId` for the canonical Shopify values.
 
 You can [eager-load](#eager-loading) variants alongside products using the [product query](#querying-products)’s `.withVariants()` method.
 
@@ -466,9 +516,9 @@ Filter by legacy numeric Shopify product IDs.
 Filter by [Shopify GIDs](https://shopify.dev/docs/api/admin-graphql/2026-01/scalars/ID).
 
 ```twig
-{# Watch out—these aren't the same as element IDs! #}
+{# Watch out! These aren’t the same as element IDs or Shopify IDs. #}
 {% set singleProduct = craft.shopifyProducts
-  .shopifyId('gid://shopify/Product/123456789')
+  .shopifyGid('gid://shopify/Product/123456789')
   .one() %}
 ```
 
@@ -528,9 +578,9 @@ Tags are stored as a JSON array, which may complicate direct comparisons. You ma
 Options are stored as a JSON array, which may complicate direct comparisons. You may see better results using [the `.search()` param](https://craftcms.com/docs/5.x/system/searching.html#development).
 
 ```twig
-{# Find products whose options include a `size` key: #}
+{# Find products with an option value like "Large": #}
 {% set clogs = craft.shopifyProducts
-  .tags('*"size"*')
+  .search('*Large*')
   .all() %}
 ```
 
@@ -824,7 +874,7 @@ If you want to let customers pick from _options_ instead of directly select from
         id: 'variant',
         data: {
             variants: product.variants | map(v => {
-                gid: v.shopifyId,
+                gid: v.shopifyGid,
                 selectedOptions: v.data.selectedOptions,
             }),
         },
@@ -951,18 +1001,6 @@ Your customers can add products to their cart directly from your Craft site by `
 </form>
 ```
 
-### JS Buy SDK
-
-The JS Buy SDK is no longer maintained, and is not compatible with the new APIs or authorization scheme.
-
-### Buy Button JS
-
-The above example can be simplified with the [Buy Button JS](https://shopify.dev/custom-storefronts/tools/buy-button), which provides some ready-made UI components, like a fully-featured cart. The principles are the same:
-
-1. Make products available via the appropriate sales channels in Shopify;
-2. Output synchronized product data in your front-end;
-3. Initialize, attach, or trigger SDK functionality in response to events, using Shopify-specific identifiers from step #2;
-
 ### Storefront API Client
 
 > [!WARNING]
@@ -988,7 +1026,7 @@ See the [usage examples](https://github.com/Shopify/shopify-app-js/tree/main/pac
 
 ```twig
 {% for variant in product.variants %}
-  <button class="buy-button" data-variant-gid="{{ variant.shopifyId }}">Buy {{ variant.title }}</button>
+  <button class="buy-button" data-variant-gid="{{ variant.shopifyGid }}">Buy {{ variant.title }}</button>
 {% endfor %}
 ```
 
@@ -1220,20 +1258,63 @@ This section describes advanced ways to customize the plugin’s behavior.
 
 The following settings can also be set via a `shopify.php` file in your `config/` directory.
 
-| Setting                      | Type     | Default | Description                                                                                                                                                                                                                                                                                                        |
-|------------------------------|----------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `apiKey`                     | `string` | —       | Shopify API key.                                                                                                                                                                                                                                                                                                   |
-| `apiSecretKey`               | `string` | —       | Shopify API secret key.                                                                                                                                                                                                                                                                                            |
-| `apiVersion`                 | `string` | —       | Shopify [API version](https://shopify.dev/docs/api/usage/versioning) description.                                                                                                                                                                                                                                  |
-| `accessToken`                | `string` | —       | Shopify API access token.                                                                                                                                                                                                                                                                                          |
-| `contextualPricingCountries` | `string` | —       | Comma-separated list of [two-letter country codes](https://shopify.dev/docs/api/admin-graphql/2026-01/enums/CountryCode) that determine which [contextual prices](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/ProductVariant#field-ProductVariant.fields.contextualPricing) are loaded via the API. |
-| `hostName`                   | `string` | —       | Your store’s hostname. See the [creating an app](#create-an-app) section for more information.                                                                                                                                                                                                                     |
-| `uriFormat`                  | `string` | —       | Product element URI format.                                                                                                                                                                                                                                                                                        |
-| `template`                   | `string` | —       | Product element template path.                                                                                                                                                                                                                                                                                     |
+| Setting                      | Type       | Default | Description                                                                                                                                                                                                                                                                                                        |
+|------------------------------|------------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `clientId`                   | `string`   | —       | Shopify API client ID.                                                                                                                                                                                                                                                                                             |
+| `clientSecret`               | `string`   | —       | Shopify API client secret key.                                                                                                                                                                                                                                                                                     |
+| `apiVersion`                 | `string`   | —       | Shopify [API version](https://shopify.dev/docs/api/usage/versioning) description.                                                                                                                                                                                                                                  |
+| `accessToken`                | `string`   | —       | Shopify API access token.                                                                                                                                                                                                                                                                                          |
+| `additionalFeatures`         | `string[]` | `[]`    | Array of additional feature handles to enable (e.g. `['productTranslations']`). Enabling features may add required API scopes; see [Additional Features](#additional-features).                                                                                                                                    |
+| `contextualPricingCountries` | `string`   | —       | Comma-separated list of [two-letter country codes](https://shopify.dev/docs/api/admin-graphql/2026-01/enums/CountryCode) that determine which [contextual prices](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/ProductVariant#field-ProductVariant.fields.contextualPricing) are loaded via the API. |
+| `customScopes`               | `string`   | —       | Comma-separated list of additional API scopes to request beyond the plugin's [required scopes](#create-an-app).                                                                                                                                                                                                    |
+| `hostName`                   | `string`   | —       | Your store’s hostname. See the [creating an app](#create-an-app) section for more information.                                                                                                                                                                                                                     |
+| `uriFormat`                  | `string`   | —       | Product element URI format.                                                                                                                                                                                                                                                                                        |
+| `template`                   | `string`   | —       | Product element template path.                                                                                                                                                                                                                                                                                     |
 
 > [!NOTE]
-> Setting `apiKey`, `apiSecretKey`, `apiVersion`, `accessToken`, or `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#connect-to-shopify).
+> Setting `clientId`, `clientSecret`, `apiVersion`, `accessToken`, or `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#connect-to-shopify).
 > You can still reference environment values from the config file with `craft\helpers\App::env()`.
+
+### Additional Features
+
+Additional features are opt-in capabilities that extend the plugin's default behavior.
+
+> [!WARNING]
+> Enabling or disabling additional features may change the required API scopes! After saving the settings, you must update the **Access** &rarr; **Scopes** field in your Shopify app configuration and then re-authorize the app from the Craft control panel, _in each environment_.
+
+Features can also be enabled via `config/shopify.php`:
+
+```php
+return [
+    'additionalFeatures' => ['productTranslations'],
+];
+```
+
+#### Product Translations
+
+**Handle:** `productTranslations` | **Required scope:** `read_locales`
+
+When enabled, the plugin fetches Shopify's published store locales during product sync and includes translation data for each non-primary locale in the product's raw data. This lets you surface translated product content (titles, descriptions, etc.).
+
+Translation data is stored in `product.getData()`, keyed by locale, like `translations_fr` for French. Each entry is an array of `key`/`value` pairs corresponding to Shopify's [translatable resource keys](https://shopify.dev/docs/api/admin-graphql/latest/objects/Translation).
+
+```twig
+{# Loop over French translations for a product #}
+{% set translations = product.getData()['translations_fr'] ?? [] %}
+{% for translation in translations %}
+  <p>{{ translation.key }}: {{ translation.value }}</p>
+{% endfor %}
+```
+
+To make this data easier to work with, consider indexing it by `key`:
+
+```twig
+{% set translationsByKey = collect(product.getData()['translations_fr'])
+  .keyBy('key')
+  .mapWithKeys((item, k) => { (k): item.value }) %}
+
+{{ translationsByKey.title ?? product.title }}
+```
 
 ### Emulate Sales Channels
 
@@ -1465,7 +1546,7 @@ query getProductPrice($id: ID!) {
 
 {# Execute the query #}
 {% set response = craft.shopify.api.query(priceQuery, {
-  id: product.shopifyId
+  id: product.shopifyGid
 }) %}
 
 {# Access the pricing data #}
@@ -1485,7 +1566,7 @@ Key elements of this approach:
 
 - `contextualPricing(context: {country: XX})` returns market-specific prices (use the country code directly, e.g., `GB`, `US`, `DE`)
 - Use an alias like `gbPricing:` to name the result for easy access in Twig
-- Pass the product's `shopifyId` (already a GID) directly to the query
+- Pass the product's `shopifyGid` (already a GID) directly to the query
 - The `query()` method returns the first result directly, so access `response.variants` (not `response.data.product.variants`)
 - Falls back to the default `variant.price` if contextual pricing is not available
 

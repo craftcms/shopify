@@ -16,7 +16,6 @@ use craft\shopify\elements\Product;
 use craft\shopify\models\Settings;
 use craft\shopify\Plugin;
 use craft\web\Controller;
-use craft\web\Response as CraftResponse;
 use yii\web\Response;
 
 /**
@@ -63,7 +62,17 @@ class SettingsController extends Controller
             'name' => 'settings[authUrl]',
             'value' => $settings->getAuthUrl(),
             'readonly' => true,
-            'warning' => !Plugin::getInstance()->getApi()->getSession() ? Craft::t('shopify', 'Unable to connect to custom app. Syncing will be unavailable until the app has been authorized.') : null,
+            'warning' => !Plugin::getInstance()->getApi()->connect() ? Craft::t('shopify', 'Unable to connect to custom app. Syncing will be unavailable until the app has been authorized.') : null,
+        ];
+
+        $scopesFieldConfig = [
+            'label' => $settings->getAttributeLabel('scopes'),
+            'instructions' => Craft::t('shopify', 'API scopes required for your app integration, including additional features and custom scopes.'),
+            'id' => 'scopes',
+            'name' => 'settings[scopes]',
+            'value' => $settings->getScopes(),
+            'readonly' => true,
+            'tip' => Craft::t('shopify', 'Copy these scopes into your Shopify app’s configuration in the Dev Dashboard to ensure your integration works correctly.'),
         ];
 
         $html = Html::beginTag('div', ['id' => 'products', 'class' => 'hidden']) .
@@ -173,6 +182,36 @@ class SettingsController extends Controller
 
                 Html::tag('hr') .
 
+                Html::beginTag('div', ['id' => 'scopes-settings']) .
+
+                    Cp::fieldHtml(
+                        Cp::renderTemplate('_includes/forms/copytext.twig', $scopesFieldConfig),
+                        $scopesFieldConfig
+                    ) .
+
+                    Cp::checkboxSelectFieldHtml([
+                        'id' => 'additionalFeatures',
+                        'label' => $settings->getAttributeLabel('additionalFeatures'),
+                        'name' => 'settings[additionalFeatures]',
+                        'options' => $settings->getAdditionalFeaturesOptions(),
+                        'values' => $settings->getAdditionalFeatures(),
+                        'showAllOption' => true,
+                    ]) .
+
+                    Cp::autosuggestFieldHtml([
+                        'label' => $settings->getAttributeLabel('customScopes'),
+                        'instructions' => Craft::t('shopify', 'A comma separated list of custom scopes to add to the API requests.'),
+                        'id' => 'customScopes',
+                        'name' => 'settings[customScopes]',
+                        'value' => $settings->getCustomScopes(false),
+                        'errors' => $settings->getErrors('customScopes'),
+                        'suggestEnvVars' => true,
+                    ]) .
+
+                Html::endTag('div') .
+
+                Html::tag('hr') .
+
                 Cp::fieldHtml(
                     Cp::renderTemplate('_includes/forms/copytext.twig', $authUrlFieldConfig),
                     $authUrlFieldConfig
@@ -180,6 +219,56 @@ class SettingsController extends Controller
 
             Html::endTag('div')
         ;
+
+        $getScopesAction = 'shopify/settings/get-scopes';
+        $js = <<<JS
+            (() => {
+                const scopesSettingsContainer = document.getElementById('scopes-settings');
+                if (!scopesSettingsContainer) return;
+
+                let debounceTimer;
+
+                const updateScopes = () => {
+                    const additionalFeatures = Array.from(
+                        scopesSettingsContainer.querySelectorAll('input[name="settings[additionalFeatures][]"]:checked')
+                    ).map(cb => cb.value).filter(Boolean);
+
+                    const customScopesInput = document.getElementById('customScopes');
+                    const scopesInput = document.getElementById('scopes');
+                    if (!scopesInput) return;
+
+                    Craft.sendActionRequest('POST', '$getScopesAction', {
+                        data: {
+                            additionalFeatures,
+                            customScopes: customScopesInput?.value ?? '',
+                        },
+                    }).then(response => {
+                        scopesInput.value = response.data.scopes;
+                    }).catch(() => {
+                        Craft.cp.displayError(Craft.t('shopify', 'Couldn’t update scopes.'));
+                    });
+                };
+
+                scopesSettingsContainer.addEventListener('change', (e) => {
+                    if (e.target.name === 'settings[additionalFeatures][]' || e.target.name === 'settings[additionalFeatures]') {
+                        // Defer so Craft's checkbox-select JS can toggle related checkboxes first
+                        setTimeout(updateScopes, 0);
+                    }
+                });
+
+                scopesSettingsContainer.addEventListener('input', (e) => {
+                    if (e.target.id === 'customScopes') {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(updateScopes, 300);
+                    }
+                });
+            })();
+        JS;
+        $this->getView()->registerJs($js);
+
+        $this->getView()->registerTranslations('shopify', [
+            'Couldn’t update scopes.',
+        ]);
 
         $screen = $this->asCpScreen()
             ->title(Craft::t('shopify', 'Settings'))
@@ -193,23 +282,31 @@ class SettingsController extends Controller
             $screen->action('shopify/settings/save-settings')
                 ->redirectUrl('shopify/settings');
         } else {
-            // @TODO remove when the plugin no longer support Craft 4
-            if ($screen->hasMethod('noticeHtml') && method_exists(Cp::class, 'readOnlyNoticeHtml')) {
-                $screen->noticeHtml(Cp::readOnlyNoticeHtml());
-            }
+            $screen->noticeHtml(Cp::readOnlyNoticeHtml());
         }
 
-        return $this->_screenContent($screen, $html);
+        return $screen->contentHtml($html);
     }
 
     /**
-     * Render CP screen content across Craft 4/5.
-     * @TODO remove when the plugin no longer supports Craft 4
+     * Returns the combined scopes string for the given additional features and custom scopes.
+     *
+     * @return Response
+     * @since 7.2.0
      */
-    private function _screenContent(CraftResponse $screen, string $html): Response
+    public function actionGetScopes(): Response
     {
-        $method = !$screen->hasMethod('contentHtml') ? 'content' : 'contentHtml';
-        return $screen->{$method}($html);
+        $this->requireAcceptsJson();
+        $this->requirePostRequest();
+
+        $request = Craft::$app->getRequest();
+        $settings = new Settings();
+        $settings->setAdditionalFeatures((array)$request->getBodyParam('additionalFeatures', []));
+        $settings->setCustomScopes($request->getBodyParam('customScopes', ''));
+
+        return $this->asJson([
+            'scopes' => $settings->getScopes(),
+        ]);
     }
 
     /**
@@ -226,6 +323,13 @@ class SettingsController extends Controller
         /** @var Settings $pluginSettings */
         $pluginSettings = $plugin->getSettings();
         $originalUriFormat = $pluginSettings->uriFormat;
+
+        $settings['additionalFeatures'] = $settings['additionalFeatures'] ?: [];
+
+        // Expand the checkboxSelect "All" wildcard to the full list of feature handles
+        if ($settings['additionalFeatures'] === '*') {
+            $settings['additionalFeatures'] = array_keys($pluginSettings->getAdditionalFeaturesOptions());
+        }
 
         // Remove from editable table namespace
         $settings['uriFormat'] = $settings['routing']['uriFormat'];

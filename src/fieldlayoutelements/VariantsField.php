@@ -63,7 +63,7 @@ class VariantsField extends BaseNativeField
         ];
 
         foreach ($variants as $variant) {
-            $link = sprintf('%s/variants/%s', $element->getShopifyEditUrl(), str_replace('gid://shopify/ProductVariant/', '', $variant->shopifyId));
+            $link = sprintf('%s/variants/%s', $element->getShopifyEditUrl(), $variant->shopifyId);
 
             $title = $variant->title;
             $sku = $variant->sku;
@@ -86,30 +86,12 @@ class VariantsField extends BaseNativeField
                 Html::endTag('div');
         }
 
-        // @TODO remove this when Craft 4 support is dropped
-        $name = method_exists($this, 'baseInputName') ? $this->baseInputName() : $this->attribute();
-
-        $tableConfig = [
+        return Cp::editableTableHtml([
             'id' => $this->id(),
-            'name' => $name,
+            'name' => $this->baseInputName(),
             'cols' => $cols,
             'rows' => $variantRows,
             'static' => true,
-        ];
-
-        return $this->_editableTableHtml($tableConfig);
-    }
-
-    /**
-     * @TODO remove this when Craft 4 support is dropped
-     */
-    private function _editableTableHtml(array $tableConfig): string
-    {
-        // @phpstan-ignore booleanNot.alwaysFalse (Craft 4 compatibility: method does not exist in Craft 4)
-        if (!is_callable([Cp::class, 'editableTableHtml'])) {
-            return Cp::renderTemplate('_includes/forms/editableTable.twig', $tableConfig);
-        }
-
-        return Cp::editableTableHtml($tableConfig);
+        ]);
     }
 }

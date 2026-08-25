@@ -29,9 +29,9 @@ class ShopifyDataFixture extends DbFixture
         foreach ($rows as $row) {
             $uid = $row['uid'];
             \Yii::$app->db->createCommand()->insert(Table::DATA, [
-                'shopifyId' => $row['shopifyId'],
+                'shopifyGid' => $row['shopifyGid'],
                 'type' => $row['type'],
-                'data' => is_array($row['data']) ? json_encode($row['data']) : $row['data'],
+                'data' => $row['data'],
                 'parentId' => $row['parentId'],
                 'uid' => $uid,
                 'dateCreated' => $row['dateCreated'],

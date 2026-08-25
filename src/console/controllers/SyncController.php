@@ -24,32 +24,6 @@ class SyncController extends Controller
     public $defaultAction = 'all';
 
     /**
-     * @var bool Whether to slow down API requests to avoid rate limiting.
-     * @since 5.2.0
-     * @deprecated 7.0.0
-     */
-    public bool $throttle = false;
-
-    /**
-     * @inheritdoc
-     */
-    public function options($actionID): array
-    {
-        $options = parent::options($actionID);
-        $options[] = 'throttle';
-        return $options;
-    }
-
-    public function beforeAction($action): bool
-    {
-        if ($this->throttle) {
-            $this->stdout('The --throttle option has been deprecated and has no effect, as we fetch product data in bulk (and therefore are not subject to API rate limiting).' . PHP_EOL, Console::FG_YELLOW);
-        }
-
-        return parent::beforeAction($action);
-    }
-
-    /**
      * Sync all Shopify data.
      */
     public function actionAll()

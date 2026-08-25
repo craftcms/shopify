@@ -12,9 +12,14 @@ use craft\base\Component;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\log\MonologTarget;
+use craft\shopify\auth\OAuthFlow;
+use craft\shopify\clients\GraphqlClient;
+use craft\shopify\enums\ApiVersion;
+use craft\shopify\enums\WebhookTopics;
 use craft\shopify\events\DefineGqlFieldsEvent;
 use craft\shopify\events\DefineGqlQueryArgumentsEvent;
+use craft\shopify\exceptions\ShopifyApiCommunicationException;
+use craft\shopify\exceptions\ShopifyApiException;
 use craft\shopify\Plugin;
 use craft\shopify\records\AccessToken;
 use craft\shopify\records\ShopifyData;
@@ -22,23 +27,7 @@ use GraphQL\Mutation;
 use GraphQL\Query;
 use GraphQL\QueryBuilder\QueryBuilder;
 use GraphQL\Variable;
-use GuzzleHttp\Client;
 use Illuminate\Support\Collection;
-use Psr\Http\Client\ClientExceptionInterface;
-use Psr\Http\Client\ClientInterface;
-use Shopify\ApiVersion;
-use Shopify\Auth\FileSessionStorage;
-use Shopify\Auth\OAuth;
-use Shopify\Auth\Session;
-use Shopify\Clients\Graphql;
-use Shopify\Clients\Http;
-use Shopify\Clients\HttpClientFactory;
-use Shopify\Context;
-use Shopify\Exception\MissingArgumentException;
-use Shopify\Exception\SessionNotFoundException;
-use Shopify\Exception\ShopifyException;
-use Shopify\Exception\UninitializedContextException;
-use Shopify\Webhooks\Topics;
 use yii\base\InvalidConfigException;
 
 /**
@@ -51,19 +40,6 @@ use yii\base\InvalidConfigException;
  */
 class Api extends Component
 {
-    /**
-     * @var string[]
-     * @since 6.0.0
-     */
-    public const WEBHOOK_TOPICS = [
-        Topics::PRODUCTS_CREATE,
-        Topics::PRODUCTS_UPDATE,
-        Topics::PRODUCTS_DELETE,
-        Topics::INVENTORY_LEVELS_UPDATE,
-        Topics::BULK_OPERATIONS_FINISH,
-        Topics::SHOP_UPDATE,
-    ];
-
     /**
      * @since 7.0.0
      */
@@ -82,24 +58,31 @@ class Api extends Component
     public const EVENT_DEFINE_GQL_QUERY_ARGUMENTS = 'defineGqlQueryArguments';
 
     /**
-     * @var Session|null
+     * @var string|null
      */
-    private ?Session $_session = null;
+    private ?string $_accessToken = null;
 
     /**
-     * @var Graphql|null
+     * @var GraphqlClient|null
      */
-    private ?Graphql $_gqlClient = null;
+    private ?GraphqlClient $_gqlClient = null;
 
     /**
-     * @return array
+     * @return string[]
      * @since 5.3.0
      */
     public function getSupportedApiVersions(): array
     {
-        return [
-            ApiVersion::JANUARY_2026,
-        ];
+        return array_column(ApiVersion::cases(), 'value');
+    }
+
+    /**
+     * @return WebhookTopics[]
+     * @since 8.0.0
+     */
+    public function getWebhookTopics(): array
+    {
+        return WebhookTopics::cases();
     }
 
     /**
@@ -150,6 +133,20 @@ class Api extends Component
     }
 
     /**
+     * @return Query
+     * @since 7.2.0
+     */
+    public function getShopLocalesGql(): Query
+    {
+        return $this->createQuery('shopLocales', [
+            'locale',
+            'primary',
+        ], function(QueryBuilder $builder) {
+            $builder->setArgument('published', true);
+        });
+    }
+
+    /**
      * @param bool $update
      * @return array|null
      * @since 6.0.0
@@ -176,7 +173,7 @@ class Api extends Component
                 $shopRecord = new ShopifyData();
             }
 
-            $shopRecord->shopifyId = $response['id'];
+            $shopRecord->shopifyGid = $response['id'];
             $shopRecord->type = 'Shop';
             $shopRecord->data = $response;
 
@@ -203,6 +200,7 @@ class Api extends Component
      */
     public function getProductGql(?string $id = null): Query
     {
+        // Create contextual pricing fields (if required)
         $contextualPricingCountries = Plugin::getInstance()->getSettings()->getContextualPricingCountries();
         $contextualPricing = [];
 
@@ -228,6 +226,32 @@ class Api extends Component
                         'currencyCode',
                     ],
                 ];
+            }
+        }
+
+        // Create translations fields (if required)
+        $translations = [];
+        if (in_array('productTranslations', Plugin::getInstance()->getSettings()->getAdditionalFeatures())) {
+            try {
+                $cacheKey = 'shopify:shopLocales:' . Plugin::getInstance()->getSettings()->getHostName();
+                $locales = Craft::$app->getCache()->getOrSet($cacheKey, function() {
+                    return $this->query($this->getShopLocalesGql());
+                }, 86400);
+
+                if (empty($locales)) {
+                    throw new \Exception('Shop locales data not found in the response.');
+                }
+
+                foreach ($locales as $locale) {
+                    if ($locale['primary']) {
+                        continue;
+                    }
+
+                    $localeKey = sprintf('translations_%1$s: translations(locale:"%1$s")', $locale['locale']);
+                    $translations[$localeKey] = ['key', 'value'];
+                }
+            } catch (\Exception $e) {
+                Craft::error($e->getMessage(), __METHOD__);
             }
         }
 
@@ -345,6 +369,8 @@ class Api extends Component
                         ],
                     ],
                     'vendor',
+                    // Add translations to the products query
+                    ...$translations,
                 ],
             ],
         ];
@@ -359,8 +385,8 @@ class Api extends Component
 
         return $this->createQuery('products', $fields, function(QueryBuilder $builder) use ($id) {
             if ($id) {
-                // Strip Shopify prefix if it exists
-                $id = str_replace('gid://shopify/Product/', '', $id);
+                // Extract the numeric ID from a full GID or pass through a bare numeric ID
+                $id = StringHelper::afterLast($id, '/') ?: $id;
 
                 $builder->setArgument('query', sprintf('id:%s', $id));
             }
@@ -426,22 +452,19 @@ class Api extends Component
      * If you need to control how a response is unpacked, use {@see getGqlClient()} directly.
      *
      * Under normal circumstances, the selected fields (including `userErrors`, when requested) are returned as an array.
-     * A `false` return value indicates a low-level communication failure.
-     *
-     * All other issues should trigger a {@see ShopifyException}.
      *
      * @param Query|string $query
      * @param array|null $variables
      * @return mixed Typically an array with the same structure as the selection, or `null` for nonexistent nodes.
-     * @throws ShopifyException when the response looks unusual (i.e. an `errors` key is present, or a `data` key was not returned)
-     * @throws SessionNotFoundException if a session can’t be established
+     * @throws ShopifyApiException when the response looks unusual (i.e. an `errors` key is present, a `data` key was not returned, or `userErrors` was populated), or on a low-level communication failure
+     * @throws \RuntimeException if a session can't be established
      * @since 6.0.0
      */
     public function query(Query|string $query, ?array $variables = null): mixed
     {
         // An invalid session will cause everything to fail:
-        if ($this->getSession() === null) {
-            throw new SessionNotFoundException(Craft::t('shopify', 'No Shopify session available. Please check your credentials and re-authorize the application, if necessary.'));
+        if (!$this->connect()) {
+            throw new \RuntimeException(Craft::t('shopify', 'No Shopify session available. Please check your credentials and re-authorize the application, if necessary.'));
         }
 
         $payload = ['query' => (string)$query];
@@ -451,8 +474,7 @@ class Api extends Component
         }
 
         try {
-            $response = $this->getGqlClient()->query($payload);
-            $body = $response->getDecodedBody();
+            $body = $this->getGqlClient()->query($payload);
 
             if (array_key_exists('errors', $body)) {
                 $message = $body['errors'];
@@ -462,42 +484,42 @@ class Api extends Component
                 // Others need to be unpacked from an array:
                 if (is_array($message)) {
                     $message = $message[0]['message'];
-                    // (Shopify also suggests that 400 errors may have a key like `query`, but we haven’t observed this!)
+                    // (Shopify also suggests that 400 errors may have a key like `query`, but we haven't observed this!)
                 }
 
-                throw new ShopifyException($message);
+                throw new ShopifyApiException($message);
             }
 
             // GraphQL responses are always nested inside a `data` key:
             if (!isset($body['data'])) {
-                throw new ShopifyException('No data was returned from the GraphQL query.');
+                throw new ShopifyApiException('No data was returned from the GraphQL query.');
             }
 
             $data = $body['data'];
 
-            // Queries and mutations have implicit “names” based on the procedure, which is where our data will be in the response.
-            // The name itself doesn’t matter (we are only sending one query or mutation at a time), so we can just unwrap the “first” item:
+            // Queries and mutations have implicit "names" based on the procedure, which is where our data will be in the response.
+            // The name itself doesn't matter (we are only sending one query or mutation at a time), so we can just unwrap the "first" item:
             $data = ArrayHelper::firstValue($data);
 
             // The query may have selected `userErrors`, so we should check and throw:
             if (!empty($data['userErrors'])) {
                 Craft::error('A GraphQL response included `userErrors`: ' . join(', ', array_column($data['userErrors'], 'message')), __METHOD__);
-                throw new ShopifyException($data['userErrors'][0]['message']);
+                throw new ShopifyApiException($data['userErrors'][0]['message']);
             }
 
             return $data;
-        } catch (ClientExceptionInterface $e) {
+        } catch (ShopifyApiCommunicationException $e) {
             // We only intercept communication-related exceptions, here.
             // Everything else (like a query or mutation issue) is allowed to bubble out so it can be reported to the user.
             Craft::error('Could not run GraphQL query: ' . $e->getMessage(), __METHOD__);
 
-            // Re-throw as an API error:
-            throw new ShopifyException('An issue occurred while communicating with the Shopify API. Check the logs for more information.');
+            // Re-throw as a generic API error:
+            throw new ShopifyApiException('An issue occurred while communicating with the Shopify API. Check the logs for more information.', 0, $e);
         }
     }
 
     /**
-     * Queries the data table for records of the specified type, optionally owned by one or more “parent” objects.
+     * Queries the data table for records of the specified type, optionally owned by one or more "parent" objects.
      *
      * @param string $type
      * @param string|false|null $parentId
@@ -529,103 +551,61 @@ class Api extends Component
      * Returns or sets up a GraphQL API client.
      *
      * @see query()
-     * @return Graphql
-     * @throws MissingArgumentException
+     * @return GraphqlClient
      * @since 6.0.0
      */
-    public function getGqlClient(): Graphql
+    public function getGqlClient(): GraphqlClient
     {
         if ($this->_gqlClient === null) {
-            $session = $this->getSession();
-
-            if (!$session) {
+            if (!$this->_accessToken) {
                 throw new InvalidConfigException('Unable to initialize API session. Check that your API credentials are correct and that you have authorized the app.');
             }
 
-            $this->_gqlClient = new Graphql($session->getShop(), $session->getAccessToken());
+            $pluginSettings = Plugin::getInstance()->getSettings();
+
+            $this->_gqlClient = new GraphqlClient(
+                $pluginSettings->getHostName(true),
+                $this->_accessToken,
+                $pluginSettings->getApiVersion(),
+            );
         }
 
         return $this->_gqlClient;
     }
 
     /**
-     * Returns or initializes a context + session.
+     * Ensures the service is initialized with a shop hostname and access token.
      *
-     * @return Session|null
-     * @throws MissingArgumentException
+     * Returns true if the plugin is authorized and ready to make API calls, false otherwise.
+     *
+     * @return bool
+     * @since 8.0
      */
-    public function getSession(): ?Session
+    public function connect(): bool
     {
-        $pluginSettings = Plugin::getInstance()->getSettings();
-
-        if (
-            $this->_session === null &&
-            ($pluginSettings->getClientId(true)) &&
-            ($pluginSettings->getClientSecret(true))
-        ) {
-            $this->initializeContext();
-
-            $hostName = $pluginSettings->getHostName(true);
-            $accessToken = $this->getAccessToken(shop: $hostName);
-
-            // If there isn't an access token we can't create a session
-            if ($accessToken) {
-                $this->_session = new Session(
-                    id: 'NA',
-                    shop: $hostName,
-                    isOnline: false,
-                    state: 'NA'
-                );
-
-                $this->_session->setAccessToken($accessToken); // this is the most important part of the authentication
-            }
+        if ($this->_accessToken !== null) {
+            return true;
         }
 
-        return $this->_session;
-    }
-
-    /**
-     * @return void
-     * @throws MissingArgumentException
-     * @throws \yii\base\Exception
-     * @since 7.0.0
-     */
-    public function initializeContext(): void
-    {
         $pluginSettings = Plugin::getInstance()->getSettings();
-        /** @var MonologTarget $webLogTarget */
-        $webLogTarget = Craft::$app->getLog()->targets['web'];
 
-        Context::initialize(
-            apiKey: $pluginSettings->getClientId(),
-            apiSecretKey: $pluginSettings->getClientSecret(),
-            scopes: ['write_products', 'read_products', 'read_inventory'],
-            // This `hostName` is different from the `shop` value used when creating a Session!
-            // Shopify wants a name for the host/environment that is *initiating* the API connection.
-            // Internally, they appear to use this for starting OAuth flows and creating webhooks (but we handle the latter, manually).
-            hostName: !Craft::$app->request->isConsoleRequest ? Craft::$app->getRequest()->getHostName() : 'localhost',
-            sessionStorage: new FileSessionStorage(Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'shopify_api_sessions'),
-            apiVersion: $pluginSettings->getApiVersion(),
-            isEmbeddedApp: false,
-            logger: $webLogTarget->getLogger(),
-        );
+        if (!$pluginSettings->getClientId(true) || !$pluginSettings->getClientSecret(true)) {
+            return false;
+        }
 
-        Context::$HTTP_CLIENT_FACTORY = new class() extends HttpClientFactory {
-            public function client(): ClientInterface
-            {
-                // This is the default client, but we need to add the header for presentment prices
-                return new Client(['headers' => ['X-Shopify-Api-Features' => 'include-presentment-prices']]);
-            }
-        };
+        $accessToken = $this->getAccessToken(shop: $pluginSettings->getHostName(true));
+
+        if ($accessToken) {
+            $this->_accessToken = $accessToken;
+        }
+
+        return $this->_accessToken !== null;
     }
 
     /**
      * @param string|null $code
      * @param string|null $shop
      * @return string|null
-     * @throws ClientExceptionInterface
-     * @throws UninitializedContextException
-     * @throws \JsonException
      * @since 7.0.0
      */
     public function getAccessToken(?string $code = null, ?string $shop = null, bool $forceRefresh = false): ?string
@@ -639,17 +619,18 @@ class Api extends Component
             return null;
         }
 
-        $client = new Http($shop);
-
         try {
-            $response = $client->post(OAuth::ACCESS_TOKEN_POST_PATH, [
-                'client_id' => Plugin::getInstance()->getSettings()->getClientId(true),
-                'client_secret' => Plugin::getInstance()->getSettings()->getClientSecret(true),
-                'code' => $code,
-                'expiring' => 0,
+            $httpClient = Craft::createGuzzleClient();
+            $response = $httpClient->post('https://' . $shop . OAuthFlow::ACCESS_TOKEN_POST_PATH, [
+                'json' => [
+                    'client_id' => Plugin::getInstance()->getSettings()->getClientId(true),
+                    'client_secret' => Plugin::getInstance()->getSettings()->getClientSecret(true),
+                    'code' => $code,
+                    'expiring' => 0,
+                ],
             ]);
 
-            $body = $response->getDecodedBody();
+            $body = json_decode((string)$response->getBody(), true);
 
             if (!isset($body['access_token'])) {
                 throw new \Exception('No access token returned from Shopify.');
@@ -722,8 +703,7 @@ class Api extends Component
     /**
      * @param string $id Shopify webhook subscription GID
      * @return bool
-     * @throws MissingArgumentException
-     * @throws ShopifyException
+     * @throws ShopifyApiException
      * @since 6.0.0
      */
     public function deleteWebhookById(string $id): bool
@@ -751,7 +731,7 @@ class Api extends Component
 
         if (!$this->query($mutation, $variables)) {
             Craft::error(sprintf('No data was returned while deleting webhook %s', $id), __METHOD__);
-            throw new ShopifyException('The webhook may not have been deleted.');
+            throw new ShopifyApiException('The webhook may not have been deleted.');
         }
 
         return true;

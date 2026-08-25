@@ -13,3 +13,19 @@ DB_SCHEMA="public"
 DEFAULT_SITE_URL="https://test.craftcms.test/index.php"
 FROM_EMAIL_NAME="Craft CMS"
 FROM_EMAIL_ADDRESS="info@craftcms.com"
+
+# Optional: credentials for tests tagged `@group live` (see tests/_support/Helper/RequiresLiveApi.php),
+# which exercise the real Shopify API instead of fixtures. Point these at a Shopify Partner
+# development store, not a production one. If any of these are unset, live tests are skipped —
+# this is how they're skipped in CI, which has no access to real credentials.
+# SHOPIFY_LIVE_ACCESS_TOKEN must come from an app that has already completed the plugin's OAuth
+# authorization flow (see the README's "Connect to Shopify" section) — Shopify only issues access
+# tokens after a real authorization, so this can't be an arbitrary string.
+# SHOPIFY_LIVE_HOST_NAME=your-dev-store.myshopify.com
+# SHOPIFY_LIVE_CLIENT_ID=
+# SHOPIFY_LIVE_CLIENT_SECRET=
+# SHOPIFY_LIVE_ACCESS_TOKEN=
+# Optional: pins live tests to a specific Shopify API version instead of the plugin's default.
+# Useful for checking the plugin against a version ahead of or behind the default, to catch
+# API changes early. Must be one of craft\shopify\enums\ApiVersion's supported values.
+# SHOPIFY_LIVE_API_VERSION=

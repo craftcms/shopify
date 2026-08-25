@@ -396,8 +396,8 @@ class ProductQuery extends ElementQuery
         // join standard product element table that only contains the shopifyId
         $this->joinElementTable('shopify_products');
 
-        $this->query->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyId]] = [[shopify_products.shopifyGid]]'));
-        $this->subQuery->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyId]] = [[shopify_products.shopifyGid]]'));
+        $this->query->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyGid]] = [[shopify_products.shopifyGid]]'));
+        $this->subQuery->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyGid]] = [[shopify_products.shopifyGid]]'));
 
         $this->query->select([
             'shopify_products.shopifyId',
