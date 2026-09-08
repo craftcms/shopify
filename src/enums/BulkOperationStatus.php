@@ -24,6 +24,9 @@ enum BulkOperationStatus: string
     case Processing = 'processing';
     case Completed = 'completed';
 
+    /** @since 7.2.0 */
+    case Failed = 'failed';
+
     /**
      * @return string
      */
@@ -34,6 +37,7 @@ enum BulkOperationStatus: string
             self::Created => Craft::t('shopify', 'Created'),
             self::Processing => Craft::t('shopify', 'Processing'),
             self::Completed => Craft::t('shopify', 'Completed'),
+            self::Failed => Craft::t('shopify', 'Failed'),
         };
     }
 
@@ -48,6 +52,7 @@ enum BulkOperationStatus: string
                 self::Created => 'blue',
                 self::Processing => 'yellow',
                 self::Completed => 'green',
+                self::Failed => 'red',
                 default => 'gray', // takes care of draft
             };
             return "<span class='status $color'></span>" . $this->statusAsLabel();
@@ -59,6 +64,7 @@ enum BulkOperationStatus: string
                 self::Created => Color::Blue,
                 self::Processing => Color::Yellow,
                 self::Completed => Color::Green,
+                self::Failed => Color::Red,
             },
             'label' => $this->statusAsLabel(),
         ]);
