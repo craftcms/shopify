@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 7.2.0 - 2026-09-09
 
 - Fixed a bug where a flood of product/inventory webhooks could deadlock the bulk operation queue. ([#224](https://github.com/craftcms/shopify/issues/224))
 - Bulk operations stuck in a non-terminal state for more than 24 hours are now marked as failed.
