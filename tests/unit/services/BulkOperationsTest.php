@@ -10,6 +10,7 @@ namespace craft\shopify\tests\unit\services;
 use Codeception\Test\Unit;
 use Craft;
 use craft\mutex\Mutex;
+use craft\queue\Queue;
 use craft\shopify\db\Table;
 use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\models\BulkOperation;
@@ -43,6 +44,9 @@ class BulkOperationsTest extends Unit
 
         // Restore the real mutex component after any test that swaps it out
         Craft::$app->set('mutex', Mutex::class);
+
+        // Restore the real queue component after any test that swaps it out
+        Craft::$app->set('queue', Queue::class);
     }
 
     // -------------------------------------------------------------------------
@@ -306,6 +310,41 @@ class BulkOperationsTest extends Unit
         self::assertEquals(BulkOperationStatus::Created, $reloaded->getStatus());
     }
 
+    /**
+     * A stale `processing` row would otherwise block the "anything processing?" guard forever between
+     * GC runs. queueNextBulkOperation() should fail it inline and carry on claiming the waiting operation.
+     */
+    public function testQueueNextBulkOperationFailsStaleRowsInline(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+
+        $stale = $this->_makeQueuedOp('gid://shopify/BulkOperation/inline-reap-queue-001');
+        $stale->setStatus(BulkOperationStatus::Processing);
+        $service->saveBulkOperation($stale, false);
+        $this->_backdateBulkOperation($stale->id, '-25 hours');
+
+        $waitingGid = 'gid://shopify/BulkOperation/inline-reap-queue-002';
+        $waiting = $this->_makeCreatedOp($waitingGid);
+        $waiting->url = 'https://storage.example.com/waiting.jsonl';
+        $service->saveBulkOperation($waiting, false);
+
+        // Swap in a queue double so the push is recorded but the job never actually runs — see the
+        // matching comment in ProcessBulkOperationDataTest::testAfterQueuesAnAlreadyCreatedOperationWithUrl().
+        Craft::$app->set('queue', $this->make(Queue::class, [
+            'push' => fn() => 'fake-queue-id',
+        ]));
+
+        $result = $service->queueNextBulkOperation();
+
+        self::assertTrue($result, 'The stale row should have been reaped, letting the waiting operation be claimed.');
+
+        $reloadedStale = $service->getBulkOperationByShopifyId('gid://shopify/BulkOperation/inline-reap-queue-001');
+        self::assertEquals(BulkOperationStatus::Failed, $reloadedStale->getStatus());
+
+        $reloadedWaiting = $service->getBulkOperationByShopifyId($waitingGid);
+        self::assertEquals(BulkOperationStatus::Processing, $reloadedWaiting->getStatus());
+    }
+
     // -------------------------------------------------------------------------
     // nextBulkOperation
     // -------------------------------------------------------------------------
@@ -407,6 +446,44 @@ class BulkOperationsTest extends Unit
 
         self::assertFalse($result);
         self::assertFalse($mutationCalled, 'The mutation should not fire when Shopify reports an operation already running.');
+    }
+
+    /**
+     * A stale `created` row would otherwise block the "anything in progress?" guard forever between
+     * GC runs. nextBulkOperation() should fail it inline and carry on with the queued operation.
+     */
+    public function testNextBulkOperationFailsStaleRowsInline(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+
+        $stale = $this->_makeCreatedOp('gid://shopify/BulkOperation/inline-reap-next-001');
+        $service->saveBulkOperation($stale, false);
+        $this->_backdateBulkOperation($stale->id, '-25 hours');
+
+        $queued = $this->_makeQueuedOp('gid://shopify/BulkOperation/inline-reap-next-002');
+        $service->saveBulkOperation($queued, false);
+
+        Plugin::getInstance()->set('api', $this->makeEmpty(Api::class, [
+            'query' => function($query, $variables = null) {
+                if (is_array($variables) && array_key_exists('query', $variables)) {
+                    return [
+                        'bulkOperation' => ['id' => 'gid://shopify/BulkOperation/inline-reap-started', 'status' => 'CREATED', 'type' => 'QUERY'],
+                        'userErrors' => [],
+                    ];
+                }
+                return ['edges' => []];
+            },
+        ]));
+
+        $result = $service->nextBulkOperation();
+
+        self::assertTrue($result, 'The stale row should have been reaped, letting the queued operation proceed.');
+
+        $reloadedStale = $service->getBulkOperationByShopifyId('gid://shopify/BulkOperation/inline-reap-next-001');
+        self::assertEquals(BulkOperationStatus::Failed, $reloadedStale->getStatus());
+
+        $reloadedQueued = $service->getBulkOperationByShopifyId('gid://shopify/BulkOperation/inline-reap-next-002');
+        self::assertEquals(BulkOperationStatus::Created, $reloadedQueued->getStatus());
     }
 
     // -------------------------------------------------------------------------

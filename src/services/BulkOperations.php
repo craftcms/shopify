@@ -137,6 +137,10 @@ class BulkOperations extends Component
         }
 
         try {
+            // Fail anything that's been stuck since before we got the lock, so it doesn't block this
+            // call—without this, an abandoned row would sit here until Craft's GC happens to run.
+            $this->_failStuckBulkOperations();
+
             // If we are processing the data of a bulk op or a bulk op query has been sent to Shopify, we can't start another one
             $hasBulkOpsInProgress = $this->_createBulkOperationQuery()
                 ->andWhere([
@@ -333,6 +337,9 @@ class BulkOperations extends Component
         }
 
         try {
+            // See the matching comment in nextBulkOperation().
+            $this->_failStuckBulkOperations();
+
             $hasBulkOpsInProgress = $this->_createBulkOperationQuery()
                 ->andWhere([
                     'status' => [BulkOperationStatus::Processing->value],
@@ -459,15 +466,31 @@ class BulkOperations extends Component
      */
     public function purgeBulkOperations(): void
     {
-        $now = DateTimeHelper::now();
+        $this->_failStuckBulkOperations();
 
-        // A bulk op can only get permanently stuck in `created` or `processing` if the Craft queue job
-        // responsible for advancing it was lost outright (a queue flush, a Redis eviction, a worker
-        // killed mid-job)—an ordinary long-running sync doesn’t touch this row again until it finishes,
-        // so we can't tell "abandoned" from "still working" by elapsed time alone. 24 hours is meant to
-        // be comfortably past any realistic sync duration, favoring "leave it alone" over reaping
-        // something that's still legitimately in progress.
-        $stuckEdge = (clone $now)->sub(DateTimeHelper::toDateInterval('PT24H'));
+        // Delete all bulk operations that reached a terminal state more than 7 days ago
+        $now = DateTimeHelper::now();
+        $terminalEdge = (clone $now)->sub(DateTimeHelper::toDateInterval('P7D'));
+
+        $terminalBulkOps = $this->_createBulkOperationQuery()
+            ->andWhere([
+                'status' => [BulkOperationStatus::Completed->value, BulkOperationStatus::Failed->value],
+            ])
+            ->andWhere(['<', 'dateUpdated', Db::prepareDateForDb($terminalEdge)])
+            ->all();
+
+        foreach ($terminalBulkOps as $terminalBulkOp) {
+            $this->deleteBulkOperationById($terminalBulkOp['id']);
+        }
+    }
+
+    /**
+     * Marks bulk operations stuck in `created`/`processing` for more than 24 hours as `failed`, so
+     * they stop blocking {@see nextBulkOperation()} and {@see queueNextBulkOperation()}.
+     */
+    private function _failStuckBulkOperations(): void
+    {
+        $stuckEdge = (clone DateTimeHelper::now())->sub(DateTimeHelper::toDateInterval('PT24H'));
 
         $stuckBulkOps = $this->_createBulkOperationQuery()
             ->andWhere([
@@ -481,20 +504,6 @@ class BulkOperations extends Component
             $bulkOperation = Craft::createObject(array_merge($stuckBulkOp, ['class' => BulkOperation::class]));
             $bulkOperation->setStatus(BulkOperationStatus::Failed);
             $this->saveBulkOperation($bulkOperation, false);
-        }
-
-        // Delete all bulk operations that reached a terminal state more than 7 days ago
-        $terminalEdge = (clone $now)->sub(DateTimeHelper::toDateInterval('P7D'));
-
-        $terminalBulkOps = $this->_createBulkOperationQuery()
-            ->andWhere([
-                'status' => [BulkOperationStatus::Completed->value, BulkOperationStatus::Failed->value],
-            ])
-            ->andWhere(['<', 'dateUpdated', Db::prepareDateForDb($terminalEdge)])
-            ->all();
-
-        foreach ($terminalBulkOps as $terminalBulkOp) {
-            $this->deleteBulkOperationById($terminalBulkOp['id']);
         }
     }
 
