@@ -31,6 +31,7 @@ return [
     'Description HTML' => 'Description HTML',
     'Draft in Shopify' => 'Draft in Shopify',
     'Edit variant {title} on Shopify' => 'Edit variant {title} on Shopify',
+    'Failed' => 'Failed',
     'Failed to create products sync' => 'Failed to create products sync',
     'Failed to delete sync' => 'Failed to delete sync',
     'General' => 'General',

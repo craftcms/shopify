@@ -180,7 +180,11 @@ class ProcessBulkOperationData extends BaseBatchedJob
             FileHelper::unlink($this->tempFilePath);
         }
 
-        // Start the next bulk op if there is one
+        // If a bulk op is already `created` (with its data URL populated), send it to the queue for processing.
+        // This can happen if it finished on Shopify’s end while another op was still `processing` locally.
+        Plugin::getInstance()->getBulkOperations()->queueNextBulkOperation();
+
+        // Otherwise, start the next queued bulk op on Shopify if there is one
         Plugin::getInstance()->getBulkOperations()->nextBulkOperation();
     }
 }
