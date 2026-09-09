@@ -8,6 +8,10 @@
 namespace craft\shopify\tests\unit\services;
 
 use Codeception\Test\Unit;
+use Craft;
+use craft\mutex\Mutex;
+use craft\queue\Queue;
+use craft\shopify\db\Table;
 use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\models\BulkOperation;
 use craft\shopify\Plugin;
@@ -37,6 +41,12 @@ class BulkOperationsTest extends Unit
     {
         // Restore the real Api service after any test that swaps it out
         Plugin::getInstance()->set('api', Api::class);
+
+        // Restore the real mutex component after any test that swaps it out
+        Craft::$app->set('mutex', Mutex::class);
+
+        // Restore the real queue component after any test that swaps it out
+        Craft::$app->set('queue', Queue::class);
     }
 
     // -------------------------------------------------------------------------
@@ -123,6 +133,35 @@ class BulkOperationsTest extends Unit
         self::assertEquals(9999, $reloaded->objectCount);
     }
 
+    /**
+     * Regression test for craftcms/shopify#224: two not-yet-dispatched operations both have a
+     * null `id` and a null `shopifyGid`. Before the fix, the second save would match the first
+     * row via `WHERE shopifyGid IS NULL` and silently overwrite it instead of inserting a new row.
+     */
+    public function testSaveBulkOperationDoesNotCollideWhenShopifyGidIsNull(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+
+        $first = $this->_makeFreshQueuedOp('query { first }');
+        $service->saveBulkOperation($first, false);
+
+        $second = $this->_makeFreshQueuedOp('query { second }');
+        $service->saveBulkOperation($second, false);
+
+        self::assertNotNull($first->id);
+        self::assertNotNull($second->id);
+        self::assertNotEquals($first->id, $second->id, 'A second not-yet-dispatched operation should not overwrite the first.');
+
+        $all = $service->getAllBulkOperations();
+        $reloadedFirst = $all->firstWhere('id', $first->id);
+        $reloadedSecond = $all->firstWhere('id', $second->id);
+
+        self::assertNotNull($reloadedFirst);
+        self::assertNotNull($reloadedSecond);
+        self::assertEquals('query { first }', $reloadedFirst->query);
+        self::assertEquals('query { second }', $reloadedSecond->query);
+    }
+
     // -------------------------------------------------------------------------
     // deleteBulkOperationById
     // -------------------------------------------------------------------------
@@ -157,6 +196,19 @@ class BulkOperationsTest extends Unit
 
         self::assertFalse($result);
         self::assertNotNull($service->getBulkOperationByShopifyGid('gid://shopify/BulkOperation/processing-test-001'));
+    }
+
+    public function testFailedBulkOperationCanBeDeleted(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $model = $this->_makeQueuedOp('gid://shopify/BulkOperation/delete-failed-001');
+        $model->setStatus(BulkOperationStatus::Failed);
+        $service->saveBulkOperation($model, false);
+
+        $result = $service->deleteBulkOperationById($model->id);
+
+        self::assertTrue($result);
+        self::assertNull($service->getBulkOperationByShopifyGid('gid://shopify/BulkOperation/delete-failed-001'));
     }
 
     // -------------------------------------------------------------------------
@@ -253,6 +305,262 @@ class BulkOperationsTest extends Unit
         self::assertFalse($result);
     }
 
+    public function testQueueNextBulkOperationBailsWhenMutexCannotBeAcquired(): void
+    {
+        Craft::$app->set('mutex', $this->makeEmpty(Mutex::class, [
+            'acquire' => fn() => false,
+        ]));
+
+        $service = Plugin::getInstance()->getBulkOperations();
+        $gid = 'gid://shopify/BulkOperation/mutex-block-queue-001';
+        $model = $this->_makeCreatedOp($gid);
+        $model->url = 'https://storage.example.com/blocked.jsonl';
+        $service->saveBulkOperation($model, false);
+
+        $result = $service->queueNextBulkOperation();
+
+        self::assertFalse($result);
+
+        // Nothing should have been claimed while the lock was unavailable
+        $reloaded = $service->getBulkOperationByShopifyGid($gid);
+        self::assertEquals(BulkOperationStatus::Created, $reloaded->getStatus());
+    }
+
+    /**
+     * A stale `processing` row would otherwise block the "anything processing?" guard forever between
+     * GC runs. queueNextBulkOperation() should fail it inline and carry on claiming the waiting operation.
+     */
+    public function testQueueNextBulkOperationFailsStaleRowsInline(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+
+        $stale = $this->_makeQueuedOp('gid://shopify/BulkOperation/inline-reap-queue-001');
+        $stale->setStatus(BulkOperationStatus::Processing);
+        $service->saveBulkOperation($stale, false);
+        $this->_backdateBulkOperation($stale->id, '-25 hours');
+
+        $waitingGid = 'gid://shopify/BulkOperation/inline-reap-queue-002';
+        $waiting = $this->_makeCreatedOp($waitingGid);
+        $waiting->url = 'https://storage.example.com/waiting.jsonl';
+        $waiting->objectCount = 5;
+        $service->saveBulkOperation($waiting, false);
+
+        // Swap in a queue double so the push is recorded but the job never actually runs — see the
+        // matching comment in ProcessBulkOperationDataTest::testAfterQueuesAnAlreadyCreatedOperationWithUrl().
+        Craft::$app->set('queue', $this->make(Queue::class, [
+            'push' => fn() => 'fake-queue-id',
+        ]));
+
+        $result = $service->queueNextBulkOperation();
+
+        self::assertTrue($result, 'The stale row should have been reaped, letting the waiting operation be claimed.');
+
+        $reloadedStale = $service->getBulkOperationByShopifyGid('gid://shopify/BulkOperation/inline-reap-queue-001');
+        self::assertEquals(BulkOperationStatus::Failed, $reloadedStale->getStatus());
+
+        $reloadedWaiting = $service->getBulkOperationByShopifyGid($waitingGid);
+        self::assertEquals(BulkOperationStatus::Processing, $reloadedWaiting->getStatus());
+    }
+
+    // -------------------------------------------------------------------------
+    // nextBulkOperation
+    // -------------------------------------------------------------------------
+
+    public function testNextBulkOperationBailsWhenMutexCannotBeAcquired(): void
+    {
+        Craft::$app->set('mutex', $this->makeEmpty(Mutex::class, [
+            'acquire' => fn() => false,
+        ]));
+
+        $service = Plugin::getInstance()->getBulkOperations();
+        $gid = 'gid://shopify/BulkOperation/mutex-block-next-001';
+        $model = $this->_makeQueuedOp($gid);
+        $service->saveBulkOperation($model, false);
+
+        // The Shopify API should never be touched if the lock can't be acquired
+        Plugin::getInstance()->set('api', $this->makeEmpty(Api::class, [
+            'query' => function() {
+                self::fail('The Shopify API should not be called when the mutex cannot be acquired.');
+            },
+        ]));
+
+        $result = $service->nextBulkOperation();
+
+        self::assertFalse($result);
+
+        $reloaded = $service->getBulkOperationByShopifyGid($gid);
+        self::assertEquals(BulkOperationStatus::Queued, $reloaded->getStatus());
+    }
+
+    /**
+     * Regression test for craftcms/shopify#224: under a backlog, the newest queued operation
+     * used to win (`id DESC` + `.one()`), which could starve older ones indefinitely.
+     */
+    public function testNextBulkOperationProcessesOldestQueuedOperationFirst(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+
+        $older = $this->_makeQueuedOp('gid://shopify/BulkOperation/fifo-older-001');
+        $older->query = 'query { older }';
+        $service->saveBulkOperation($older, false);
+
+        $newer = $this->_makeQueuedOp('gid://shopify/BulkOperation/fifo-newer-001');
+        $newer->query = 'query { newer }';
+        $service->saveBulkOperation($newer, false);
+
+        self::assertLessThan($newer->id, $older->id, 'Test setup assumption: the older op must have the lower id.');
+
+        $sentQueries = [];
+        Plugin::getInstance()->set('api', $this->makeEmpty(Api::class, [
+            'query' => function($query, $variables = null) use (&$sentQueries) {
+                if (is_array($variables) && array_key_exists('query', $variables)) {
+                    // The bulkOperationRunQuery mutation
+                    $sentQueries[] = $variables['query'];
+                    return [
+                        'bulkOperation' => ['id' => 'gid://shopify/BulkOperation/fifo-started-001', 'status' => 'CREATED', 'type' => 'QUERY'],
+                        'userErrors' => [],
+                    ];
+                }
+                // The "anything already running on Shopify?" guard query
+                return ['edges' => []];
+            },
+        ]));
+
+        $result = $service->nextBulkOperation();
+
+        self::assertTrue($result);
+        self::assertCount(1, $sentQueries);
+        self::assertEquals('query { older }', $sentQueries[0]);
+    }
+
+    /**
+     * Regression test for the dead API concurrency guard: `Api::query()` unwraps the response
+     * down to `['edges' => [...]]`, so the guard must read `edges[0].node.status`, not a
+     * nonexistent top-level `status` key.
+     */
+    public function testNextBulkOperationBailsWhenShopifyReportsAnOperationAlreadyRunning(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $queued = $this->_makeQueuedOp('gid://shopify/BulkOperation/guard-test-001');
+        $service->saveBulkOperation($queued, false);
+
+        $mutationCalled = false;
+        Plugin::getInstance()->set('api', $this->makeEmpty(Api::class, [
+            'query' => function($query, $variables = null) use (&$mutationCalled) {
+                if (is_array($variables) && array_key_exists('query', $variables)) {
+                    $mutationCalled = true;
+                    return ['bulkOperation' => ['id' => 'x', 'status' => 'CREATED', 'type' => 'QUERY'], 'userErrors' => []];
+                }
+                return [
+                    'edges' => [
+                        ['node' => ['id' => 'gid://shopify/BulkOperation/already-running', 'status' => 'RUNNING', 'type' => 'QUERY']],
+                    ],
+                ];
+            },
+        ]));
+
+        $result = $service->nextBulkOperation();
+
+        self::assertFalse($result);
+        self::assertFalse($mutationCalled, 'The mutation should not fire when Shopify reports an operation already running.');
+    }
+
+    /**
+     * A stale `created` row would otherwise block the "anything in progress?" guard forever between
+     * GC runs. nextBulkOperation() should fail it inline and carry on with the queued operation.
+     */
+    public function testNextBulkOperationFailsStaleRowsInline(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+
+        $stale = $this->_makeCreatedOp('gid://shopify/BulkOperation/inline-reap-next-001');
+        $service->saveBulkOperation($stale, false);
+        $this->_backdateBulkOperation($stale->id, '-25 hours');
+
+        $queued = $this->_makeQueuedOp('gid://shopify/BulkOperation/inline-reap-next-002');
+        $service->saveBulkOperation($queued, false);
+        $queuedId = $queued->id;
+
+        Plugin::getInstance()->set('api', $this->makeEmpty(Api::class, [
+            'query' => function($query, $variables = null) {
+                if (is_array($variables) && array_key_exists('query', $variables)) {
+                    return [
+                        'bulkOperation' => ['id' => 'gid://shopify/BulkOperation/inline-reap-started', 'status' => 'CREATED', 'type' => 'QUERY'],
+                        'userErrors' => [],
+                    ];
+                }
+                return ['edges' => []];
+            },
+        ]));
+
+        $result = $service->nextBulkOperation();
+
+        self::assertTrue($result, 'The stale row should have been reaped, letting the queued operation proceed.');
+
+        $reloadedStale = $service->getBulkOperationByShopifyGid('gid://shopify/BulkOperation/inline-reap-next-001');
+        self::assertEquals(BulkOperationStatus::Failed, $reloadedStale->getStatus());
+
+        // Look up by `id`, not the original `shopifyGid`—nextBulkOperation() reassigns `shopifyGid` to
+        // whatever Shopify's API returns for the newly-created operation.
+        $reloadedQueued = $service->getAllBulkOperations()->firstWhere('id', $queuedId);
+        self::assertEquals(BulkOperationStatus::Created, $reloadedQueued->getStatus());
+    }
+
+    // -------------------------------------------------------------------------
+    // purgeBulkOperations
+    // -------------------------------------------------------------------------
+
+    public function testPurgeBulkOperationsMarksStaleCreatedAndProcessingRowsAsFailed(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+
+        // Stuck for 25 hours — past the 24-hour timeout, should be reaped
+        $stale = $this->_makeCreatedOp('gid://shopify/BulkOperation/purge-stale-001');
+        $service->saveBulkOperation($stale, false);
+        $this->_backdateBulkOperation($stale->id, '-25 hours');
+
+        // Only 1 hour old — still well within a realistic sync duration, should be left alone
+        $recent = $this->_makeQueuedOp('gid://shopify/BulkOperation/purge-recent-001');
+        $recent->setStatus(BulkOperationStatus::Processing);
+        $service->saveBulkOperation($recent, false);
+        $this->_backdateBulkOperation($recent->id, '-1 hour');
+
+        $service->purgeBulkOperations();
+
+        $reloadedStale = $service->getBulkOperationByShopifyGid('gid://shopify/BulkOperation/purge-stale-001');
+        self::assertNotNull($reloadedStale);
+        self::assertEquals(BulkOperationStatus::Failed, $reloadedStale->getStatus());
+
+        $reloadedRecent = $service->getBulkOperationByShopifyGid('gid://shopify/BulkOperation/purge-recent-001');
+        self::assertNotNull($reloadedRecent);
+        self::assertEquals(BulkOperationStatus::Processing, $reloadedRecent->getStatus());
+    }
+
+    public function testPurgeBulkOperationsDeletesOldCompletedAndFailedRowsButKeepsRecentOnes(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+
+        $oldCompleted = $this->_makeQueuedOp('gid://shopify/BulkOperation/purge-old-completed-001');
+        $oldCompleted->setStatus(BulkOperationStatus::Completed);
+        $service->saveBulkOperation($oldCompleted, false);
+        $this->_backdateBulkOperation($oldCompleted->id, '-8 days');
+
+        $oldFailed = $this->_makeQueuedOp('gid://shopify/BulkOperation/purge-old-failed-001');
+        $oldFailed->setStatus(BulkOperationStatus::Failed);
+        $service->saveBulkOperation($oldFailed, false);
+        $this->_backdateBulkOperation($oldFailed->id, '-8 days');
+
+        $recentCompleted = $this->_makeQueuedOp('gid://shopify/BulkOperation/purge-recent-completed-001');
+        $recentCompleted->setStatus(BulkOperationStatus::Completed);
+        $service->saveBulkOperation($recentCompleted, false);
+
+        $service->purgeBulkOperations();
+
+        self::assertNull($service->getBulkOperationByShopifyGid('gid://shopify/BulkOperation/purge-old-completed-001'));
+        self::assertNull($service->getBulkOperationByShopifyGid('gid://shopify/BulkOperation/purge-old-failed-001'));
+        self::assertNotNull($service->getBulkOperationByShopifyGid('gid://shopify/BulkOperation/purge-recent-completed-001'));
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -272,5 +580,32 @@ class BulkOperationsTest extends Unit
         $model = $this->_makeQueuedOp($gid);
         $model->setStatus(BulkOperationStatus::Created);
         return $model;
+    }
+
+    /**
+     * Builds a queued op the way `createBulkOperation()` actually does: no `id`, no `shopifyGid`
+     * (that's only assigned once Shopify accepts it). Deliberately doesn't use `_makeQueuedOp()`,
+     * which always assigns a `shopifyGid` up front.
+     */
+    private function _makeFreshQueuedOp(string $query): BulkOperation
+    {
+        $model = new BulkOperation();
+        $model->query = $query;
+        $model->clearData = 'none';
+        $model->setStatus(BulkOperationStatus::Queued);
+        return $model;
+    }
+
+    /**
+     * `saveBulkOperation()` always stamps `dateUpdated` to "now" unless the caller explicitly
+     * changes it, so purge-timeout tests write directly to the DB to simulate an old row.
+     */
+    private function _backdateBulkOperation(int $id, string $relativeTime): void
+    {
+        \Yii::$app->db->createCommand()->update(
+            Table::BULK_OPERATIONS,
+            ['dateUpdated' => date('Y-m-d H:i:s', strtotime($relativeTime))],
+            ['id' => $id],
+        )->execute();
     }
 }

@@ -8,6 +8,8 @@
 namespace craft\shopify\tests\unit\jobs;
 
 use Codeception\Test\Unit;
+use Craft;
+use craft\queue\Queue;
 use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\jobs\ProcessBulkOperationData;
 use craft\shopify\models\BulkOperation;
@@ -36,6 +38,9 @@ class ProcessBulkOperationDataTest extends Unit
     protected function _after(): void
     {
         Plugin::getInstance()->set('products', Products::class);
+
+        // Restore the real queue component after any test that swaps it out
+        Craft::$app->set('queue', Queue::class);
     }
 
     // -------------------------------------------------------------------------
@@ -297,6 +302,90 @@ class ProcessBulkOperationDataTest extends Unit
     }
 
     // -------------------------------------------------------------------------
+    // after() — queueing the next operation
+    // -------------------------------------------------------------------------
+
+    /**
+     * Regression test for craftcms/shopify#224: before the fix, `after()` only called
+     * `nextBulkOperation()`, which bails whenever anything is `created`—so an operation that
+     * got stuck at `created` (with its `url` already populated, because Shopify finished it
+     * while this job's operation was still `processing`) was never picked back up once this
+     * job finished. `after()` must also call `queueNextBulkOperation()`.
+     */
+    public function testAfterQueuesAnAlreadyCreatedOperationWithUrl(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+
+        // The operation this job is "finishing" for
+        $current = new BulkOperation();
+        $current->shopifyGid = self::BULK_OP_GID;
+        $current->query = 'query {}';
+        $current->clearData = 'none';
+        $current->setStatus(BulkOperationStatus::Processing);
+        $service->saveBulkOperation($current, false);
+
+        // A second operation stuck at `created`, with its URL already populated — exactly the
+        // scenario from the issue (7493/7495). Its (fake) URL is never actually fetched below—
+        // see the queue double—so it doesn't need to resolve to anything real.
+        $stuckGid = 'gid://shopify/BulkOperation/stuck-001';
+        $stuck = new BulkOperation();
+        $stuck->shopifyGid = $stuckGid;
+        $stuck->url = 'https://storage.example.com/stuck.jsonl';
+        $stuck->objectCount = 5;
+        $stuck->query = 'query {}';
+        $stuck->clearData = 'none';
+        $stuck->setStatus(BulkOperationStatus::Created);
+        $service->saveBulkOperation($stuck, false);
+
+        // queueNextBulkOperation() will push a ProcessBulkOperationData job for the stuck
+        // operation. Swap in a queue double so the push is recorded but the job never actually
+        // runs — letting it run for real would try to download the fake URL above. `make()`
+        // (unlike `makeEmpty()`) keeps the real priority()/delay()/ttr() fluent setters that
+        // craft\helpers\Queue::push() chains before calling push() itself.
+        $pushedJobs = [];
+        Craft::$app->set('queue', $this->make(Queue::class, [
+            'push' => function($job) use (&$pushedJobs) {
+                $pushedJobs[] = $job;
+                return 'fake-queue-id-' . count($pushedJobs);
+            },
+        ]));
+
+        $job = $this->_makeJob();
+        $job->callAfter();
+
+        // The current operation should now be completed
+        $reloadedCurrent = $service->getBulkOperationByShopifyGid(self::BULK_OP_GID);
+        self::assertEquals(BulkOperationStatus::Completed, $reloadedCurrent->getStatus());
+
+        // A job should have been pushed for the previously-stuck operation
+        self::assertCount(1, $pushedJobs);
+        self::assertInstanceOf(ProcessBulkOperationData::class, $pushedJobs[0]);
+        self::assertEquals($stuckGid, $pushedJobs[0]->bulkOperationShopifyGid);
+
+        // And it should have been claimed (moved to `processing`) since the push "succeeded"
+        $reloadedStuck = $service->getBulkOperationByShopifyGid($stuckGid);
+        self::assertEquals(BulkOperationStatus::Processing, $reloadedStuck->getStatus());
+    }
+
+    public function testAfterDoesNothingWhenNothingIsStuck(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+
+        $current = new BulkOperation();
+        $current->shopifyGid = self::BULK_OP_GID;
+        $current->query = 'query {}';
+        $current->clearData = 'none';
+        $current->setStatus(BulkOperationStatus::Processing);
+        $service->saveBulkOperation($current, false);
+
+        $job = $this->_makeJob();
+        $job->callAfter();
+
+        $reloadedCurrent = $service->getBulkOperationByShopifyGid(self::BULK_OP_GID);
+        self::assertEquals(BulkOperationStatus::Completed, $reloadedCurrent->getStatus());
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
@@ -338,5 +427,27 @@ class TestableProcessBulkOperationData extends ProcessBulkOperationData
         } elseif ($this->clearData !== \craft\shopify\records\BulkOperation::CLEAR_DATA_NONE) {
             Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyGid($this->clearData);
         }
+    }
+
+    public function callAfter(): void
+    {
+        // Call only our override's logic, not BaseBatchedJob::after() which requires queue context
+        $bulkOperation = Plugin::getInstance()->getBulkOperations()->getBulkOperationByShopifyGid($this->bulkOperationShopifyGid);
+
+        if (!$bulkOperation) {
+            return;
+        }
+
+        $bulkOperation->setStatus(BulkOperationStatus::Completed);
+        Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
+
+        if ($this->tempFilePath !== null && file_exists($this->tempFilePath)) {
+            \craft\helpers\FileHelper::unlink($this->tempFilePath);
+        }
+
+        // Regression coverage for craftcms/shopify#224: pick up anything already `created` with
+        // a URL before starting anything new.
+        Plugin::getInstance()->getBulkOperations()->queueNextBulkOperation();
+        Plugin::getInstance()->getBulkOperations()->nextBulkOperation();
     }
 }

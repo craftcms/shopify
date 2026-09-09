@@ -42,6 +42,7 @@ return [
     'Draft in Shopify' => 'Draft in Shopify',
     'Edit variant {title} on Shopify' => 'Edit variant {title} on Shopify',
     'Error authorizing app' => 'Error authorizing app',
+    'Failed' => 'Failed',
     'Failed to create products sync' => 'Failed to create products sync',
     'Failed to delete sync' => 'Failed to delete sync',
     'Handle' => 'Handle',

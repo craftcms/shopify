@@ -303,6 +303,8 @@ This adds a [bulk operation](https://shopify.dev/docs/api/usage/bulk-operations/
 
 Going forward, your products are automatically kept in sync via [webhooks](#set-up-webhooks). You can view a history of synchronization operations by visiting the **Shopify Sync** utility.
 
+The **Shopify Sync** utility shows the status of each operation. One that gets stuck for more than 24 hours (for example, if its queue job was lost) is automatically marked **Failed**, and can be removed from the utility.
+
 > [!WARNING]
 > We do our best to capture native Shopify resources that are attached to a product (like variants, media, and options), but cannot dynamically discover relationships with other content via `Metafield`s, or data from third-party apps.
 > Additional fields can be captured by listening [events](#events) in a custom module.
