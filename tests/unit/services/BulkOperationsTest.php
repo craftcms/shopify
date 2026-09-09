@@ -326,6 +326,7 @@ class BulkOperationsTest extends Unit
         $waitingGid = 'gid://shopify/BulkOperation/inline-reap-queue-002';
         $waiting = $this->_makeCreatedOp($waitingGid);
         $waiting->url = 'https://storage.example.com/waiting.jsonl';
+        $waiting->objectCount = 5;
         $service->saveBulkOperation($waiting, false);
 
         // Swap in a queue double so the push is recorded but the job never actually runs — see the
@@ -462,6 +463,7 @@ class BulkOperationsTest extends Unit
 
         $queued = $this->_makeQueuedOp('gid://shopify/BulkOperation/inline-reap-next-002');
         $service->saveBulkOperation($queued, false);
+        $queuedId = $queued->id;
 
         Plugin::getInstance()->set('api', $this->makeEmpty(Api::class, [
             'query' => function($query, $variables = null) {
@@ -482,7 +484,9 @@ class BulkOperationsTest extends Unit
         $reloadedStale = $service->getBulkOperationByShopifyId('gid://shopify/BulkOperation/inline-reap-next-001');
         self::assertEquals(BulkOperationStatus::Failed, $reloadedStale->getStatus());
 
-        $reloadedQueued = $service->getBulkOperationByShopifyId('gid://shopify/BulkOperation/inline-reap-next-002');
+        // Look up by `id`, not the original `shopifyId`—nextBulkOperation() reassigns `shopifyId` to
+        // whatever Shopify's API returns for the newly-created operation.
+        $reloadedQueued = $service->getAllBulkOperations()->firstWhere('id', $queuedId);
         self::assertEquals(BulkOperationStatus::Created, $reloadedQueued->getStatus());
     }
 
