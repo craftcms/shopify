@@ -85,6 +85,13 @@ See [Upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgrading
 - Fixed a bug where validation errors for the “Context Pricing Countries” setting weren’t displaying correctly.
 - Fixed a bug where `inventory_levels/update` webhooks weren’t triggering a product sync.
 
+## 7.2.0 - 2026-09-09
+
+- Fixed a bug where a flood of product/inventory webhooks could deadlock the bulk operation queue. ([#224](https://github.com/craftcms/shopify/issues/224))
+- Bulk operations stuck in a non-terminal state for more than 24 hours are now marked as failed.
+- Added `craft\shopify\enums\BulkOperationStatus::Failed`.
+- Added `craft\shopify\services\BulkOperations::MUTEX_NAME`.
+
 ## 7.1.4 - 2026-08-17
 
 - It is now possible to view plugin settings as an admin on environments that do not allow admin changes.
