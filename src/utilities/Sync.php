@@ -8,7 +8,7 @@
 namespace craft\shopify\utilities;
 
 use Craft;
-use craft\base\Utility;
+use CraftCms\Cms\Utility\Utility;
 use craft\helpers\StringHelper;
 use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\models\BulkOperation;
