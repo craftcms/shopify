@@ -79,17 +79,13 @@ class ProcessBulkOperationData extends BaseBatchedJob
         // Only re-download if the file doesn't already exist
         // If the queue is using multiple workers and the file leaks between them,
         if (!$fileExists) {
-            // Retrieve remote file contents
-            $client = Craft::createGuzzleClient();
-            $response = $client->get($this->dataUrl);
-
-            // Write the contents to the temporary file
-            FileHelper::writeToFile($this->tempFilePath, $response->getBody()->getContents());
+            $this->_downloadDataFile();
         }
 
         $bulkDataBatcher = new BulkDataBatcher();
         $bulkDataBatcher->filePath = $this->tempFilePath;
         $bulkDataBatcher->total = $this->objectCount;
+        $bulkDataBatcher->reverse = true;
 
         return $bulkDataBatcher;
     }
@@ -186,5 +182,24 @@ class ProcessBulkOperationData extends BaseBatchedJob
 
         // Otherwise, start the next queued bulk op on Shopify if there is one
         Plugin::getInstance()->getBulkOperations()->nextBulkOperation();
+    }
+
+    /**
+     * Streams the remote data file to disk, only moving it into place once the download has completed.
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    private function _downloadDataFile(): void
+    {
+        $downloadPath = $this->tempFilePath . '.download';
+
+        try {
+            Craft::createGuzzleClient()->get($this->dataUrl, ['sink' => $downloadPath]);
+            rename($downloadPath, $this->tempFilePath);
+        } finally {
+            if (file_exists($downloadPath)) {
+                FileHelper::unlink($downloadPath);
+            }
+        }
     }
 }
