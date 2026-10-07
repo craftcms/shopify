@@ -86,7 +86,7 @@ class SettingsController extends Controller
                 'allowDelete' => false,
                 'allowReorder' => false,
                 'static' => $readOnly,
-                'errors' => array_unique($settings->getErrors('routing')),
+                'errors' => array_unique($settings->errors()->get('routing')),
                 'cols' => array_filter([
                     'uriFormat' => [
                         'type' => 'singleline',
@@ -106,11 +106,11 @@ class SettingsController extends Controller
                     'routing' => [
                         'uriFormat' => [
                             'value' => $settings->uriFormat ?? null,
-                            'hasErrors' => $settings->hasErrors('uriFormat'),
+                            'hasErrors' => $settings->errors()->has('uriFormat'),
                         ],
                         'template' => $headlessMode ? [] : [
                             'value' => $settings->template ?? null,
-                            'hasErrors' => $settings->hasErrors('template'),
+                            'hasErrors' => $settings->errors()->has('template'),
                         ],
                     ],
                 ],
@@ -129,10 +129,11 @@ class SettingsController extends Controller
                     'first' => true,
                     'label' => $settings->getAttributeLabel('apiVersion'),
                     'instructions' => Craft::t('shopify', 'Supported API versions: {versions}', ['versions' => implode(', ', Plugin::getInstance()->getApi()->getSupportedApiVersions())]),
+                    'suggestions' => Plugin::getInstance()->getApi()->getSupportedApiVersions(),
                     'id' => 'apiVersion',
                     'name' => 'settings[apiVersion]',
                     'value' => $settings->getApiVersion(false),
-                    'errors' => $settings->getErrors('apiVersion'),
+                    'errors' => $settings->errors()->get('apiVersion'),
                     'suggestEnvVars' => true,
                     'autofocus' => true,
                     'disabled' => $readOnly,
@@ -143,7 +144,7 @@ class SettingsController extends Controller
                     'id' => 'clientId',
                     'name' => 'settings[clientId]',
                     'value' => $settings->getClientId(false),
-                    'errors' => $settings->getErrors('clientId'),
+                    'errors' => $settings->errors()->get('clientId'),
                     'suggestEnvVars' => true,
                     'disabled' => $readOnly,
                 ]) .
@@ -153,7 +154,7 @@ class SettingsController extends Controller
                     'id' => 'clientSecret',
                     'name' => 'settings[clientSecret]',
                     'value' => $settings->getClientSecret(false),
-                    'errors' => $settings->getErrors('clientSecret'),
+                    'errors' => $settings->errors()->get('clientSecret'),
                     'suggestEnvVars' => true,
                     'disabled' => $readOnly,
                 ]) .
@@ -164,7 +165,7 @@ class SettingsController extends Controller
                     'id' => 'hostName',
                     'name' => 'settings[hostName]',
                     'value' => $settings->getHostName(false),
-                    'errors' => $settings->getErrors('hostName'),
+                    'errors' => $settings->errors()->get('hostName'),
                     'suggestEnvVars' => true,
                     'disabled' => $readOnly,
                 ]) .
@@ -175,7 +176,7 @@ class SettingsController extends Controller
                     'id' => 'contextualPricingCountries',
                     'name' => 'settings[contextualPricingCountries]',
                     'value' => $settings->getContextualPricingCountries(false),
-                    'errors' => $settings->getErrors('contextualPricingCountries'),
+                    'errors' => $settings->errors()->get('contextualPricingCountries'),
                     'suggestEnvVars' => true,
                     'disabled' => $readOnly,
                 ]) .
@@ -204,7 +205,7 @@ class SettingsController extends Controller
                         'id' => 'customScopes',
                         'name' => 'settings[customScopes]',
                         'value' => $settings->getCustomScopes(false),
-                        'errors' => $settings->getErrors('customScopes'),
+                        'errors' => $settings->errors()->get('customScopes'),
                         'suggestEnvVars' => true,
                     ]) .
 
@@ -352,11 +353,21 @@ class SettingsController extends Controller
         $pluginSettings->setProductFieldLayout($fieldLayout);
 
         if (!$settingsSuccess) {
-            return $this->asModelFailure(
-                $pluginSettings,
-                Craft::t('shopify', 'Couldn’t save settings.'),
-                'settings',
-            );
+            if (Craft::$app->getRequest()->getAcceptsJson()) {
+                return $this->asModelFailure(
+                    $pluginSettings,
+                    Craft::t('shopify', 'Couldn’t save settings.'),
+                    'settings',
+                );
+            }
+
+            // Re-render the screen directly rather than returning `null` and relying on
+            // Craft re-resolving the request path — in Craft 6 the CP catch-all falls
+            // through to template rendering instead, which fails with
+            // “Unable to find the template “shopify/settings””.
+            $this->setFailFlash(Craft::t('shopify', 'Couldn’t save settings.'));
+
+            return $this->actionIndex($pluginSettings);
         }
 
         // Resave all products if the URI format changed

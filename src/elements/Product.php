@@ -35,7 +35,8 @@ use Exception;
 use Illuminate\Support\Collection;
 use yii\base\InvalidConfigException;
 use yii\helpers\Html as HtmlHelper;
-use yii\web\Response;
+use CraftCms\Cms\Http\Responses\CpScreenResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Product element.
@@ -227,9 +228,9 @@ class Product extends Element
     /**
      * @inheritdoc
      */
-    public static function searchableAttributes(): array
+    protected static function defineSearchableAttributes(): array
     {
-        return array_merge(parent::searchableAttributes(), [
+        return array_merge(parent::defineSearchableAttributes(), [
             'descriptionHtml',
             'handle',
             'vendor',
@@ -611,7 +612,7 @@ class Product extends Element
     /**
      * @inheritdoc
      */
-    public function prepareEditScreen(Response $response, string $containerId): void
+    public function prepareEditScreen(Response|CpScreenResponse $response, string $containerId): void
     {
         $crumbs = [
             [
