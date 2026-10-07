@@ -4,6 +4,9 @@
 
 - Improved the memory usage of bulk operation processing.
 - Added `craft\shopify\api\BulkDataBatcher::$reverse`.
+- Added `craft\shopify\api\BulkDataBatcher::$reversePosition`.
+- Added `craft\shopify\api\BulkDataBatcher::getReversePositionAfter()`.
+- Added `craft\shopify\jobs\ProcessBulkOperationData::$dataFilePosition`.
 - Fixed a bug where products were saved before their metafields, variants, and images were synced. ([#230](https://github.com/craftcms/shopify/issues/230))
 - Fixed a bug where the last item of a bulk operation could be skipped, and another item processed twice, when processing was split into multiple batches.
 

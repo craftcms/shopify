@@ -292,6 +292,40 @@ class ProcessBulkOperationDataTest extends Unit
         self::assertEquals(58, ShopifyData::find()->where(['parentId' => $productGid])->count());
     }
 
+    /**
+     * A TTR of zero makes every batch stop after its first item, leaving the rest of its slice unprocessed.
+     */
+    public function testExecuteResumesFromStoredPositionWhenBatchesStopEarly(): void
+    {
+        $productGid = 'gid://shopify/Product/6656149192755';
+        $savedProducts = [];
+        Plugin::getInstance()->set('products', $this->makeEmpty(Products::class, [
+            'createOrUpdateProduct' => function(array $product) use (&$savedProducts) {
+                $savedProducts[] = $product['id'];
+                return true;
+            },
+        ]));
+
+        $filePath = $this->_copyFixtureToTempFile();
+        $job = $this->_makeExecutableJob($filePath, 60, 'all', batchSize: 10);
+        $job->ttr = 0;
+
+        $queue = new RecordingQueue();
+        $job->execute($queue);
+        $nextJob = $queue->popJob();
+
+        self::assertSame(1, $nextJob->itemOffset);
+        self::assertSame(strrpos(rtrim(file_get_contents($filePath)), "\n") + 1, $nextJob->dataFilePosition);
+
+        while ($nextJob) {
+            $nextJob->execute($queue);
+            $nextJob = $queue->popJob();
+        }
+
+        self::assertSame([$productGid], $savedProducts);
+        self::assertEquals(60, ShopifyData::find()->count());
+    }
+
     public function testExecuteSavesProductsAfterAllOfTheirChildren(): void
     {
         $productGid = 'gid://shopify/Product/6656149192755';
