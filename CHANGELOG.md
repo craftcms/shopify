@@ -1,5 +1,15 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Improved the memory usage of bulk operation processing.
+- Added `craft\shopify\api\BulkDataBatcher::$reverse`.
+- Added `craft\shopify\api\BulkDataBatcher::$reversePosition`.
+- Added `craft\shopify\api\BulkDataBatcher::getReversePositionAfter()`.
+- Added `craft\shopify\jobs\ProcessBulkOperationData::$dataFilePosition`.
+- Fixed a bug where products were saved before their metafields, variants, and images were synced. ([#230](https://github.com/craftcms/shopify/issues/230))
+- Fixed a bug where the last item of a bulk operation could be skipped, and another item processed twice, when processing was split into multiple batches.
+
 ## 8.1.0 - 2026-09-09
 
 - Fixed a bug where a flood of product/inventory webhooks could deadlock the bulk operation queue. ([#224](https://github.com/craftcms/shopify/issues/224))
@@ -84,6 +94,16 @@ See [Upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgrading
 - Removed the `shopify/shopify-api` Composer dependency.
 - Fixed a bug where validation errors for the “Context Pricing Countries” setting weren’t displaying correctly.
 - Fixed a bug where `inventory_levels/update` webhooks weren’t triggering a product sync.
+
+## 7.3.0 - 2026-10-08
+
+- Improved the memory usage of bulk operation processing.
+- Added `craft\shopify\api\BulkDataBatcher::$reverse`.
+- Added `craft\shopify\api\BulkDataBatcher::$reversePosition`.
+- Added `craft\shopify\api\BulkDataBatcher::getReversePositionAfter()`.
+- Added `craft\shopify\jobs\ProcessBulkOperationData::$dataFilePosition`.
+- Fixed a bug where products were saved before their metafields, variants, and images were synced. ([#230](https://github.com/craftcms/shopify/issues/230))
+- Fixed a bug where the last item of a bulk operation could be skipped, and another item processed twice, when processing was split into multiple batches.
 
 ## 7.2.0 - 2026-09-09
 

@@ -49,6 +49,20 @@ class ProcessBulkOperationData extends BaseBatchedJob
     public string $clearData = BulkOperationRecord::CLEAR_DATA_NONE;
 
     /**
+     * The byte position in the data file that the next batch should read back from.
+     *
+     * @var int|null
+     * @see BulkDataBatcher::$reversePosition
+     * @since 8.2.0
+     */
+    public ?int $dataFilePosition = null;
+
+    /**
+     * @var int The item offset the current batch started at
+     */
+    private int $_batchItemOffset = 0;
+
+    /**
      * @inheritdoc
      */
     protected function defaultDescription(): ?string
@@ -79,17 +93,14 @@ class ProcessBulkOperationData extends BaseBatchedJob
         // Only re-download if the file doesn't already exist
         // If the queue is using multiple workers and the file leaks between them,
         if (!$fileExists) {
-            // Retrieve remote file contents
-            $client = Craft::createGuzzleClient();
-            $response = $client->get($this->dataUrl);
-
-            // Write the contents to the temporary file
-            FileHelper::writeToFile($this->tempFilePath, $response->getBody()->getContents());
+            $this->_downloadDataFile();
         }
 
         $bulkDataBatcher = new BulkDataBatcher();
         $bulkDataBatcher->filePath = $this->tempFilePath;
         $bulkDataBatcher->total = $this->objectCount;
+        $bulkDataBatcher->reverse = true;
+        $bulkDataBatcher->reversePosition = $this->dataFilePosition;
 
         return $bulkDataBatcher;
     }
@@ -160,6 +171,28 @@ class ProcessBulkOperationData extends BaseBatchedJob
     /**
      * @inheritdoc
      */
+    protected function beforeBatch(): void
+    {
+        parent::beforeBatch();
+
+        $this->_batchItemOffset = $this->itemOffset;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function afterBatch(): void
+    {
+        parent::afterBatch();
+
+        /** @var BulkDataBatcher $data */
+        $data = $this->data();
+        $this->dataFilePosition = $data->getReversePositionAfter($this->itemOffset - $this->_batchItemOffset);
+    }
+
+    /**
+     * @inheritdoc
+     */
     protected function after(): void
     {
         parent::after();
@@ -186,5 +219,24 @@ class ProcessBulkOperationData extends BaseBatchedJob
 
         // Otherwise, start the next queued bulk op on Shopify if there is one
         Plugin::getInstance()->getBulkOperations()->nextBulkOperation();
+    }
+
+    /**
+     * Streams the remote data file to disk, only moving it into place once the download has completed.
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    private function _downloadDataFile(): void
+    {
+        $downloadPath = $this->tempFilePath . '.download';
+
+        try {
+            Craft::createGuzzleClient()->get($this->dataUrl, ['sink' => $downloadPath]);
+            rename($downloadPath, $this->tempFilePath);
+        } finally {
+            if (file_exists($downloadPath)) {
+                FileHelper::unlink($downloadPath);
+            }
+        }
     }
 }
