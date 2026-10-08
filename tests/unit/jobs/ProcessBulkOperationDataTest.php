@@ -9,7 +9,12 @@ namespace craft\shopify\tests\unit\jobs;
 
 use Codeception\Test\Unit;
 use Craft;
+use craft\base\Batchable;
+use craft\helpers\Assets;
+use craft\queue\BaseBatchedJob;
 use craft\queue\Queue;
+use craft\shopify\api\BulkDataBatcher;
+use craft\shopify\elements\Product;
 use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\jobs\ProcessBulkOperationData;
 use craft\shopify\models\BulkOperation;
@@ -28,6 +33,8 @@ class ProcessBulkOperationDataTest extends Unit
 
     private const BULK_OP_GID = 'gid://shopify/BulkOperation/process-test-001';
 
+    private ?string $_originalUriFormat = null;
+
     public function _fixtures(): array
     {
         return [
@@ -38,6 +45,10 @@ class ProcessBulkOperationDataTest extends Unit
     protected function _after(): void
     {
         Plugin::getInstance()->set('products', Products::class);
+
+        if ($this->_originalUriFormat !== null) {
+            Plugin::getInstance()->getSettings()->uriFormat = $this->_originalUriFormat;
+        }
 
         // Restore the real queue component after any test that swaps it out
         Craft::$app->set('queue', Queue::class);
@@ -243,6 +254,171 @@ class ProcessBulkOperationDataTest extends Unit
     }
 
     // -------------------------------------------------------------------------
+    // execute() — batched processing of the data file
+    // -------------------------------------------------------------------------
+
+    public function testLoadDataReadsTheFileInReverse(): void
+    {
+        $job = $this->_makeJob();
+        $job->objectCount = 60;
+        $job->tempFilePath = $this->_copyFixtureToTempFile();
+
+        $batcher = $job->callLoadData();
+
+        self::assertInstanceOf(BulkDataBatcher::class, $batcher);
+        self::assertTrue($batcher->reverse);
+        self::assertSame(60, $batcher->count());
+    }
+
+    /**
+     * The fixture has 60 lines, so a batch size of 10 also covers the last line being skipped
+     * when the line count was a multiple of the batch size.
+     */
+    public function testExecuteProcessesEveryLineOnceAcrossBatches(): void
+    {
+        $productGid = 'gid://shopify/Product/6656149192755';
+        $savedProducts = [];
+        Plugin::getInstance()->set('products', $this->makeEmpty(Products::class, [
+            'createOrUpdateProduct' => function(array $product) use (&$savedProducts) {
+                $savedProducts[] = $product['id'];
+                return true;
+            },
+        ]));
+
+        $this->_runJob($this->_makeExecutableJob($this->_copyFixtureToTempFile(), 60, 'all', batchSize: 10));
+
+        self::assertSame([$productGid], $savedProducts);
+        self::assertEquals(60, ShopifyData::find()->count());
+        self::assertEquals(58, ShopifyData::find()->where(['parentId' => $productGid])->count());
+    }
+
+    /**
+     * A TTR of zero makes every batch stop after its first item, leaving the rest of its slice unprocessed.
+     */
+    public function testExecuteResumesFromStoredPositionWhenBatchesStopEarly(): void
+    {
+        $productGid = 'gid://shopify/Product/6656149192755';
+        $savedProducts = [];
+        Plugin::getInstance()->set('products', $this->makeEmpty(Products::class, [
+            'createOrUpdateProduct' => function(array $product) use (&$savedProducts) {
+                $savedProducts[] = $product['id'];
+                return true;
+            },
+        ]));
+
+        $filePath = $this->_copyFixtureToTempFile();
+        $job = $this->_makeExecutableJob($filePath, 60, 'all', batchSize: 10);
+        $job->ttr = 0;
+
+        $queue = new RecordingQueue();
+        $job->execute($queue);
+        $nextJob = $queue->popJob();
+
+        self::assertSame(1, $nextJob->itemOffset);
+        self::assertSame(strrpos(rtrim(file_get_contents($filePath)), "\n") + 1, $nextJob->dataFilePosition);
+
+        while ($nextJob) {
+            $nextJob->execute($queue);
+            $nextJob = $queue->popJob();
+        }
+
+        self::assertSame([$productGid], $savedProducts);
+        self::assertEquals(60, ShopifyData::find()->count());
+    }
+
+    public function testExecuteSavesProductsAfterAllOfTheirChildren(): void
+    {
+        $productGid = 'gid://shopify/Product/6656149192755';
+        $childCounts = [];
+        Plugin::getInstance()->set('products', $this->makeEmpty(Products::class, [
+            'createOrUpdateProduct' => function(array $product) use (&$childCounts) {
+                $childCounts[$product['id']] = (int)ShopifyData::find()->where(['parentId' => $product['id']])->count();
+                return true;
+            },
+        ]));
+
+        $this->_runJob($this->_makeExecutableJob($this->_copyFixtureToTempFile(), 60, 'all', batchSize: 7));
+
+        self::assertSame([$productGid => 58], $childCounts);
+    }
+
+    /**
+     * Regression test for craftcms/shopify#230: products were saved before their metafields were stored,
+     * so a URI format referencing metafields rendered empty.
+     */
+    public function testFullSyncRendersUriFormatUsingMetafields(): void
+    {
+        $this->_setUriFormat('{metafields.special_part|kebab}');
+
+        $this->_runJob($this->_makeExecutableJob($this->_copyFixtureToTempFile(), 60, 'all', batchSize: 25));
+
+        self::assertSame('extra-button', $this->_findProduct('gid://shopify/Product/6656149192755')?->uri);
+    }
+
+    /**
+     * Regression test for craftcms/shopify#230: a per-product sync deletes the product’s stored data before
+     * processing, so existing products lost their URIs.
+     */
+    public function testProductSyncKeepsUriFormatUsingMetafields(): void
+    {
+        $productGid = 'gid://shopify/Product/6656149192755';
+        $this->_setUriFormat('{metafields.special_part|kebab}');
+
+        $this->_runJob($this->_makeExecutableJob($this->_copyFixtureToTempFile(), 60, 'all'));
+        self::assertSame('extra-button', $this->_findProduct($productGid)?->uri);
+
+        $this->_runJob($this->_makeExecutableJob($this->_copyFixtureToTempFile(), 60, $productGid, batchSize: 25));
+
+        self::assertSame('extra-button', $this->_findProduct($productGid)?->uri);
+    }
+
+    /**
+     * Shopify only guarantees that child objects come after their parent, not that they directly follow it.
+     */
+    public function testExecuteSavesProductsWhoseChildrenAreNotGrouped(): void
+    {
+        $this->_setUriFormat('{metafields.special_part|kebab}');
+
+        $fixtureLines = file($this->_fixturePath(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $firstProduct = json_decode($fixtureLines[0], true);
+        $secondProduct = array_merge($firstProduct, [
+            'id' => 'gid://shopify/Product/230230230',
+            'handle' => 'second-product',
+            'title' => 'Second Product',
+        ]);
+
+        $lines = [
+            $firstProduct,
+            $secondProduct,
+            ['id' => 'gid://shopify/Metafield/230230231', 'key' => 'special_part', 'value' => 'Second part', '__parentId' => $secondProduct['id']],
+            ['id' => 'gid://shopify/Metafield/230230232', 'key' => 'special_part', 'value' => 'First part', '__parentId' => $firstProduct['id']],
+        ];
+        $filePath = Assets::tempFilePath('jsonl');
+        file_put_contents($filePath, implode("\n", array_map(fn(array $line) => json_encode($line), $lines)) . "\n");
+
+        $this->_runJob($this->_makeExecutableJob($filePath, count($lines), 'all', batchSize: 1));
+
+        self::assertSame('first-part', $this->_findProduct($firstProduct['id'])?->uri);
+        self::assertSame('second-part', $this->_findProduct($secondProduct['id'])?->uri);
+    }
+
+    public function testFailedDownloadLeavesNoFileBehind(): void
+    {
+        $job = $this->_makeJob();
+        $job->dataUrl = 'http://127.0.0.1:1/data.jsonl';
+
+        try {
+            $job->callLoadData();
+            self::fail('Expected the download to fail.');
+        } catch (\GuzzleHttp\Exception\GuzzleException) {
+        }
+
+        self::assertNotNull($job->tempFilePath);
+        self::assertFileDoesNotExist($job->tempFilePath);
+        self::assertFileDoesNotExist($job->tempFilePath . '.download');
+    }
+
+    // -------------------------------------------------------------------------
     // before() — data clearing behaviour
     // -------------------------------------------------------------------------
 
@@ -389,6 +565,62 @@ class ProcessBulkOperationDataTest extends Unit
     // Helpers
     // -------------------------------------------------------------------------
 
+    private function _fixturePath(): string
+    {
+        return __DIR__ . '/../../fixtures/data/bulk-operation-single-product.jsonl';
+    }
+
+    private function _copyFixtureToTempFile(): string
+    {
+        $filePath = Assets::tempFilePath('jsonl');
+        copy($this->_fixturePath(), $filePath);
+
+        return $filePath;
+    }
+
+    private function _makeExecutableJob(string $filePath, int $objectCount, string $clearData, int $batchSize = 100): ProcessBulkOperationData
+    {
+        $bulkOperation = new BulkOperation();
+        $bulkOperation->shopifyId = self::BULK_OP_GID;
+        $bulkOperation->query = 'query {}';
+        $bulkOperation->clearData = $clearData;
+        $bulkOperation->setStatus(BulkOperationStatus::Processing);
+        Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
+
+        return new ProcessBulkOperationData([
+            'bulkOperationShopifyId' => self::BULK_OP_GID,
+            'dataUrl' => 'https://storage.example.com/data.jsonl',
+            'objectCount' => $objectCount,
+            'clearData' => $clearData,
+            'tempFilePath' => $filePath,
+            'batchSize' => $batchSize,
+        ]);
+    }
+
+    /**
+     * Executes the job and every batch it spawns, serializing each batch through the queue as a real worker would.
+     */
+    private function _runJob(ProcessBulkOperationData $job): void
+    {
+        $queue = new RecordingQueue();
+        $job->execute($queue);
+
+        while ($next = $queue->popJob()) {
+            $next->execute($queue);
+        }
+    }
+
+    private function _setUriFormat(string $uriFormat): void
+    {
+        $this->_originalUriFormat ??= Plugin::getInstance()->getSettings()->uriFormat;
+        Plugin::getInstance()->getSettings()->uriFormat = $uriFormat;
+    }
+
+    private function _findProduct(string $gid): ?Product
+    {
+        return Product::find()->shopifyGid($gid)->status(null)->one();
+    }
+
     private function _makeJob(string $clearData = 'none'): TestableProcessBulkOperationData
     {
         return new TestableProcessBulkOperationData([
@@ -408,6 +640,11 @@ class TestableProcessBulkOperationData extends ProcessBulkOperationData
     public function callProcessItem(mixed $item): void
     {
         $this->processItem($item);
+    }
+
+    public function callLoadData(): Batchable
+    {
+        return $this->loadData();
     }
 
     public function callBefore(): void
@@ -449,5 +686,35 @@ class TestableProcessBulkOperationData extends ProcessBulkOperationData
         // a URL before starting anything new.
         Plugin::getInstance()->getBulkOperations()->queueNextBulkOperation();
         Plugin::getInstance()->getBulkOperations()->nextBulkOperation();
+    }
+}
+
+/**
+ * Records pushed jobs so the batches spawned by a batched job can be executed one after another.
+ */
+class RecordingQueue extends \yii\queue\Queue
+{
+    /**
+     * @var string[]
+     */
+    private array $_messages = [];
+
+    public function popJob(): ?BaseBatchedJob
+    {
+        $message = array_shift($this->_messages);
+
+        return $message === null ? null : $this->serializer->unserialize($message);
+    }
+
+    public function status($id)
+    {
+        return self::STATUS_WAITING;
+    }
+
+    protected function pushMessage($payload, $ttr, $delay, $priority)
+    {
+        $this->_messages[] = $payload;
+
+        return (string)count($this->_messages);
     }
 }
