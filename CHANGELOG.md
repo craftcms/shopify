@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 8.2.0 - 2026-10-08
 
 - Improved the memory usage of bulk operation processing.
 - Added `craft\shopify\api\BulkDataBatcher::$reverse`.
