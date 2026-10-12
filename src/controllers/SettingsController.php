@@ -8,14 +8,30 @@
 namespace craft\shopify\controllers;
 
 use Craft;
-use craft\helpers\Cp;
-use craft\helpers\Html;
 use craft\helpers\StringHelper;
+use craft\helpers\UrlHelper;
 use craft\queue\jobs\ResaveElements;
 use craft\shopify\elements\Product;
 use craft\shopify\models\Settings;
 use craft\shopify\Plugin;
 use craft\web\Controller;
+use CraftCms\Cms\Cms;
+use CraftCms\Cms\Cp\SelectOptions;
+use CraftCms\Cms\Http\Responses\CpScreenResponse;
+use CraftCms\Cms\Ui\Controls\Choice;
+use CraftCms\Cms\Ui\Controls\Combobox;
+use CraftCms\Cms\Ui\Controls\FieldLayoutDesigner;
+use CraftCms\Cms\Ui\Controls\Table;
+use CraftCms\Cms\Ui\Controls\Text;
+use CraftCms\Cms\Ui\Enums\ControlMode;
+use CraftCms\Cms\Ui\Nodes\Callout;
+use CraftCms\Cms\Ui\Nodes\Field;
+use CraftCms\Cms\Ui\Nodes\Separator;
+use CraftCms\Cms\Ui\Nodes\Tab;
+use CraftCms\Cms\Ui\Ui;
+use CraftCms\Cms\Ui\UiContext;
+use CraftCms\Cms\Ui\UiPayload;
+use CraftCms\Cms\Ui\UiResolver;
 use yii\web\Response;
 
 /**
@@ -26,6 +42,11 @@ use yii\web\Response;
  */
 class SettingsController extends Controller
 {
+    /**
+     * The row key of the product routing table.
+     */
+    private const ROUTING_ROW = 'product';
+
     /**
      * @inheritdoc
      */
@@ -52,261 +73,45 @@ class SettingsController extends Controller
             $settings = Plugin::getInstance()->getSettings();
         }
 
-        $readOnly = !Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
-        $headlessMode = Craft::$app->getConfig()->getGeneral()->headlessMode;
+        $readOnly = $this->isReadOnly();
+        $payload = $this->resolveUi($settings, $this->initialValues($settings), $readOnly);
 
-        $authUrlFieldConfig = [
-            'label' => $settings->getAttributeLabel('authUrl'),
-            'instructions' => Craft::t('shopify', 'The URL of your Shopify app in the Dev Dashboard. This is automatically generated from your CP URL.'),
-            'id' => 'authUrl',
-            'name' => 'settings[authUrl]',
-            'value' => $settings->getAuthUrl(),
-            'readonly' => true,
-            'warning' => !Plugin::getInstance()->getApi()->connect() ? Craft::t('shopify', 'Unable to connect to custom app. Syncing will be unavailable until the app has been authorized.') : null,
-        ];
-
-        $scopesFieldConfig = [
-            'label' => $settings->getAttributeLabel('scopes'),
-            'instructions' => Craft::t('shopify', 'API scopes required for your app integration, including additional features and custom scopes.'),
-            'id' => 'scopes',
-            'name' => 'settings[scopes]',
-            'value' => $settings->getScopes(),
-            'readonly' => true,
-            'tip' => Craft::t('shopify', 'Copy these scopes into your Shopify app’s configuration in the Dev Dashboard to ensure your integration works correctly.'),
-        ];
-
-        $html = Html::beginTag('div', ['id' => 'products', 'class' => 'hidden']) .
-            // Products tab has to go first because the routing table overrides the `settings` key
-            Cp::editableTableFieldHtml([
-                'label' => Craft::t('shopify', 'Routing Settings'),
-                'instructions' => Craft::t('shopify', 'Configure the product’s front-end routing settings.'),
-                'id' => 'routing',
-                'name' => 'settings',
-                'allowAdd' => false,
-                'allowDelete' => false,
-                'allowReorder' => false,
-                'static' => $readOnly,
-                'errors' => array_unique($settings->errors()->get('routing')),
-                'cols' => array_filter([
-                    'uriFormat' => [
-                        'type' => 'singleline',
-                        'heading' => Craft::t('shopify', 'Product URI Format'),
-                        'info' => Craft::t('shopify', 'What product URIs should look like.'),
-                        'placeholder' => Craft::t('shopify', 'Leave blank if products don’t have URLs'),
-                        'code' => true,
-                    ],
-                    'template' => $headlessMode ? [] : [
-                        'type' => 'template',
-                        'heading' => Craft::t('app', 'Template'),
-                        'info' => Craft::t('shopify', 'Which template should be loaded when a product’s URL is requested.'),
-                        'code' => true,
-                    ],
-                ]),
-                'rows' => [
-                    'routing' => [
-                        'uriFormat' => [
-                            'value' => $settings->uriFormat ?? null,
-                            'hasErrors' => $settings->errors()->has('uriFormat'),
-                        ],
-                        'template' => $headlessMode ? [] : [
-                            'value' => $settings->template ?? null,
-                            'hasErrors' => $settings->errors()->has('template'),
-                        ],
-                    ],
-                ],
-            ]) .
-
-            Cp::fieldHtml(Cp::fieldLayoutDesignerHtml($settings->getProductFieldLayout(), ['disabled' => $readOnly]), [
-                'label' => Craft::t('app', 'Field Layout'),
-                'disabled' => $readOnly,
-            ]) .
-
-            Html::endTag('div') .
-
-            Html::beginTag('div', ['id' => 'api']) .
-
-                Cp::autosuggestFieldHtml([
-                    'first' => true,
-                    'label' => $settings->getAttributeLabel('apiVersion'),
-                    'instructions' => Craft::t('shopify', 'Supported API versions: {versions}', ['versions' => implode(', ', Plugin::getInstance()->getApi()->getSupportedApiVersions())]),
-                    'suggestions' => Plugin::getInstance()->getApi()->getSupportedApiVersions(),
-                    'id' => 'apiVersion',
-                    'name' => 'settings[apiVersion]',
-                    'value' => $settings->getApiVersion(false),
-                    'errors' => $settings->errors()->get('apiVersion'),
-                    'suggestEnvVars' => true,
-                    'autofocus' => true,
-                    'disabled' => $readOnly,
-                ]) .
-
-                Cp::autosuggestFieldHtml([
-                    'label' => $settings->getAttributeLabel('clientId'),
-                    'id' => 'clientId',
-                    'name' => 'settings[clientId]',
-                    'value' => $settings->getClientId(false),
-                    'errors' => $settings->errors()->get('clientId'),
-                    'suggestEnvVars' => true,
-                    'disabled' => $readOnly,
-                ]) .
-
-                Cp::autosuggestFieldHtml([
-                    'label' => $settings->getAttributeLabel('clientSecret'),
-                    'id' => 'clientSecret',
-                    'name' => 'settings[clientSecret]',
-                    'value' => $settings->getClientSecret(false),
-                    'errors' => $settings->errors()->get('clientSecret'),
-                    'suggestEnvVars' => true,
-                    'disabled' => $readOnly,
-                ]) .
-
-                Cp::autosuggestFieldHtml([
-                    'label' => $settings->getAttributeLabel('hostName'),
-                    'instructions' => Craft::t('shopify', 'The Shopify store hostname.'),
-                    'id' => 'hostName',
-                    'name' => 'settings[hostName]',
-                    'value' => $settings->getHostName(false),
-                    'errors' => $settings->errors()->get('hostName'),
-                    'suggestEnvVars' => true,
-                    'disabled' => $readOnly,
-                ]) .
-
-                Cp::autosuggestFieldHtml([
-                    'label' => $settings->getAttributeLabel('contextualPricingCountries'),
-                    'instructions' => Craft::t('shopify', 'A comma separated list of country codes used to return contextual pricing.'),
-                    'id' => 'contextualPricingCountries',
-                    'name' => 'settings[contextualPricingCountries]',
-                    'value' => $settings->getContextualPricingCountries(false),
-                    'errors' => $settings->errors()->get('contextualPricingCountries'),
-                    'suggestEnvVars' => true,
-                    'disabled' => $readOnly,
-                ]) .
-
-                Html::tag('hr') .
-
-                Html::beginTag('div', ['id' => 'scopes-settings']) .
-
-                    Cp::fieldHtml(
-                        Cp::renderTemplate('_includes/forms/copytext.twig', $scopesFieldConfig),
-                        $scopesFieldConfig
-                    ) .
-
-                    Cp::checkboxSelectFieldHtml([
-                        'id' => 'additionalFeatures',
-                        'label' => $settings->getAttributeLabel('additionalFeatures'),
-                        'name' => 'settings[additionalFeatures]',
-                        'options' => $settings->getAdditionalFeaturesOptions(),
-                        'values' => $settings->getAdditionalFeatures(),
-                        'showAllOption' => true,
-                    ]) .
-
-                    Cp::autosuggestFieldHtml([
-                        'label' => $settings->getAttributeLabel('customScopes'),
-                        'instructions' => Craft::t('shopify', 'A comma separated list of custom scopes to add to the API requests.'),
-                        'id' => 'customScopes',
-                        'name' => 'settings[customScopes]',
-                        'value' => $settings->getCustomScopes(false),
-                        'errors' => $settings->errors()->get('customScopes'),
-                        'suggestEnvVars' => true,
-                    ]) .
-
-                Html::endTag('div') .
-
-                Html::tag('hr') .
-
-                Cp::fieldHtml(
-                    Cp::renderTemplate('_includes/forms/copytext.twig', $authUrlFieldConfig),
-                    $authUrlFieldConfig
-                ) .
-
-            Html::endTag('div')
-        ;
-
-        $getScopesAction = 'shopify/settings/get-scopes';
-        $js = <<<JS
-            (() => {
-                const scopesSettingsContainer = document.getElementById('scopes-settings');
-                if (!scopesSettingsContainer) return;
-
-                let debounceTimer;
-
-                const updateScopes = () => {
-                    const additionalFeatures = Array.from(
-                        scopesSettingsContainer.querySelectorAll('input[name="settings[additionalFeatures][]"]:checked')
-                    ).map(cb => cb.value).filter(Boolean);
-
-                    const customScopesInput = document.getElementById('customScopes');
-                    const scopesInput = document.getElementById('scopes');
-                    if (!scopesInput) return;
-
-                    Craft.sendActionRequest('POST', '$getScopesAction', {
-                        data: {
-                            additionalFeatures,
-                            customScopes: customScopesInput?.value ?? '',
-                        },
-                    }).then(response => {
-                        scopesInput.value = response.data.scopes;
-                    }).catch(() => {
-                        Craft.cp.displayError(Craft.t('shopify', 'Couldn’t update scopes.'));
-                    });
-                };
-
-                scopesSettingsContainer.addEventListener('change', (e) => {
-                    if (e.target.name === 'settings[additionalFeatures][]' || e.target.name === 'settings[additionalFeatures]') {
-                        // Defer so Craft's checkbox-select JS can toggle related checkboxes first
-                        setTimeout(updateScopes, 0);
-                    }
-                });
-
-                scopesSettingsContainer.addEventListener('input', (e) => {
-                    if (e.target.id === 'customScopes') {
-                        clearTimeout(debounceTimer);
-                        debounceTimer = setTimeout(updateScopes, 300);
-                    }
-                });
-            })();
-        JS;
-        $this->getView()->registerJs($js);
-
-        $this->getView()->registerTranslations('shopify', [
-            'Couldn’t update scopes.',
-        ]);
-
-        $screen = $this->asCpScreen()
+        $screen = (new CpScreenResponse())
             ->title(Craft::t('shopify', 'Settings'))
-            ->tabs([
-                ['label' => Craft::t('shopify', 'API Connection'), 'url' => '#api'],
-                ['label' => Craft::t('shopify', 'Products'), 'url' => '#products'],
-            ])
-            ->selectedSubnavItem('settings');
+            ->selectedSubnavItem('settings')
+            ->redirectUrl('shopify/settings')
+            ->ui($payload, props: $readOnly ? [] : [
+                'submit' => [
+                    'method' => 'post',
+                    'url' => UrlHelper::actionUrl('shopify/settings/save-settings'),
+                ],
+                'refreshUrl' => UrlHelper::actionUrl('shopify/settings/render-ui'),
+            ]);
 
-        if (!$readOnly) {
-            $screen->action('shopify/settings/save-settings')
-                ->redirectUrl('shopify/settings');
-        } else {
-            $screen->noticeHtml(Cp::readOnlyNoticeHtml());
-        }
-
-        return $screen->contentHtml($html);
+        return $this->response->setIlluminateResponse($screen->toResponse(request()));
     }
 
     /**
-     * Returns the combined scopes string for the given additional features and custom scopes.
+     * Re-resolves the settings UI for the posted values, so derived values like the scopes stay current.
      *
      * @return Response
-     * @since 7.2.0
      */
-    public function actionGetScopes(): Response
+    public function actionRenderUi(): Response
     {
+        $this->requireAdmin();
         $this->requireAcceptsJson();
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $values = (array)$this->request->getRequiredBodyParam('values');
+        $scope = (array)$this->request->getBodyParam('scope', []);
+
         $settings = new Settings();
-        $settings->setAdditionalFeatures((array)$request->getBodyParam('additionalFeatures', []));
-        $settings->setCustomScopes($request->getBodyParam('customScopes', ''));
+        $settings->setAdditionalFeatures($this->normalizeAdditionalFeatures($values['settings']['additionalFeatures'] ?? []));
+        $settings->setCustomScopes((string)($values['settings']['customScopes'] ?? ''));
+        $values['scopes'] = $settings->getScopes();
 
         return $this->asJson([
-            'scopes' => $settings->getScopes(),
+            'ui' => $this->resolveUi(Plugin::getInstance()->getSettings(), $values, false)->forScope($scope),
         ]);
     }
 
@@ -319,26 +124,19 @@ class SettingsController extends Controller
     {
         $this->requireAdmin();
         $this->requirePostRequest();
-        $settings = Craft::$app->getRequest()->getParam('settings');
+        $settings = (array)Craft::$app->getRequest()->getParam('settings');
+        $routing = Craft::$app->getRequest()->getParam('routing')[self::ROUTING_ROW] ?? [];
         $plugin = Plugin::getInstance();
         /** @var Settings $pluginSettings */
         $pluginSettings = $plugin->getSettings();
         $originalUriFormat = $pluginSettings->uriFormat;
 
-        $settings['additionalFeatures'] = $settings['additionalFeatures'] ?: [];
-
-        // Expand the checkboxSelect "All" wildcard to the full list of feature handles
-        if ($settings['additionalFeatures'] === '*') {
-            $settings['additionalFeatures'] = array_keys($pluginSettings->getAdditionalFeaturesOptions());
+        $settings['additionalFeatures'] = $this->normalizeAdditionalFeatures($settings['additionalFeatures'] ?? []);
+        $settings['uriFormat'] = $routing['uriFormat'] ?? '';
+        // Not shown in headless mode
+        if (isset($routing['template'])) {
+            $settings['template'] = $routing['template'];
         }
-
-        // Remove from editable table namespace
-        $settings['uriFormat'] = $settings['routing']['uriFormat'];
-        // Could be blank if in headless mode
-        if (isset($settings['routing']['template'])) {
-            $settings['template'] = $settings['routing']['template'];
-        }
-        unset($settings['routing']);
 
         $settingsSuccess = Craft::$app->getPlugins()->savePluginSettings($plugin, $settings);
 
@@ -361,10 +159,7 @@ class SettingsController extends Controller
                 );
             }
 
-            // Re-render the screen directly rather than returning `null` and relying on
-            // Craft re-resolving the request path — in Craft 6 the CP catch-all falls
-            // through to template rendering instead, which fails with
-            // “Unable to find the template “shopify/settings””.
+            // Re-render the screen so its UI carries the validation errors.
             $this->setFailFlash(Craft::t('shopify', 'Couldn’t save settings.'));
 
             return $this->actionIndex($pluginSettings);
@@ -382,10 +177,185 @@ class SettingsController extends Controller
             ]));
         }
 
-        return $this->asModelSuccess(
-            $pluginSettings,
-            Craft::t('shopify', 'Settings saved.'),
-            'settings',
+        if (Craft::$app->getRequest()->getAcceptsJson()) {
+            return $this->asModelSuccess(
+                $pluginSettings,
+                Craft::t('shopify', 'Settings saved.'),
+                'settings',
+            );
+        }
+
+        // Yii flags AJAX redirects with a header rather than `Location`, which Inertia can't follow.
+        $this->setSuccessFlash(Craft::t('shopify', 'Settings saved.'));
+
+        return $this->response->setIlluminateResponse(
+            redirect(UrlHelper::cpUrl($this->getPostedRedirectUrl() ?? 'shopify/settings')),
         );
+    }
+
+    private function isReadOnly(): bool
+    {
+        return !Cms::config()->allowAdminChanges;
+    }
+
+    private function headlessMode(): bool
+    {
+        return Cms::config()->headlessMode;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function initialValues(Settings $settings): array
+    {
+        $fieldLayout = $settings->getProductFieldLayout();
+
+        return [
+            'settings' => [
+                'apiVersion' => $settings->getApiVersion(false),
+                'clientId' => $settings->getClientId(false),
+                'clientSecret' => $settings->getClientSecret(false),
+                'hostName' => $settings->getHostName(false),
+                'contextualPricingCountries' => $settings->getContextualPricingCountries(false),
+                'additionalFeatures' => $settings->getAdditionalFeatures(),
+                'customScopes' => $settings->getCustomScopes(false),
+            ],
+            'scopes' => $settings->getScopes(),
+            'authUrl' => $settings->getAuthUrl(),
+            'routing' => [
+                self::ROUTING_ROW => array_filter([
+                    'uriFormat' => $settings->uriFormat,
+                    'template' => $this->headlessMode() ? null : $settings->template,
+                ], fn($value) => $value !== null),
+            ],
+            'fieldLayout' => [
+                'id' => $fieldLayout->id,
+                'uid' => $fieldLayout->uid,
+                ...($fieldLayout->getConfig() ?? []),
+            ],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $values
+     */
+    private function resolveUi(Settings $settings, array $values, bool $readOnly): UiPayload
+    {
+        $errors = [];
+        foreach ($settings->errors()->getMessages() as $attribute => $messages) {
+            $root = explode('.', $attribute)[0];
+            $path = in_array($root, ['uriFormat', 'template'], true)
+                ? 'routing.' . self::ROUTING_ROW . ".$attribute"
+                : "settings.$attribute";
+            $errors[$path] = $messages;
+        }
+
+        return app(UiResolver::class)->resolve($this->settingsUi($settings, $readOnly), new UiContext(
+            values: $values,
+            errors: $errors,
+            mode: $readOnly ? ControlMode::ReadOnly : ControlMode::Editable,
+            refreshable: !$readOnly,
+        ));
+    }
+
+    private function settingsUi(Settings $settings, bool $readOnly): Ui
+    {
+        $api = Plugin::getInstance()->getApi();
+        $apiVersions = $api->getSupportedApiVersions();
+        $envTriggers = SelectOptions::getEnvTextExpanderTriggers();
+        $envTip = Craft::t('app', 'Type `$` to choose an environment variable.');
+        $envText = fn(string $attribute, bool $reactive = false) => Field::make(
+            $settings->getAttributeLabel($attribute),
+            Text::make("settings.$attribute")->textExpanderTriggers($envTriggers)->reactive($reactive),
+        )->tip($envTip);
+
+        $apiVersionOptions = array_map(fn(string $version) => ['label' => $version, 'value' => $version], $apiVersions);
+
+        $ui = Ui::make()->when($readOnly, fn(Ui $ui) => $ui->add(
+            Callout::make('read-only-notice', Craft::t('app', 'Changes to these settings aren’t permitted in this environment.'))
+                ->variant('warning'),
+        ));
+
+        return $ui->add(
+            Tab::make('api', Craft::t('shopify', 'API Connection'), [
+                Field::make(
+                    $settings->getAttributeLabel('apiVersion'),
+                    Combobox::make('settings.apiVersion')
+                        ->options(array_merge($apiVersionOptions, SelectOptions::getEnvOptions($apiVersions)))
+                        ->showAllOnEmpty(),
+                )
+                    ->instructions(Craft::t('shopify', 'Supported API versions: {versions}', ['versions' => implode(', ', $apiVersions)]))
+                    ->tip(Craft::t('app', 'This can be set to an environment variable.')),
+                $envText('clientId'),
+                $envText('clientSecret'),
+                $envText('hostName')
+                    ->instructions(Craft::t('shopify', 'The Shopify store hostname.')),
+                $envText('contextualPricingCountries')
+                    ->instructions(Craft::t('shopify', 'A comma separated list of country codes used to return contextual pricing.')),
+                Separator::make('scopes-separator'),
+                Field::make($settings->getAttributeLabel('scopes'), Text::make('scopes')->mode(ControlMode::ReadOnly)->monospace())
+                    ->instructions(Craft::t('shopify', 'API scopes required for your app integration, including additional features and custom scopes.'))
+                    ->tip(Craft::t('shopify', 'Copy these scopes into your Shopify app’s configuration in the Dev Dashboard to ensure your integration works correctly.')),
+                Field::make(
+                    $settings->getAttributeLabel('additionalFeatures'),
+                    Choice::make('settings.additionalFeatures')
+                        ->options(array_values(array_map(
+                            fn(array $option) => ['label' => $option['label'], 'value' => $option['value']],
+                            $settings->getAdditionalFeaturesOptions(),
+                        )))
+                        ->multiple()
+                        ->allOption()
+                        ->reactive(),
+                ),
+                $envText('customScopes', reactive: true)
+                    ->instructions(Craft::t('shopify', 'A comma separated list of custom scopes to add to the API requests.')),
+                Separator::make('auth-url-separator'),
+                Field::make($settings->getAttributeLabel('authUrl'), Text::make('authUrl')->mode(ControlMode::ReadOnly)->monospace())
+                    ->instructions(Craft::t('shopify', 'The URL of your Shopify app in the Dev Dashboard. This is automatically generated from your CP URL.'))
+                    ->warning(!$api->connect() ? Craft::t('shopify', 'Unable to connect to custom app. Syncing will be unavailable until the app has been authorized.') : null),
+            ]),
+            Tab::make('products', Craft::t('shopify', 'Products'), [
+                Field::make(Craft::t('shopify', 'Routing Settings'), $this->routingTable())
+                    ->instructions(Craft::t('shopify', 'Configure the product’s front-end routing settings.')),
+                Field::make(Craft::t('app', 'Field Layout'), FieldLayoutDesigner::make('fieldLayout')
+                    ->elementType(Product::class)),
+            ]),
+        );
+    }
+
+    private function routingTable(): Table
+    {
+        return Table::make('routing')
+            ->keyed()
+            ->columns(array_filter([
+                'uriFormat' => [
+                    'type' => 'singleline',
+                    'heading' => Craft::t('shopify', 'Product URI Format'),
+                    'info' => Craft::t('shopify', 'What product URIs should look like.'),
+                    'placeholder' => Craft::t('shopify', 'Leave blank if products don’t have URLs'),
+                    'code' => true,
+                ],
+                'template' => $this->headlessMode() ? null : [
+                    'type' => 'template',
+                    'heading' => Craft::t('app', 'Template'),
+                    'info' => Craft::t('shopify', 'Which template should be loaded when a product’s URL is requested.'),
+                    'options' => SelectOptions::getTemplateSuggestions(),
+                    'code' => true,
+                ],
+            ]));
+    }
+
+    /**
+     * Expands the “All” option to every feature handle.
+     *
+     * @return string[]
+     */
+    private function normalizeAdditionalFeatures(mixed $value): array
+    {
+        if ($value === Choice::ALL_VALUE) {
+            return array_keys((new Settings())->getAdditionalFeaturesOptions());
+        }
+
+        return array_values(array_filter((array)$value));
     }
 }
