@@ -22,6 +22,7 @@ use craft\shopify\db\Table;
  * @property string $type
  * @property string|array $data
  * @property string $parentId
+ * @property int|null $position The line index of the item in its bulk operation file (since 8.2.1)
  * @property string $dateCreated
  * @property string $dateUpdated
  * @property string $uid
