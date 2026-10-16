@@ -134,6 +134,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
         $record->type = $type;
         $record->data = $item;
         $record->parentId = $item['__parentId'] ?? null;
+        $record->position = $this->objectCount > 0 ? $this->objectCount - 1 - $this->itemOffset : null;
         $record->save();
 
         // Process the data based on the type
