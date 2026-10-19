@@ -514,7 +514,7 @@ class Api extends Component
 
         $data = ShopifyData::find()
             ->where($criteria)
-            ->orderBy(['id' => SORT_ASC])
+            ->orderBy(['position' => SORT_ASC, 'id' => SORT_ASC])
             ->collect();
 
         // The caller can request the raw database rows, instead of just the `data` JSON column:
