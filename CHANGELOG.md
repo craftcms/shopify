@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 7.3.1 - 2026-10-19
 
 - Added `craft\shopify\records\ShopifyData::$position`.
 - Fixed a bug where product images, variants, and metafields were synced in reverse order. ([#161](https://github.com/craftcms/shopify/issues/161))
