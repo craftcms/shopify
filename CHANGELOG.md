@@ -1,5 +1,10 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Added `craft\shopify\records\ShopifyData::$position`.
+- Fixed a bug where product images, variants, and metafields were synced in reverse order. ([#161](https://github.com/craftcms/shopify/issues/161))
+
 ## 8.2.0 - 2026-10-08
 
 - Improved the memory usage of bulk operation processing.
@@ -94,6 +99,11 @@ See [Upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgrading
 - Removed the `shopify/shopify-api` Composer dependency.
 - Fixed a bug where validation errors for the “Context Pricing Countries” setting weren’t displaying correctly.
 - Fixed a bug where `inventory_levels/update` webhooks weren’t triggering a product sync.
+
+## 7.3.1 - 2026-10-19
+
+- Added `craft\shopify\records\ShopifyData::$position`.
+- Fixed a bug where product images, variants, and metafields were synced in reverse order. ([#161](https://github.com/craftcms/shopify/issues/161))
 
 ## 7.3.0 - 2026-10-08
 
