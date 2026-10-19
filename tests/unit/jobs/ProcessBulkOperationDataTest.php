@@ -292,6 +292,30 @@ class ProcessBulkOperationDataTest extends Unit
         self::assertEquals(58, ShopifyData::find()->where(['parentId' => $productGid])->count());
     }
 
+    public function testExecuteStoresChildrenInTheOrderTheyAppearInTheFile(): void
+    {
+        $productGid = 'gid://shopify/Product/order-test-001';
+        $imageGids = [];
+        $lines = [json_encode(['id' => $productGid])];
+        foreach (range(1, 5) as $i) {
+            $imageGids[] = "gid://shopify/MediaImage/order-test-$i";
+            $lines[] = json_encode(['id' => end($imageGids), '__parentId' => $productGid]);
+        }
+
+        $filePath = Assets::tempFilePath('jsonl');
+        file_put_contents($filePath, implode("\n", $lines) . "\n");
+
+        Plugin::getInstance()->set('products', $this->makeEmpty(Products::class, [
+            'createOrUpdateProduct' => true,
+        ]));
+
+        $this->_runJob($this->_makeExecutableJob($filePath, count($lines), 'all', batchSize: 2));
+
+        $images = Plugin::getInstance()->getApi()->getShopifyDataByType('MediaImage', $productGid);
+
+        self::assertSame($imageGids, $images->pluck('id')->all());
+    }
+
     /**
      * A TTR of zero makes every batch stop after its first item, leaving the rest of its slice unprocessed.
      */
