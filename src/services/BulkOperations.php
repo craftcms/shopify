@@ -86,7 +86,12 @@ class BulkOperations extends Component
     }
 
     /**
+     * Queues a bulk operation, unless an identical one is already waiting in the local queue.
+     *
+     * A queued operation fetches the latest data when it is sent, so a second one would be redundant.
+     *
      * @param string $query
+     * @param string $clearData
      * @return bool
      * @throws Exception
      * @throws InvalidConfigException
@@ -100,12 +105,43 @@ class BulkOperations extends Component
             'clearData' => $clearData,
         ]);
 
-        if (!$this->saveBulkOperation($bulkOperation)) {
+        if (!$this->_saveQueuedBulkOperation($bulkOperation)) {
             Craft::error('Could not save bulk operation data.', __METHOD__);
             return false;
         }
 
         $this->nextBulkOperation();
+        return true;
+    }
+
+    /**
+     * Deletes the bulk operations for a Shopify object that are still waiting in the local queue.
+     *
+     * Operations that have been sent to Shopify or are being processed are left alone.
+     *
+     * @param string $gid The Shopify GID of the object the operations were queued for.
+     * @return bool Whether the operations were deleted. Returns false if the queue is busy.
+     * @since 7.4.0
+     */
+    public function deleteQueuedBulkOperationsByShopifyGid(string $gid): bool
+    {
+        $mutex = Craft::$app->getMutex();
+
+        // Operations are claimed under this lock, so wait for any in-flight send rather than deleting a row that is about to be dispatched.
+        // Keep the wait short, as this runs in a webhook request and Shopify times those out after five seconds.
+        if (!$mutex->acquire(self::MUTEX_NAME, 1)) {
+            return false;
+        }
+
+        try {
+            Db::delete(Table::BULK_OPERATIONS, [
+                'status' => BulkOperationStatus::Queued->value,
+                'clearData' => $gid,
+            ]);
+        } finally {
+            $mutex->release(self::MUTEX_NAME);
+        }
+
         return true;
     }
 
@@ -514,6 +550,38 @@ class BulkOperations extends Component
             $bulkOperation = Craft::createObject(array_merge($stuckBulkOp, ['class' => BulkOperation::class]));
             $bulkOperation->setStatus(BulkOperationStatus::Failed);
             $this->saveBulkOperation($bulkOperation, false);
+        }
+    }
+
+    /**
+     * Saves a newly queued bulk operation, skipping it when an identical one is already queued.
+     *
+     * The check and the save happen under the lock shared with {@see nextBulkOperation()}, so concurrent
+     * callers can’t both miss each other’s row, and an identical row that is mid-send isn’t mistaken for
+     * a queued one. If the lock can’t be acquired the operation is saved anyway; a duplicate is harmless,
+     * a dropped sync is not.
+     */
+    private function _saveQueuedBulkOperation(BulkOperation $bulkOperation): bool
+    {
+        $mutex = Craft::$app->getMutex();
+
+        // Don’t wait: this runs in a webhook request, and a busy lock only means we save a harmless duplicate
+        if (!$mutex->acquire(self::MUTEX_NAME, 0)) {
+            return $this->saveBulkOperation($bulkOperation);
+        }
+
+        try {
+            $hasQueued = $this->_createBulkOperationQuery()
+                ->andWhere([
+                    'status' => BulkOperationStatus::Queued->value,
+                    'query' => $bulkOperation->query,
+                    'clearData' => $bulkOperation->clearData,
+                ])
+                ->exists();
+
+            return $hasQueued || $this->saveBulkOperation($bulkOperation);
+        } finally {
+            $mutex->release(self::MUTEX_NAME);
         }
     }
 

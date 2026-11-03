@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added `craft\shopify\services\BulkOperations::deleteQueuedBulkOperationsByShopifyGid()`.
+- Bulk operations are no longer queued when an identical one is already waiting in the queue. ([#238](https://github.com/craftcms/shopify/issues/238))
+- Queued bulk operations for a product are now removed when the product is deleted in Shopify. ([#238](https://github.com/craftcms/shopify/issues/238))
 - Fixed a bug where a bulk operation that matched no objects could block the sync queue. ([#238](https://github.com/craftcms/shopify/issues/238))
 
 ## 7.3.1 - 2026-10-19

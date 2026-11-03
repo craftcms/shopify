@@ -197,6 +197,10 @@ class Products extends Component
             // Delete the product data
             $shopifyId = $this->normalizeShopifyGid($id);
             $this->deleteShopifyDataByShopifyId($shopifyId);
+
+            if (!Plugin::getInstance()->getBulkOperations()->deleteQueuedBulkOperationsByShopifyGid($shopifyId)) {
+                Craft::warning("Could not remove queued bulk operations for deleted product $shopifyId because the queue was busy.", __METHOD__);
+            }
         }
     }
 
