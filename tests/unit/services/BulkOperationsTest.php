@@ -18,7 +18,9 @@ use craft\shopify\Plugin;
 use craft\shopify\services\Api;
 use craft\shopify\services\BulkOperations;
 use craft\shopify\tests\fixtures\BulkOperationsFixture;
+use craft\shopify\tests\fixtures\ShopifyDataFixture;
 use UnitTester;
+use yii\db\Query;
 
 /**
  * @group services
@@ -30,10 +32,14 @@ class BulkOperationsTest extends Unit
     // Shopify GID from the fixture that we can reference in tests
     private const FIXTURE_GID = 'gid://shopify/BulkOperation/4848685842483';
 
+    // Product GID from the shopify data fixture
+    private const FIXTURE_PRODUCT_GID = 'gid://shopify/Product/7136060145715';
+
     public function _fixtures(): array
     {
         return [
             'bulkOperations' => ['class' => BulkOperationsFixture::class],
+            'shopifyData' => ['class' => ShopifyDataFixture::class],
         ];
     }
 
@@ -264,6 +270,74 @@ class BulkOperationsTest extends Unit
         self::assertEquals('COMPLETED', $reloaded->shopifyStatus);
         self::assertEquals($dataUrl, $reloaded->url);
         self::assertEquals(42, $reloaded->objectCount);
+    }
+
+    /**
+     * Regression test for craftcms/shopify#238: Shopify reports an operation whose query matched
+     * nothing as `COMPLETED` with no `url`. It used to stay `created`, blocking the queue until the
+     * 24 hour timeout.
+     */
+    public function testHandleBulkOperationFinishedCompletesOperationWithoutUrlAndStartsNextQueued(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $emptyGid = 'gid://shopify/BulkOperation/empty-result-001';
+
+        $empty = $this->_makeCreatedOp($emptyGid);
+        $empty->clearData = self::FIXTURE_PRODUCT_GID;
+        $service->saveBulkOperation($empty, false);
+
+        $queued = $this->_makeFreshQueuedOp('query { successor }');
+        $service->saveBulkOperation($queued, false);
+        $queuedId = $queued->id;
+
+        $dataCount = (new Query())->from(Table::DATA)->count();
+
+        Craft::$app->set('queue', $this->make(Queue::class, [
+            'push' => function() {
+                self::fail('No data-processing job should be pushed for an operation without a data file.');
+            },
+        ]));
+
+        $sentQueries = [];
+        $finishedLookupDone = false;
+        Plugin::getInstance()->set('api', $this->makeEmpty(Api::class, [
+            'query' => function($query, $variables = null) use (&$sentQueries, &$finishedLookupDone) {
+                if (is_array($variables) && array_key_exists('query', $variables)) {
+                    $sentQueries[] = $variables['query'];
+                    return [
+                        'bulkOperation' => ['id' => 'gid://shopify/BulkOperation/successor-started-001', 'status' => 'CREATED', 'type' => 'QUERY'],
+                        'userErrors' => [],
+                    ];
+                }
+
+                // The first call loads the finished operation; the next is the “anything running?” guard
+                if (!$finishedLookupDone) {
+                    $finishedLookupDone = true;
+                    return ['status' => 'COMPLETED', 'url' => null, 'objectCount' => 0, 'errorCode' => null];
+                }
+
+                return ['edges' => []];
+            },
+        ]));
+
+        $service->handleBulkOperationFinished(['admin_graphql_api_id' => $emptyGid]);
+
+        $reloadedEmpty = $service->getBulkOperationByShopifyId($emptyGid);
+        self::assertNotNull($reloadedEmpty);
+        self::assertEquals(BulkOperationStatus::Completed, $reloadedEmpty->getStatus());
+        self::assertEquals('COMPLETED', $reloadedEmpty->shopifyStatus);
+        self::assertNull($reloadedEmpty->url);
+        self::assertEquals(0, $reloadedEmpty->objectCount);
+
+        self::assertEquals(['query { successor }'], $sentQueries, 'The queued successor should have been sent to Shopify.');
+        $reloadedQueued = $service->getAllBulkOperations()->firstWhere('id', $queuedId);
+        self::assertEquals(BulkOperationStatus::Created, $reloadedQueued->getStatus());
+
+        self::assertEquals($dataCount, (new Query())->from(Table::DATA)->count(), 'Existing product data should not be cleared.');
+        self::assertNotNull(
+            (new Query())->from(Table::DATA)->where(['shopifyId' => self::FIXTURE_PRODUCT_GID])->one(),
+            'The product referenced by the empty operation should still exist.',
+        );
     }
 
     // -------------------------------------------------------------------------
