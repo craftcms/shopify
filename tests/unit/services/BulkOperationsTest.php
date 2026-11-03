@@ -338,7 +338,7 @@ class BulkOperationsTest extends Unit
 
         $service->handleBulkOperationFinished(['admin_graphql_api_id' => $emptyGid]);
 
-        $reloadedEmpty = $service->getBulkOperationByShopifyId($emptyGid);
+        $reloadedEmpty = $service->getBulkOperationByShopifyGid($emptyGid);
         self::assertNotNull($reloadedEmpty);
         self::assertEquals(BulkOperationStatus::Completed, $reloadedEmpty->getStatus());
         self::assertEquals('COMPLETED', $reloadedEmpty->shopifyStatus);
@@ -351,7 +351,7 @@ class BulkOperationsTest extends Unit
 
         self::assertEquals($dataCount, (new Query())->from(Table::DATA)->count(), 'Existing product data should not be cleared.');
         self::assertNotNull(
-            (new Query())->from(Table::DATA)->where(['shopifyId' => self::FIXTURE_PRODUCT_GID])->one(),
+            (new Query())->from(Table::DATA)->where(['shopifyGid' => self::FIXTURE_PRODUCT_GID])->one(),
             'The product referenced by the empty operation should still exist.',
         );
     }
