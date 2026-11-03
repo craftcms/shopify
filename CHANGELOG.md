@@ -1,5 +1,11 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Added `craft\shopify\services\BulkOperations::deleteQueuedBulkOperationsByShopifyGid()`.
+- Improved bulk operation queuing for products.
+- Fixed a bug where a bulk operation that matched no objects could block the sync queue. ([#238](https://github.com/craftcms/shopify/issues/238))
+
 ## 8.2.1 - 2026-10-19
 
 - Added `craft\shopify\records\ShopifyData::$position`.
@@ -99,6 +105,12 @@ See [Upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgrading
 - Removed the `shopify/shopify-api` Composer dependency.
 - Fixed a bug where validation errors for the “Context Pricing Countries” setting weren’t displaying correctly.
 - Fixed a bug where `inventory_levels/update` webhooks weren’t triggering a product sync.
+
+## 7.4.0 - 2026-11-03
+
+- Added `craft\shopify\services\BulkOperations::deleteQueuedBulkOperationsByShopifyGid()`.
+- Improved bulk operation queuing for products.
+- Fixed a bug where a bulk operation that matched no objects could block the sync queue. ([#238](https://github.com/craftcms/shopify/issues/238))
 
 ## 7.3.1 - 2026-10-19
 
