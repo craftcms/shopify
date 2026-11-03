@@ -314,6 +314,16 @@ class BulkOperations extends Component
         $bulkOperation->url = $apiObject['url'];
         $bulkOperation->objectCount = $apiObject['objectCount'];
 
+        // Shopify omits the URL when the query matched nothing, so there is no data to process.
+        // Finish the operation here, because nothing else will move it out of the “created” status.
+        if (!$bulkOperation->url) {
+            $bulkOperation->setStatus(BulkOperationStatus::Completed);
+            $this->saveBulkOperation($bulkOperation, false);
+            $this->nextBulkOperation();
+
+            return;
+        }
+
         if (!$this->saveBulkOperation($bulkOperation)) {
             Craft::error('Could not save bulk operation data.', __METHOD__);
         }

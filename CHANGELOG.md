@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a bug where a bulk operation that matched no objects could block the sync queue. ([#238](https://github.com/craftcms/shopify/issues/238))
+
 ## 7.3.1 - 2026-10-19
 
 - Added `craft\shopify\records\ShopifyData::$position`.
