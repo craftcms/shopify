@@ -133,7 +133,7 @@ class BulkOperations extends Component
      *
      * @param string $gid The Shopify GID of the object the operations were queued for.
      * @return bool Whether the operations were deleted. Returns false if the queue is busy.
-     * @since 7.4.0
+     * @since 8.3.0
      */
     public function deleteQueuedBulkOperationsByShopifyGid(string $gid): bool
     {
