@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 8.3.0 - 2026-11-03
 
 - Added `craft\shopify\services\BulkOperations::deleteQueuedBulkOperationsByShopifyGid()`.
 - Improved bulk operation queuing for products.
