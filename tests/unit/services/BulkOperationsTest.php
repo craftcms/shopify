@@ -18,7 +18,9 @@ use craft\shopify\Plugin;
 use craft\shopify\services\Api;
 use craft\shopify\services\BulkOperations;
 use craft\shopify\tests\fixtures\BulkOperationsFixture;
+use craft\shopify\tests\fixtures\ShopifyDataFixture;
 use UnitTester;
+use yii\db\Query;
 
 /**
  * @group services
@@ -30,10 +32,14 @@ class BulkOperationsTest extends Unit
     // Shopify GID from the fixture that we can reference in tests
     private const FIXTURE_GID = 'gid://shopify/BulkOperation/4848685842483';
 
+    // Product GID from the shopify data fixture
+    private const FIXTURE_PRODUCT_GID = 'gid://shopify/Product/7136060145715';
+
     public function _fixtures(): array
     {
         return [
             'bulkOperations' => ['class' => BulkOperationsFixture::class],
+            'shopifyData' => ['class' => ShopifyDataFixture::class],
         ];
     }
 
@@ -280,6 +286,178 @@ class BulkOperationsTest extends Unit
         self::assertEquals('COMPLETED', $reloaded->shopifyStatus);
         self::assertEquals($dataUrl, $reloaded->url);
         self::assertEquals(42, $reloaded->objectCount);
+    }
+
+    /**
+     * Regression test for craftcms/shopify#238: Shopify reports an operation whose query matched
+     * nothing as `COMPLETED` with no `url`. It used to stay `created`, blocking the queue until the
+     * 24 hour timeout.
+     */
+    public function testHandleBulkOperationFinishedCompletesOperationWithoutUrlAndStartsNextQueued(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $emptyGid = 'gid://shopify/BulkOperation/empty-result-001';
+
+        $empty = $this->_makeCreatedOp($emptyGid);
+        $empty->clearData = self::FIXTURE_PRODUCT_GID;
+        $service->saveBulkOperation($empty, false);
+
+        $queued = $this->_makeFreshQueuedOp('query { successor }');
+        $service->saveBulkOperation($queued, false);
+        $queuedId = $queued->id;
+
+        $dataCount = (new Query())->from(Table::DATA)->count();
+
+        Craft::$app->set('queue', $this->make(Queue::class, [
+            'push' => function() {
+                self::fail('No data-processing job should be pushed for an operation without a data file.');
+            },
+        ]));
+
+        $sentQueries = [];
+        $finishedLookupDone = false;
+        Plugin::getInstance()->set('api', $this->makeEmpty(Api::class, [
+            'query' => function($query, $variables = null) use (&$sentQueries, &$finishedLookupDone) {
+                if (is_array($variables) && array_key_exists('query', $variables)) {
+                    $sentQueries[] = $variables['query'];
+                    return [
+                        'bulkOperation' => ['id' => 'gid://shopify/BulkOperation/successor-started-001', 'status' => 'CREATED', 'type' => 'QUERY'],
+                        'userErrors' => [],
+                    ];
+                }
+
+                // The first call loads the finished operation; the next is the “anything running?” guard
+                if (!$finishedLookupDone) {
+                    $finishedLookupDone = true;
+                    return ['status' => 'COMPLETED', 'url' => null, 'objectCount' => 0, 'errorCode' => null];
+                }
+
+                return ['edges' => []];
+            },
+        ]));
+
+        $service->handleBulkOperationFinished(['admin_graphql_api_id' => $emptyGid]);
+
+        $reloadedEmpty = $service->getBulkOperationByShopifyGid($emptyGid);
+        self::assertNotNull($reloadedEmpty);
+        self::assertEquals(BulkOperationStatus::Completed, $reloadedEmpty->getStatus());
+        self::assertEquals('COMPLETED', $reloadedEmpty->shopifyStatus);
+        self::assertNull($reloadedEmpty->url);
+        self::assertEquals(0, $reloadedEmpty->objectCount);
+
+        self::assertEquals(['query { successor }'], $sentQueries, 'The queued successor should have been sent to Shopify.');
+        $reloadedQueued = $service->getAllBulkOperations()->firstWhere('id', $queuedId);
+        self::assertEquals(BulkOperationStatus::Created, $reloadedQueued->getStatus());
+
+        self::assertEquals($dataCount, (new Query())->from(Table::DATA)->count(), 'Existing product data should not be cleared.');
+        self::assertNotNull(
+            (new Query())->from(Table::DATA)->where(['shopifyGid' => self::FIXTURE_PRODUCT_GID])->one(),
+            'The product referenced by the empty operation should still exist.',
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // createBulkOperation
+    // -------------------------------------------------------------------------
+
+    public function testCreateBulkOperationSkipsIdenticalQueuedOperation(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $this->_stubShopifyOperationRunning();
+
+        self::assertTrue($service->createBulkOperation('query { dedupe }', self::FIXTURE_PRODUCT_GID));
+        self::assertTrue($service->createBulkOperation('query { dedupe }', self::FIXTURE_PRODUCT_GID));
+
+        self::assertEquals(1, $this->_countQueued('query { dedupe }'));
+    }
+
+    public function testCreateBulkOperationDoesNotDeduplicateDifferentQueryOrClearData(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $this->_stubShopifyOperationRunning();
+
+        $service->createBulkOperation('query { dedupe-a }', self::FIXTURE_PRODUCT_GID);
+        $service->createBulkOperation('query { dedupe-b }', self::FIXTURE_PRODUCT_GID);
+        $service->createBulkOperation('query { dedupe-a }', 'gid://shopify/Product/1');
+
+        self::assertEquals(2, $this->_countQueued('query { dedupe-a }'));
+        self::assertEquals(1, $this->_countQueued('query { dedupe-b }'));
+    }
+
+    public function testCreateBulkOperationDoesNotDeduplicateAgainstDispatchedOperation(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $this->_stubShopifyOperationRunning();
+
+        foreach ([BulkOperationStatus::Created, BulkOperationStatus::Processing] as $i => $status) {
+            $dispatched = $this->_makeQueuedOp("gid://shopify/BulkOperation/dedupe-dispatched-$i");
+            $dispatched->query = 'query { dedupe-dispatched }';
+            $dispatched->clearData = self::FIXTURE_PRODUCT_GID;
+            $dispatched->setStatus($status);
+            $service->saveBulkOperation($dispatched, false);
+        }
+
+        $service->createBulkOperation('query { dedupe-dispatched }', self::FIXTURE_PRODUCT_GID);
+
+        self::assertEquals(1, $this->_countQueued('query { dedupe-dispatched }'));
+    }
+
+    public function testCreateBulkOperationStillSavesWhenMutexCannotBeAcquired(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+
+        $queued = $this->_makeFreshQueuedOp('query { dedupe-mutex }');
+        $queued->clearData = self::FIXTURE_PRODUCT_GID;
+        $service->saveBulkOperation($queued, false);
+
+        Craft::$app->set('mutex', $this->makeEmpty(Mutex::class, [
+            'acquire' => fn() => false,
+        ]));
+
+        self::assertTrue($service->createBulkOperation('query { dedupe-mutex }', self::FIXTURE_PRODUCT_GID));
+
+        self::assertEquals(2, $this->_countQueued('query { dedupe-mutex }'), 'A dropped sync is worse than a duplicate.');
+    }
+
+    // -------------------------------------------------------------------------
+    // deleteQueuedBulkOperationsByShopifyGid
+    // -------------------------------------------------------------------------
+
+    public function testDeleteQueuedBulkOperationsByShopifyGidOnlyRemovesQueuedRowsForThatObject(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $otherGid = 'gid://shopify/Product/1';
+
+        $ids = $this->_saveOperationsForDeletion($otherGid);
+
+        self::assertTrue($service->deleteQueuedBulkOperationsByShopifyGid(self::FIXTURE_PRODUCT_GID));
+
+        $this->_assertDeletionOutcome($ids);
+    }
+
+    public function testDeleteQueuedBulkOperationsByShopifyGidBailsWhenMutexCannotBeAcquired(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $queued = $this->_makeFreshQueuedOp('query { delete-mutex }');
+        $queued->clearData = self::FIXTURE_PRODUCT_GID;
+        $service->saveBulkOperation($queued, false);
+
+        Craft::$app->set('mutex', $this->makeEmpty(Mutex::class, [
+            'acquire' => fn() => false,
+        ]));
+
+        self::assertFalse($service->deleteQueuedBulkOperationsByShopifyGid(self::FIXTURE_PRODUCT_GID));
+
+        self::assertNotNull($service->getAllBulkOperations()->firstWhere('id', $queued->id));
+    }
+
+    public function testDeleteProductByShopifyGidRemovesQueuedBulkOperations(): void
+    {
+        $ids = $this->_saveOperationsForDeletion('gid://shopify/Product/1');
+
+        Plugin::getInstance()->getProducts()->deleteProductByShopifyGid(self::FIXTURE_PRODUCT_GID);
+
+        $this->_assertDeletionOutcome($ids);
     }
 
     // -------------------------------------------------------------------------
@@ -594,6 +772,77 @@ class BulkOperationsTest extends Unit
         $model->clearData = 'none';
         $model->setStatus(BulkOperationStatus::Queued);
         return $model;
+    }
+
+    /**
+     * Makes Shopify report an operation that is already running, so `nextBulkOperation()` leaves
+     * queued rows alone.
+     */
+    private function _stubShopifyOperationRunning(): void
+    {
+        Plugin::getInstance()->set('api', $this->makeEmpty(Api::class, [
+            'query' => fn() => ['edges' => [['node' => ['id' => 'gid://shopify/BulkOperation/running', 'status' => 'RUNNING', 'type' => 'QUERY']]]],
+        ]));
+    }
+
+    private function _countQueued(string $query): int
+    {
+        return (int)(new Query())
+            ->from(Table::BULK_OPERATIONS)
+            ->where(['status' => BulkOperationStatus::Queued->value, 'query' => $query])
+            ->count();
+    }
+
+    /**
+     * Saves queued, created and processing operations for the fixture product, and a queued one for another object.
+     *
+     * @return array{queued: int[], created: int, processing: int, other: int}
+     */
+    private function _saveOperationsForDeletion(string $otherGid): array
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $ids = ['queued' => []];
+
+        foreach (['first', 'second'] as $name) {
+            $queued = $this->_makeFreshQueuedOp("query { delete-$name }");
+            $queued->clearData = self::FIXTURE_PRODUCT_GID;
+            $service->saveBulkOperation($queued, false);
+            $ids['queued'][] = $queued->id;
+        }
+
+        $created = $this->_makeCreatedOp('gid://shopify/BulkOperation/delete-created-001');
+        $created->clearData = self::FIXTURE_PRODUCT_GID;
+        $service->saveBulkOperation($created, false);
+        $ids['created'] = $created->id;
+
+        $processing = $this->_makeQueuedOp('gid://shopify/BulkOperation/delete-processing-001');
+        $processing->clearData = self::FIXTURE_PRODUCT_GID;
+        $processing->setStatus(BulkOperationStatus::Processing);
+        $service->saveBulkOperation($processing, false);
+        $ids['processing'] = $processing->id;
+
+        $other = $this->_makeFreshQueuedOp('query { delete-other }');
+        $other->clearData = $otherGid;
+        $service->saveBulkOperation($other, false);
+        $ids['other'] = $other->id;
+
+        return $ids;
+    }
+
+    /**
+     * @param array{queued: int[], created: int, processing: int, other: int} $ids
+     */
+    private function _assertDeletionOutcome(array $ids): void
+    {
+        $all = Plugin::getInstance()->getBulkOperations()->getAllBulkOperations();
+
+        foreach ($ids['queued'] as $id) {
+            self::assertNull($all->firstWhere('id', $id), 'Queued operations for the object should be removed.');
+        }
+
+        foreach (['created', 'processing', 'other'] as $key) {
+            self::assertNotNull($all->firstWhere('id', $ids[$key]), "The $key operation should be left alone.");
+        }
     }
 
     /**

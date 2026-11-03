@@ -212,6 +212,10 @@ class Products extends Component
 
         $this->deleteShopifyDataByShopifyGid($gid);
 
+        if (!Plugin::getInstance()->getBulkOperations()->deleteQueuedBulkOperationsByShopifyGid($gid)) {
+            Craft::warning("Could not remove queued bulk operations for deleted product $gid because the queue was busy.", __METHOD__);
+        }
+
         return true;
     }
 
