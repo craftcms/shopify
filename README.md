@@ -222,8 +222,6 @@ php craft shopify:sync:products
 php craft shopify:api:query 'query { shop { name } }'
 ```
 
-The **Variants**, **Options**, **Media**, and **Metafields** elements aren’t shown in product edit screens on Craft 6 yet. That data is still available in the edit screen’s sidebar, in templates, and via GraphQL.
-
 ### From 7.x
 
 > [!WARNING]
