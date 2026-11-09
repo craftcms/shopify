@@ -10,12 +10,12 @@ namespace craft\shopify\gql\types\generators;
 use Craft;
 use craft\gql\base\Generator;
 use craft\gql\base\GeneratorInterface;
-use craft\gql\base\ObjectType;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\gql\interfaces\elements\Product as ProductInterface;
 use craft\shopify\gql\types\elements\Product;
+use GraphQL\Type\Definition\ObjectType;
 
 /**
  * Class ProductType
@@ -27,6 +27,7 @@ class ProductType extends Generator implements GeneratorInterface, SingleGenerat
 {
     /**
      * @inheritdoc
+     * @return array<string, ObjectType>
      */
     public static function generateTypes(mixed $context = null): array
     {

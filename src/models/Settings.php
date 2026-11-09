@@ -69,7 +69,7 @@ class Settings extends Model
         ];
     }
 
-    public function attributes()
+    public function attributes(): array
     {
         $names = parent::attributes();
         $names[] = 'additionalFeatures';

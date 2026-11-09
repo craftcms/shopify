@@ -17,7 +17,7 @@ Build a content-driven storefront by synchronizing [Shopify](https://shopify.com
 
 ## Installation
 
-Shopify requires Craft CMS 5.10.7+.
+Shopify requires Craft CMS 5.10.7+, or Craft CMS 6 with the `craftcms/yii2-adapter` package (see [Craft 6](#craft-6)).
 
 To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/shopify) from your Craft project, or follow these instructions.
 
@@ -210,6 +210,19 @@ Discover orphaned subscriptions using the [`webhookSubscriptions()`](https://sho
 ## Upgrading
 
 > While it is technically possible to upgrade directly from 6.x to the latest 8.x version, we strongly recommend reviewing the [6.x upgrade guide](#from-6x), as an intermediate step.
+
+### Craft 6
+
+Shopify 8.x runs on Craft 6 through the `craftcms/yii2-adapter` package, which must be installed alongside Craft 6. Your settings, access token, products, and bulk operation history carry over when you upgrade Craft.
+
+On Craft 6, the plugin’s console commands use colons instead of slashes:
+
+```bash
+php craft shopify:sync:products
+php craft shopify:api:query 'query { shop { name } }'
+```
+
+The **Variants**, **Options**, **Media**, and **Metafields** elements aren’t shown in product edit screens on Craft 6 yet. That data is still available in the edit screen’s sidebar, in templates, and via GraphQL.
 
 ### From 7.x
 

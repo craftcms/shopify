@@ -421,14 +421,13 @@ class BulkOperations extends Component
 
             /** @var BulkOperation $bulkOperation */
             $bulkOperation = Craft::createObject(array_merge($nextToProcess, ['class' => BulkOperation::class]));
-            if (!Queue::push(new ProcessBulkOperationData([
+            // Craft 6 doesn’t return the new job’s ID, so the return value can’t tell us whether it was queued.
+            Queue::push(new ProcessBulkOperationData([
                 'bulkOperationShopifyGid' => $bulkOperation->shopifyGid,
                 'dataUrl' => $bulkOperation->url,
                 'objectCount' => $bulkOperation->objectCount,
                 'clearData' => $bulkOperation->clearData,
-            ]))) {
-                return false;
-            }
+            ]));
 
             $bulkOperation->setStatus(BulkOperationStatus::Processing);
 

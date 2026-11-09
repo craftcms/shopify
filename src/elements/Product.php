@@ -227,9 +227,9 @@ class Product extends Element
     /**
      * @inheritdoc
      */
-    public static function searchableAttributes(): array
+    protected static function defineSearchableAttributes(): array
     {
-        return array_merge(parent::searchableAttributes(), [
+        return array_merge(parent::defineSearchableAttributes(), [
             'descriptionHtml',
             'handle',
             'vendor',
@@ -611,7 +611,7 @@ class Product extends Element
     /**
      * @inheritdoc
      */
-    public function prepareEditScreen(Response $response, string $containerId): void
+    public function prepareEditScreen($response, string $containerId): void
     {
         $crumbs = [
             [
@@ -631,6 +631,9 @@ class Product extends Element
     {
         if ($uriFormat = Plugin::getInstance()->getSettings()->uriFormat) {
             return [[
+                'label' => Craft::t('app', 'Primary {type} page', [
+                    'type' => static::lowerDisplayName(),
+                ]),
                 'urlFormat' => $uriFormat,
             ]];
         }

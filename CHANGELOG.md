@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Added Craft 6 compatibility, when the `craftcms/yii2-adapter` package is installed. ([Craft 6 notes](https://github.com/craftcms/shopify/blob/8.x/README.md#craft-6))
+
 ## 8.3.0 - 2026-11-03
 
 - Added `craft\shopify\services\BulkOperations::deleteQueuedBulkOperationsByShopifyGid()`.
