@@ -73,29 +73,22 @@ class ProcessBulkOperationData extends BaseBatchedJob
     /**
      * @inheritdoc
      */
+    public function execute($queue): void
+    {
+        $this->_ensureDataFile();
+
+        /** @var BulkDataBatcher $data */
+        $data = $this->data();
+        $data->filePath = $this->tempFilePath;
+
+        parent::execute($queue);
+    }
+
+    /**
+     * @inheritdoc
+     */
     protected function loadData(): Batchable
     {
-        // check to see if the file is still in temporary storage
-        if ($this->tempFilePath === null) {
-            // Make sure we only create one temp filename
-            $this->tempFilePath = Assets::tempFilePath('jsonl');
-        }
-
-        $fileExists = file_exists($this->tempFilePath);
-        $fileSize = $fileExists ? filesize($this->tempFilePath) : 0;
-
-        // If somehow a zero-byte file exists, remove it to force a re-download
-        if ($fileExists && $fileSize === 0) {
-            FileHelper::unlink($this->tempFilePath);
-            $fileExists = false;
-        }
-
-        // Only re-download if the file doesn't already exist
-        // If the queue is using multiple workers and the file leaks between them,
-        if (!$fileExists) {
-            $this->_downloadDataFile();
-        }
-
         $bulkDataBatcher = new BulkDataBatcher();
         $bulkDataBatcher->filePath = $this->tempFilePath;
         $bulkDataBatcher->total = $this->objectCount;
@@ -223,6 +216,30 @@ class ProcessBulkOperationData extends BaseBatchedJob
     }
 
     /**
+     * Makes sure the data file is in temporary storage, downloading it if needed.
+     *
+     * This only happens when the job executes, so a failed download is recorded as a job failure.
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    private function _ensureDataFile(): void
+    {
+        if ($this->tempFilePath === null) {
+            $this->tempFilePath = Assets::tempFilePath('jsonl');
+        }
+
+        if (file_exists($this->tempFilePath) && filesize($this->tempFilePath) > 0) {
+            return;
+        }
+
+        if (file_exists($this->tempFilePath)) {
+            FileHelper::unlink($this->tempFilePath);
+        }
+
+        $this->_downloadDataFile();
+    }
+
+    /**
      * Streams the remote data file to disk, only moving it into place once the download has completed.
      *
      * @throws \GuzzleHttp\Exception\GuzzleException
@@ -230,6 +247,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
     private function _downloadDataFile(): void
     {
         $downloadPath = $this->tempFilePath . '.download';
+        FileHelper::createDirectory(dirname($downloadPath));
 
         try {
             Craft::createGuzzleClient()->get($this->dataUrl, ['sink' => $downloadPath]);

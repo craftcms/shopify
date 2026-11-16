@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a bug where bulk operations could fail if the temp directory didn’t exist. ([#243](https://github.com/craftcms/shopify/issues/243))
+
 ## 7.4.0 - 2026-11-03
 
 - Added `craft\shopify\services\BulkOperations::deleteQueuedBulkOperationsByShopifyGid()`.
