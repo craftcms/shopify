@@ -1,6 +1,6 @@
 # Release Notes for Shopify
 
-## Unreleased
+## 8.3.1 - 2026-11-17
 
 - Fixed a bug where bulk operations could fail if the temp directory didn’t exist. ([#243](https://github.com/craftcms/shopify/issues/243))
 
