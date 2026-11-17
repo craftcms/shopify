@@ -22,6 +22,10 @@ use craft\shopify\Plugin;
 use craft\shopify\records\ShopifyData;
 use craft\shopify\services\Products;
 use craft\shopify\tests\fixtures\BulkOperationsFixture;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 use UnitTester;
 
 /**
@@ -52,6 +56,8 @@ class ProcessBulkOperationDataTest extends Unit
 
         // Restore the real queue component after any test that swaps it out
         Craft::$app->set('queue', Queue::class);
+
+        Craft::$container->clear(Client::class);
     }
 
     // -------------------------------------------------------------------------
@@ -432,7 +438,7 @@ class ProcessBulkOperationDataTest extends Unit
         $job->dataUrl = 'http://127.0.0.1:1/data.jsonl';
 
         try {
-            $job->callLoadData();
+            $job->execute(new RecordingQueue());
             self::fail('Expected the download to fail.');
         } catch (\GuzzleHttp\Exception\GuzzleException) {
         }
@@ -440,6 +446,47 @@ class ProcessBulkOperationDataTest extends Unit
         self::assertNotNull($job->tempFilePath);
         self::assertFileDoesNotExist($job->tempFilePath);
         self::assertFileDoesNotExist($job->tempFilePath . '.download');
+    }
+
+    /**
+     * Regression coverage for craftcms/shopify#243: Craft builds the description before a job is pushed and
+     * before it executes, outside the job’s error handling.
+     */
+    public function testGetDescriptionDoesNotDownloadTheDataFile(): void
+    {
+        $job = $this->_makeJob();
+        $job->dataUrl = 'http://127.0.0.1:1/data.jsonl';
+        $job->objectCount = 250;
+        $job->batchSize = 100;
+
+        self::assertSame('Processing bulk operation data (batch 1 of 3)', $job->getDescription());
+        self::assertNull($job->tempFilePath);
+    }
+
+    /**
+     * Regression coverage for craftcms/shopify#243: a queue worker may not have the temp directory that the
+     * job was pushed with.
+     */
+    public function testExecuteCreatesAMissingTempDirectory(): void
+    {
+        $this->_mockDataFileResponse(file_get_contents($this->_fixturePath()));
+        $filePath = Craft::$app->getPath()->getTempPath() . DIRECTORY_SEPARATOR . uniqid('missing', true) . DIRECTORY_SEPARATOR . 'data.jsonl';
+
+        $this->_runJob($this->_makeExecutableJob($filePath, 60, 'all'));
+
+        self::assertSame(60, (int)ShopifyData::find()->count());
+        self::assertFileDoesNotExist($filePath);
+    }
+
+    public function testExecuteDownloadsTheDataFileWhenItHasNoTempFile(): void
+    {
+        $this->_mockDataFileResponse(file_get_contents($this->_fixturePath()));
+        $job = $this->_makeExecutableJob($this->_copyFixtureToTempFile(), 60, 'all', 25);
+        $job->tempFilePath = null;
+
+        $this->_runJob($job);
+
+        self::assertSame(60, (int)ShopifyData::find()->count());
     }
 
     // -------------------------------------------------------------------------
@@ -632,6 +679,15 @@ class ProcessBulkOperationDataTest extends Unit
         while ($next = $queue->popJob()) {
             $next->execute($queue);
         }
+    }
+
+    private function _mockDataFileResponse(string $body): void
+    {
+        $handler = HandlerStack::create(new MockHandler([new Response(200, [], $body)]));
+
+        Craft::$container->set(Client::class, function($container, array $params) use ($handler): Client {
+            return new Client(['handler' => $handler] + ($params[0] ?? []));
+        });
     }
 
     private function _setUriFormat(string $uriFormat): void
