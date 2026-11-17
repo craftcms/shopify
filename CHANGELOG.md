@@ -1,5 +1,9 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Fixed a bug where bulk operations could fail if the temp directory didn’t exist. ([#243](https://github.com/craftcms/shopify/issues/243))
+
 ## 8.3.0 - 2026-11-03
 
 - Added `craft\shopify\services\BulkOperations::deleteQueuedBulkOperationsByShopifyGid()`.
@@ -105,6 +109,10 @@ See [Upgrading](https://github.com/craftcms/shopify/blob/8.x/README.md#upgrading
 - Removed the `shopify/shopify-api` Composer dependency.
 - Fixed a bug where validation errors for the “Context Pricing Countries” setting weren’t displaying correctly.
 - Fixed a bug where `inventory_levels/update` webhooks weren’t triggering a product sync.
+
+## 7.4.1 - 2026-11-17
+
+- Fixed a bug where bulk operations could fail if the temp directory didn’t exist. ([#243](https://github.com/craftcms/shopify/issues/243))
 
 ## 7.4.0 - 2026-11-03
 
