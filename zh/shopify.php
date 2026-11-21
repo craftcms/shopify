@@ -42,7 +42,7 @@ return [
     'Invalid or missing HMAC. Please try re-installing the app.' => 'HMAC 无效或缺失。请尝试重新安装应用。',
     'Key' => '键',
     'Leave blank if products don’t have URLs' => '如果商品没有 URL，请留空',
-    'Live' => '实时',
+    'Live' => '已上线',
     'Media' => '媒体',
     'Meta fields' => '元字段',
     'Meta Fields' => '元字段',

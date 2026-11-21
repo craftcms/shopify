@@ -42,7 +42,7 @@ return [
     'Invalid or missing HMAC. Please try re-installing the app.' => 'HMAC жараксыз же жок. Колдонмону кайра орнотуп көрүңүз.',
     'Key' => 'Ачкыч',
     'Leave blank if products don’t have URLs' => 'Товарлардын URL’дери жок болсо, бош калтырыңыз',
-    'Live' => 'Жарыяланган',
+    'Live' => 'Онлайн',
     'Media' => 'Медиа',
     'Meta fields' => 'Мета талаалар',
     'Meta Fields' => 'Мета талаалар',

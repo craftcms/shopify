@@ -42,7 +42,7 @@ return [
     'Invalid or missing HMAC. Please try re-installing the app.' => 'HMAC недействителен или отсутствует. Попробуйте переустановить приложение.',
     'Key' => 'Ключ',
     'Leave blank if products don’t have URLs' => 'Не заполнять, если у товаров нет URL',
-    'Live' => 'В реальном времени',
+    'Live' => 'Онлайн',
     'Media' => 'Медиафайлы',
     'Meta fields' => 'Метаполя',
     'Meta Fields' => 'Метаполя',

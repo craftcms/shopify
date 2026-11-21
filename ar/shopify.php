@@ -94,7 +94,7 @@ return [
     'Template suffix' => 'لاحقة القالب',
     'The host name must be a valid Shopify store domain.' => 'يجب أن يكون اسم المضيف نطاقًا صالحًا لمتجر Shopify.',
     'The Shopify store hostname.' => 'اسم مضيف متجر Shopify.',
-    'The Shopify store {shop} needs to be authorized to connect with this plugin.' => 'يجب تفويض متجر Shopify ‏{shop} للاتصال بهذا الملحق.',
+    'The Shopify store {shop} needs to be authorized to connect with this plugin.' => 'يجب تفويض متجر Shopify {shop} للاتصال بهذا الملحق.',
     'The URL of your Shopify app in the Dev Dashboard. This is automatically generated from your CP URL.' => 'عنوان URL لتطبيق Shopify الخاص بك في Dev Dashboard. يتم إنشاؤه تلقائيًا من عنوان URL للوحة التحكم CP.',
     'This environment is not subscribed to all the required webhook topics.' => 'هذه البيئة غير مشتركة في جميع مواضيع خطافات الويب المطلوبة.',
     'This environment is subscribed to all the required webhook topics!' => 'هذه البيئة مشتركة في جميع مواضيع خطافات الويب المطلوبة!',
