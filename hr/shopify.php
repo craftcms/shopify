@@ -42,7 +42,7 @@ return [
     'Invalid or missing HMAC. Please try re-installing the app.' => 'HMAC je neispravan ili nedostaje. Pokušajte ponovno instalirati aplikaciju.',
     'Key' => 'Ključ',
     'Leave blank if products don’t have URLs' => 'Ostavite prazno ako proizvodi nemaju URL-ove',
-    'Live' => 'Aktivno',
+    'Live' => 'Dostupno',
     'Media' => 'Mediji',
     'Meta fields' => 'Metapolja',
     'Meta Fields' => 'Metapolja',

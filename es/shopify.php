@@ -70,7 +70,7 @@ return [
     'Routing Settings' => 'Configuración de enrutamiento',
     'Scopes' => 'Ámbitos',
     'Settings saved.' => 'Configuración guardada.',
-    'Settings' => 'Opciones',
+    'Settings' => 'Configuración',
     'Shopify Client ID' => 'ID de cliente de Shopify',
     'Shopify Client Secret Key' => 'Clave secreta de cliente de Shopify',
     'Shopify API Version' => 'Versión de la API de Shopify',
