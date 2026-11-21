@@ -16,7 +16,7 @@
     type: 'elementselect',
     options: {
       elementType: fieldClass.elementType,
-      selectionLabel: "Default Product"|t('feed-me'),
+      selectionLabel: "Default Product"|t('shopify'),
       sources: field.sources ?? '*',
     },
   } %}
@@ -26,7 +26,7 @@
 
 {% block extraSettings %}
   <div class="element-match">
-    <span>{{ 'Data provided for this product is:'|t('feed-me') }}</span>
+    <span>{{ 'Data provided for this product is:'|t('shopify') }}</span>
 
     {{ forms.selectField({
       name: 'options[match]',

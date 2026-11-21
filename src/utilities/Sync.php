@@ -28,7 +28,7 @@ class Sync extends Utility
      */
     public static function displayName(): string
     {
-        return Craft::t('app', 'Shopify Sync');
+        return Craft::t('shopify', 'Shopify Sync');
     }
 
     /**

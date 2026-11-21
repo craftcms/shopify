@@ -1,5 +1,10 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Added translations for every language Craft ships with. ([#248](https://github.com/craftcms/shopify/pull/248))
+- Fixed a bug where some control panel strings couldn’t be translated. ([#248](https://github.com/craftcms/shopify/pull/248))
+
 ## 8.3.1 - 2026-11-17
 
 - Fixed a bug where bulk operations could fail if the temp directory didn’t exist. ([#243](https://github.com/craftcms/shopify/issues/243))
