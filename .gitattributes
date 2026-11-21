@@ -32,3 +32,7 @@
 
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Translations other than the en source are synced by craftcms/translation-sync
+/src/translations/*/shopify.php linguist-generated=true
+/src/translations/en/shopify.php -linguist-generated
