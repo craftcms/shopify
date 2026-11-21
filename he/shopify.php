@@ -103,7 +103,7 @@ return [
     'This product has no options.' => 'למוצר זה אין אפשרויות.',
     'This product has no variants.' => 'למוצר זה אין וריאנטים.',
     'Topic' => 'נושא',
-    'Total variants' => 'סה"כ וריאנטים',
+    'Total variants' => 'סה״כ וריאנטים',
     'Unable to connect to custom app. Syncing will be unavailable until the app has been authorized.' => 'לא ניתן להתחבר לאפליקציה המותאמת אישית. הסנכרון לא יהיה זמין עד שהאפליקציה תאושר.',
     'Untitled product' => 'מוצר ללא כותרת',
     'Updated At' => 'עודכן ב-',

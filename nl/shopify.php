@@ -119,7 +119,7 @@ return [
     'Webhooks could not be registered.' => 'Webhooks konden niet worden geregistreerd.',
     'Webhooks registered.' => 'Webhooks geregistreerd.',
     'Webhooks' => 'Webhooks',
-    'What product URIs should look like.' => 'De notatie van product-URI\'s.',
+    'What product URIs should look like.' => 'De notatie van product-URI’s.',
     'Which template should be loaded when a product’s URL is requested.' => 'Welk sjabloon moet worden geladen wanneer de URL van een product wordt opgevraagd.',
     'Your Shopify app has been successfully authorized.' => 'Uw Shopify-app is geautoriseerd.',
     '{name} option values: {values}' => 'Waarden van optie {name}: {values}',
