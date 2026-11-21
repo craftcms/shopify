@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- Added translations for every language Craft ships with.
-- Fixed a bug where some control panel strings couldn’t be translated.
+- Added translations for every language Craft ships with. ([#248](https://github.com/craftcms/shopify/pull/248))
+- Fixed a bug where some control panel strings couldn’t be translated. ([#248](https://github.com/craftcms/shopify/pull/248))
 
 ## 8.3.1 - 2026-11-17
 
