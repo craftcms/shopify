@@ -18,13 +18,26 @@
 <hr>
 <div id="shopify-bulk-ops"></div>
 
+{% do view.registerTranslations('app', [
+  'Date Created',
+  'Date Updated',
+]) %}
+{% do view.registerTranslations('shopify', [
+  'Are you sure you want to delete this sync?',
+  'Objects',
+  'Shopify Status',
+  'Status',
+  'Sync could not be deleted',
+  'Sync deleted',
+]) %}
+
 {% js %}
 var columns = [
   { name: 'objects', title: Craft.t('shopify', 'Objects') },
   { name: 'status', title: Craft.t('shopify', 'Status'), callback: function(value) { return value; } },
   { name: 'shopifyStatus', title: Craft.t('shopify', 'Shopify Status') },
-  { name: 'dateCreated', title: Craft.t('shopify', 'Date Created') },
-  { name: 'dateUpdated', title: Craft.t('shopify', 'Date Updated') },
+  { name: 'dateCreated', title: Craft.t('app', 'Date Created') },
+  { name: 'dateUpdated', title: Craft.t('app', 'Date Updated') },
 ];
 
 new Craft.VueAdminTable({

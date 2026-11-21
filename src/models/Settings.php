@@ -106,7 +106,7 @@ class Settings extends Model
     public function attributeLabels(): array
     {
         return [
-            'additionalFeatures' => Craft::t('app', 'Additional Features'),
+            'additionalFeatures' => Craft::t('shopify', 'Additional Features'),
             'apiVersion' => Craft::t('shopify', 'Shopify API Version'),
             'authUrl' => Craft::t('shopify', 'Shopify App Auth URL'),
             'clientId' => Craft::t('shopify', 'Shopify Client ID'),
