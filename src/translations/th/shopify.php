@@ -42,7 +42,7 @@ return [
     'Invalid or missing HMAC. Please try re-installing the app.' => 'HMAC ไม่ถูกต้องหรือขาดหายไป โปรดลองติดตั้งแอปใหม่',
     'Key' => 'คีย์',
     'Leave blank if products don’t have URLs' => 'เว้นว่างไว้ หากสินค้าไม่มี URL',
-    'Live' => 'สด',
+    'Live' => 'ออนไลน์',
     'Media' => 'สื่อ',
     'Meta fields' => 'เมตาฟิลด์',
     'Meta Fields' => 'เมตาฟิลด์',

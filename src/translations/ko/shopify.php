@@ -42,7 +42,7 @@ return [
     'Invalid or missing HMAC. Please try re-installing the app.' => 'HMAC가 유효하지 않거나 누락되었습니다. 앱을 다시 설치해 보십시오.',
     'Key' => '키',
     'Leave blank if products don’t have URLs' => '상품에 URL이 포함되지 않은 경우 비워 두십시오',
-    'Live' => '실시간',
+    'Live' => '라이브',
     'Media' => '미디어',
     'Meta fields' => '메타 필드',
     'Meta Fields' => '메타 필드',

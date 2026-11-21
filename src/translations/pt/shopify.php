@@ -42,7 +42,7 @@ return [
     'Invalid or missing HMAC. Please try re-installing the app.' => 'HMAC inválido ou em falta. Tente reinstalar a aplicação.',
     'Key' => 'Chave',
     'Leave blank if products don’t have URLs' => 'Deixar em branco se os produtos não tiverem URL',
-    'Live' => 'Publicado',
+    'Live' => 'Online',
     'Media' => 'Multimédia',
     'Meta fields' => 'Metacampos',
     'Meta Fields' => 'Metacampos',

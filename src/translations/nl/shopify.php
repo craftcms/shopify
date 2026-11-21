@@ -36,7 +36,7 @@ return [
     'Failed' => 'Gefaald',
     'Failed to create products sync' => 'Kon productsynchronisatie niet aanmaken',
     'Failed to delete sync' => 'Kon synchronisatie niet verwijderen',
-    'Handle' => 'Ingang',
+    'Handle' => 'Handle',
     'Has variants' => 'Heeft varianten',
     'Images' => 'Afbeeldingen',
     'Invalid or missing HMAC. Please try re-installing the app.' => 'Ongeldige of ontbrekende HMAC. Probeer de app opnieuw te installeren.',
