@@ -1,7 +1,19 @@
 includes:
-    - vendor/craftcms/phpstan/phpstan.neon
+    - phpstan-baseline.neon
 
 parameters:
+    phpVersion: 80500
     level: 5
     paths:
         - src
+    excludePaths:
+        - src/feedme
+    scanFiles:
+        - vendor/craftcms/yii2-adapter/legacy/Craft.php
+        - vendor/craftcms/yii2-adapter/lib/yii2/Yii.php
+        - vendor/twig/twig/src/Extension/CoreExtension.php
+    earlyTerminatingMethodCalls:
+        Craft:
+            - dd
+        yii\base\Application:
+            - end

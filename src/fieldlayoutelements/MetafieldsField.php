@@ -8,11 +8,11 @@
 namespace craft\shopify\fieldlayoutelements;
 
 use Craft;
-use craft\base\ElementInterface;
 use craft\fieldlayoutelements\BaseNativeField;
 use craft\helpers\Cp;
 use craft\helpers\Html;
 use craft\shopify\elements\Product;
+use CraftCms\Cms\Element\Contracts\ElementInterface;
 use yii\base\InvalidArgumentException;
 
 /**
@@ -39,7 +39,7 @@ class MetafieldsField extends BaseNativeField
     /**
      * @inheritdoc
      */
-    protected function defaultLabel(ElementInterface $element = null, bool $static = false): ?string
+    protected function defaultLabel(?ElementInterface $element = null, bool $static = false): ?string
     {
         return Craft::t('shopify', 'Meta fields');
     }
@@ -47,7 +47,7 @@ class MetafieldsField extends BaseNativeField
     /**
      * @inheritdoc
      */
-    protected function inputHtml(ElementInterface $element = null, bool $static = false): ?string
+    protected function inputHtml(?ElementInterface $element = null, bool $static = false): ?string
     {
         if (!$element instanceof Product) {
             throw new InvalidArgumentException(__CLASS__ . ' can only be used in product field layouts.');

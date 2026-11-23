@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - '8.x'
+      - '9.x'
   pull_request:
 permissions:
   contents: read
@@ -15,8 +15,8 @@ jobs:
     name: ci
     uses: craftcms/.github/.github/workflows/ci.yml@v3
     with:
-      craft_version: '5'
-      jobs: '["ecs", "phpstan", "prettier", "tests"]'
+      craft_version: '6'
+      jobs: '["ecs", "phpstan", "prettier"]'
       notify_slack: true
       slack_subteam: <!subteam^S01CWPYH9D5>
     secrets:

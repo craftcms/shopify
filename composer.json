@@ -20,20 +20,18 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": "^8.2",
+    "php": "^8.5",
     "carnage/php-graphql-client": "^1.14",
-    "craftcms/cms": "^5.10.7",
+    "craftcms/cms": "6.x-dev",
+    "craftcms/yii2-adapter": "6.x-dev",
     "guzzlehttp/guzzle": "^7.2"
   },
   "require-dev": {
     "codeception/codeception": "^5.0.11",
     "codeception/module-asserts": "^3.0.0",
     "codeception/module-yii2": "^1.1.9",
-    "craftcms/feed-me": "^6.6.1",
     "craftcms/ecs": "dev-main",
-    "craftcms/phpstan": "dev-main",
-    "craftcms/rector": "dev-main",
-    "craftcms/redactor": "*",
+    "phpstan/phpstan": "^2.1",
     "vlucas/phpdotenv": "^v5.6.3"
   },
   "autoload": {

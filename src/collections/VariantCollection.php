@@ -28,9 +28,10 @@ class VariantCollection extends Collection
      * Creates a VariantCollection from an array of Variant attributes.
      *
      * @param array $items
+     * @param mixed ...$args
      * @return static
      */
-    public static function make($items = [])
+    public static function make($items = [], ...$args)
     {
         foreach ($items as &$item) {
             if ($item instanceof Variant) {
@@ -57,7 +58,7 @@ class VariantCollection extends Collection
         }
 
         /** @var static $collection */
-        $collection = parent::make($items);
+        $collection = parent::make($items, ...$args);
         return $collection;
     }
 
