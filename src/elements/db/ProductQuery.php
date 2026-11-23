@@ -7,13 +7,13 @@
 
 namespace craft\shopify\elements\db;
 
-use craft\db\QueryAbortedException;
+use Closure;
 use craft\elements\db\ElementQuery;
-use craft\helpers\Db;
-use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
-use yii\db\Expression;
+use CraftCms\Cms\Element\Queries\Exceptions\QueryAbortedException;
+use Illuminate\Database\Query\Builder;
+use Tpetry\QueryExpressions\Language\Alias;
 
 /**
  * ProductQuery represents a SELECT SQL statement for entries in a way that is independent of DBMS.
@@ -192,6 +192,19 @@ class ProductQuery extends ElementQuery
 
     /**
      * @inheritdoc
+     *
+     * Craft 5 joined this in from `beforePrepare()` via `joinElementTable()`. Declaring
+     * it here is what replaces that: the base query is sourced from this table and
+     * joined to `elements` by the parent constructor, which is also what makes the
+     * `$defaultOrderBy` below resolvable.
+     *
+     * A plain table name rather than `Table::PRODUCTS`, which still carries Yii's
+     * `{{%...}}` wrapper that the query builder doesn't understand.
+     */
+    protected string $table = 'shopify_products';
+
+    /**
+     * @inheritdoc
      */
     protected array $defaultOrderBy = ['shopify_products.shopifyId' => SORT_ASC];
 
@@ -206,6 +219,57 @@ class ProductQuery extends ElementQuery
         }
 
         parent::__construct($elementType, $config);
+
+        // Shopify's own product attributes live in a separate table, keyed by GID.
+        // `statusCondition()` and the params below both read from it, so it's joined
+        // for every product query rather than on demand.
+        $this->query->join(new Alias('shopify_data', 'data'), 'data.shopifyGid', '=', 'shopify_products.shopifyGid');
+
+        $this->query->addSelect([
+            'shopify_products.shopifyId',
+            'shopify_products.shopifyGid',
+            'data.shopifyStatus',
+            'data.handle',
+            'data.productType',
+            'data.createdAt',
+            'data.publishedAt',
+            'data.tags',
+            'data.templateSuffix',
+            'data.updatedAt',
+            'data.vendor',
+            'data.options',
+            'data.totalInventory',
+            'data.data',
+        ]);
+
+        // Craft 5 applied these from `beforePrepare()` onto the element query's
+        // `subQuery`. Craft 6 is a single query and never calls that hook, so they're
+        // applied to `$query` immediately before it runs — which is also the only
+        // point at which every setter has had its say.
+        $this->beforeQuery(static function(self $query): void {
+            // Craft 5 signalled this by returning false from `beforePrepare()`.
+            if ($query->shopifyId === []) {
+                throw new QueryAbortedException();
+            }
+
+            $params = [
+                'shopify_products.shopifyGid' => $query->shopifyGid,
+                'shopify_products.shopifyId' => $query->shopifyId,
+                'data.productType' => $query->productType,
+                'data.shopifyStatus' => $query->shopifyStatus,
+                'data.handle' => $query->handle,
+                'data.vendor' => $query->vendor,
+                'data.tags' => $query->tags,
+                'data.templateSuffix' => $query->templateSuffix,
+                'data.totalInventory' => $query->totalInventory,
+            ];
+
+            foreach ($params as $column => $value) {
+                if (isset($value)) {
+                    $query->query->whereParam($column, $value);
+                }
+            }
+        });
     }
 
     /**
@@ -331,24 +395,21 @@ class ProductQuery extends ElementQuery
     /**
      * @inheritdoc
      */
-    protected function statusCondition(string $status): mixed
+    protected function statusCondition(string $status): Closure
     {
         return match ($status) {
-            strtolower(Product::STATUS_LIVE) => [
-                'elements.enabled' => true,
-                'elements_sites.enabled' => true,
-                'data.shopifyStatus' => 'ACTIVE',
-            ],
-            strtolower(Product::STATUS_SHOPIFY_DRAFT) => [
-                'elements.enabled' => true,
-                'elements_sites.enabled' => true,
-                'data.shopifyStatus' => 'DRAFT',
-            ],
-            strtolower(Product::STATUS_SHOPIFY_ARCHIVED) => [
-                'elements.enabled' => true,
-                'elements_sites.enabled' => true,
-                'data.shopifyStatus' => 'ARCHIVED',
-            ],
+            strtolower(Product::STATUS_LIVE) => fn(Builder $q) => $q
+                ->whereBool('elements.enabled', true)
+                ->whereBool('elements_sites.enabled', true)
+                ->where('data.shopifyStatus', 'ACTIVE'),
+            strtolower(Product::STATUS_SHOPIFY_DRAFT) => fn(Builder $q) => $q
+                ->whereBool('elements.enabled', true)
+                ->whereBool('elements_sites.enabled', true)
+                ->where('data.shopifyStatus', 'DRAFT'),
+            strtolower(Product::STATUS_SHOPIFY_ARCHIVED) => fn(Builder $q) => $q
+                ->whereBool('elements.enabled', true)
+                ->whereBool('elements_sites.enabled', true)
+                ->where('data.shopifyStatus', 'ARCHIVED'),
             default => parent::statusCondition($status),
         };
     }
@@ -381,77 +442,5 @@ class ProductQuery extends ElementQuery
         }
 
         return $products;
-    }
-
-    /**
-     * @inheritdoc
-     * @throws QueryAbortedException
-     */
-    protected function beforePrepare(): bool
-    {
-        if ($this->shopifyId === []) {
-            return false;
-        }
-
-        // join standard product element table that only contains the shopifyId
-        $this->joinElementTable('shopify_products');
-
-        $this->query->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyGid]] = [[shopify_products.shopifyGid]]'));
-        $this->subQuery->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyGid]] = [[shopify_products.shopifyGid]]'));
-
-        $this->query->select([
-            'shopify_products.shopifyId',
-            'shopify_products.shopifyGid',
-            'data.shopifyStatus',
-            'data.handle',
-            'data.productType',
-            'data.createdAt',
-            'data.publishedAt',
-            'data.tags',
-            'data.templateSuffix',
-            'data.updatedAt',
-            'data.vendor',
-            'data.options',
-            'data.totalInventory',
-            'data.data',
-        ]);
-
-        if (isset($this->shopifyGid)) {
-            $this->subQuery->andWhere(Db::parseParam('shopify_products.shopifyGid', $this->shopifyGid));
-        }
-
-        if (isset($this->shopifyId)) {
-            $this->subQuery->andWhere(Db::parseParam('shopify_products.shopifyId', $this->shopifyId));
-        }
-
-        if (isset($this->productType)) {
-            $this->subQuery->andWhere(Db::parseParam('data.productType', $this->productType));
-        }
-
-        if (isset($this->shopifyStatus)) {
-            $this->subQuery->andWhere(Db::parseParam('data.shopifyStatus', $this->shopifyStatus));
-        }
-
-        if (isset($this->handle)) {
-            $this->subQuery->andWhere(Db::parseParam('data.handle', $this->handle));
-        }
-
-        if (isset($this->vendor)) {
-            $this->subQuery->andWhere(Db::parseParam('data.vendor', $this->vendor));
-        }
-
-        if (isset($this->tags)) {
-            $this->subQuery->andWhere(Db::parseParam('data.tags', $this->tags));
-        }
-
-        if (isset($this->templateSuffix)) {
-            $this->subQuery->andWhere(Db::parseParam('data.templateSuffix', $this->templateSuffix));
-        }
-
-        if (isset($this->totalInventory)) {
-            $this->subQuery->andWhere(Db::parseParam('data.totalInventory', $this->totalInventory));
-        }
-
-        return parent::beforePrepare();
     }
 }

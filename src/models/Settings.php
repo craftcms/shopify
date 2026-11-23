@@ -8,7 +8,9 @@
 namespace craft\shopify\models;
 
 use Craft;
-use craft\base\Model;
+use Closure;
+use Illuminate\Validation\Rule;
+use CraftCms\Cms\Plugin\PluginSettings;
 use craft\helpers\App;
 use craft\helpers\Cp;
 use craft\helpers\StringHelper;
@@ -25,7 +27,7 @@ use craft\shopify\records\AccessToken;
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 3.0
  */
-class Settings extends Model
+class Settings extends PluginSettings
 {
     private string $_clientId = '';
     private string $_clientSecret = '';
@@ -52,51 +54,94 @@ class Settings extends Model
      */
     private string $_apiVersion = ApiVersion::January2026->value;
 
-    public function rules(): array
+    /**
+     * @var string The Shopify app’s client ID.
+     */
+    public string $clientId {
+        get => $this->getClientId(false);
+        set {
+            $this->setClientId($value);
+        }
+    }
+
+    /**
+     * @var string The Shopify app’s client secret.
+     */
+    public string $clientSecret {
+        get => $this->getClientSecret(false);
+        set {
+            $this->setClientSecret($value);
+        }
+    }
+
+    /**
+     * @var string The Shopify store’s host name.
+     */
+    public string $hostName {
+        get => $this->getHostName(false);
+        set {
+            $this->setHostName($value);
+        }
+    }
+
+    /**
+     * @var string The Shopify API version to use.
+     */
+    public string $apiVersion {
+        get => $this->getApiVersion(false);
+        set {
+            $this->setApiVersion($value);
+        }
+    }
+
+    /**
+     * @var array Additional features to request scopes for.
+     */
+    public array $additionalFeatures {
+        get => $this->getAdditionalFeatures();
+        set {
+            $this->setAdditionalFeatures($value);
+        }
+    }
+
+    /**
+     * @var string Comma separated list of additional scopes to request.
+     */
+    public string $customScopes {
+        get => $this->getCustomScopes(false);
+        set {
+            $this->setCustomScopes($value);
+        }
+    }
+
+    /**
+     * @var string Comma separated list of country codes to use for contextual pricing.
+     */
+    public string $contextualPricingCountries {
+        get => $this->getContextualPricingCountries(false);
+        set {
+            $this->setContextualPricingCountries($value);
+        }
+    }
+
+    public function getRules(): array
     {
         return [
-            [['clientSecret', 'clientId', 'hostName', 'apiVersion'], 'required'],
-            [['apiVersion'], 'in', 'range' => Plugin::getInstance()->getApi()->getSupportedApiVersions()],
-            [['additionalFeatures'], 'in', 'range' => array_keys($this->getAdditionalFeaturesOptions()), 'allowArray' => true],
-            [['customScopes'], 'string', 'skipOnEmpty' => true],
-            [['hostName'], function($attribute) {
-                $hostName = $this->$attribute;
-
-                if (ShopifyHelper::sanitizeShopDomain($hostName) === null) {
-                    $this->addError($attribute, Craft::t('shopify', 'The host name must be a valid Shopify store domain.'));
+            'clientId' => ['required', 'string'],
+            'clientSecret' => ['required', 'string'],
+            'apiVersion' => ['required', 'string', function(string $attribute, mixed $value, Closure $fail) {
+                if (!in_array(App::parseEnv($value), Plugin::getInstance()->getApi()->getSupportedApiVersions(), true)) {
+                    $fail(Craft::t('shopify', 'The Shopify API version is not supported.'));
                 }
-            }, 'skipOnEmpty' => true],
-        ];
-    }
-
-    public function attributes()
-    {
-        $names = parent::attributes();
-        $names[] = 'additionalFeatures';
-        $names[] = 'apiVersion';
-        $names[] = 'clientId';
-        $names[] = 'clientSecret';
-        $names[] = 'contextualPricingCountries';
-        $names[] = 'customScopes';
-        $names[] = 'hostName';
-        $names[] = 'uriFormat';
-        $names[] = 'template';
-
-        return $names;
-    }
-
-    public function fields(): array
-    {
-        return [
-            'additionalFeatures' => fn() => $this->getAdditionalFeatures(),
-            'apiVersion' => fn() => $this->getApiVersion(false),
-            'clientId' => fn() => $this->getClientId(false),
-            'clientSecret' => fn() => $this->getClientSecret(false),
-            'contextualPricingCountries' => fn() => $this->getContextualPricingCountries(false),
-            'customScopes' => fn() => $this->getCustomScopes(false),
-            'hostName' => fn() => $this->getHostName(false),
-            'uriFormat' => 'uriFormat',
-            'template' => 'template',
+            }],
+            'additionalFeatures' => ['array'],
+            'additionalFeatures.*' => [Rule::in(array_keys($this->getAdditionalFeaturesOptions()))],
+            'customScopes' => ['string'],
+            'hostName' => ['required', 'string', function(string $attribute, mixed $value, Closure $fail) {
+                if (ShopifyHelper::sanitizeShopDomain((string) App::parseEnv($value)) === null) {
+                    $fail(Craft::t('shopify', 'The host name must be a valid Shopify store domain.'));
+                }
+            }],
         ];
     }
 

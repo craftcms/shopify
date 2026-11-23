@@ -11,7 +11,6 @@
 namespace craft\shopify;
 
 use Craft;
-use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
 use craft\console\Application as ConsoleApplication;
 use craft\console\Controller;
@@ -74,6 +73,7 @@ use yii\base\InvalidConfigException;
  */
 class Plugin extends BasePlugin
 {
+
     public const PC_PATH_PRODUCT_FIELD_LAYOUTS = 'shopify.productFieldLayout';
 
     /**
@@ -114,9 +114,19 @@ class Plugin extends BasePlugin
     /**
      * @inheritdoc
      */
-    protected function createSettingsModel(): ?Model
+    protected static function createSettings(): ?Settings
     {
         return new Settings();
+    }
+
+    /**
+     * Bridges `craft\base\Plugin::getSettings()`, which still calls
+     * `createSettingsModel()`. Remove once this plugin extends
+     * `CraftCms\Cms\Plugin\Plugin`, which calls `createSettings()` directly.
+     */
+    protected function createSettingsModel(): ?Settings
+    {
+        return static::createSettings();
     }
 
     /**
