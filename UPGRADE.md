@@ -11,11 +11,10 @@ This guide lists what changed in Shopify 9.0 and what you need to update in your
 ## Upgrade steps
 
 1. Make sure the Craft queue is empty, so no Shopify sync jobs are pending.
-2. Upgrade your project to Craft 6 first. See [Upgrading to Craft 6.x](https://craftcms.com/docs/6.x/upgrade.html).
-3. Update the plugin: `composer require craftcms/shopify:^9.0`.
-4. Run `php artisan craft:up`.
-5. Update cron jobs and deploy scripts that run Shopify console commands (see below).
-6. Review the breaking changes below and update your code.
+2. Upgrade Craft and Shopify together, following [Upgrading to Craft 6.x](https://craftcms.com/docs/6.x/upgrade.html). Shopify 8 requires Craft 5 and Shopify 9 requires Craft 6, so change both constraints in your project's `composer.json` before you run `composer update`: set `craftcms/shopify` to `^9.0` at the same point you set `craftcms/cms` to Craft 6. The `craft6-revamp` tool doesn't change plugin constraints for you.
+3. Run `php artisan craft:up`.
+4. Update cron jobs and deploy scripts that run Shopify console commands (see below).
+5. Review the breaking changes below and update your code.
 
 The webhook URL (`actions/shopify/webhook/handle`) and the OAuth callback URL (`{cpTrigger}/shopify/auth`) are unchanged, so your Shopify app configuration doesn't need updating.
 
