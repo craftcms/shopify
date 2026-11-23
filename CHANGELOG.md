@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Shopify now requires Craft CMS 6.0 or later.
+- Shopify now requires PHP 8.5 or later.
+- Shopify now requires `craftcms/yii2-adapter`.
+- Console commands are now run with `php artisan`, such as `php artisan craft:shopify:sync:products`.
 - Added translations for every language Craft ships with. ([#248](https://github.com/craftcms/shopify/pull/248))
 - Fixed a bug where some control panel strings couldn’t be translated. ([#248](https://github.com/craftcms/shopify/pull/248))
 

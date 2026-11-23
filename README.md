@@ -17,7 +17,7 @@ Build a content-driven storefront by synchronizing [Shopify](https://shopify.com
 
 ## Installation
 
-Shopify requires Craft CMS 5.10.7+.
+Shopify 9 requires Craft CMS 6.0+ and PHP 8.5+. For Craft 5, use Shopify 8.
 
 To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/shopify) from your Craft project, or follow these instructions.
 
@@ -36,7 +36,7 @@ To install the plugin, visit the [Plugin Store](https://plugins.craftcms.com/sho
 3. In the Control Panel, go to **Settings** → **Plugins** and click the “Install” button for Shopify, or run:
 
    ```bash
-   php craft plugin/install shopify
+   php artisan craft:plugin:install shopify
    ```
 
 ## Connect to Shopify
@@ -193,7 +193,7 @@ In the control panel, we only display the webhooks relevant to the _current_ env
 You can delete individual webhooks from the control panel, or by using the [CLI GraphQL playground](#graphql-playground)…
 
 ```bash
-php craft shopify/api/query 'mutation deleteWebhook {
+php artisan craft:shopify:api:query 'mutation deleteWebhook {
   webhookSubscriptionDelete(id: "gid://shopify/WebhookSubscription/123456789") {
     userErrors {
       field
@@ -296,7 +296,7 @@ Products from your Shopify store are represented in Craft as product [elements](
 Once connected to Shopify, you can perform an initial synchronization of all products, from the control panel (via **Utilities** &rarr; **Shopify Sync**) or the command line:
 
 ```sh
-php craft shopify/sync/products
+php artisan craft:shopify:sync:products
 ```
 
 This adds a [bulk operation](https://shopify.dev/docs/api/usage/bulk-operations/queries) to the plugin’s internal queue. Once Shopify has gathered the data, it will issue a webhook to your project, and the plugin will download and process the payload.
@@ -1468,7 +1468,7 @@ Using this event, after the queries have been built, you have the opportunity to
 In addition to the [template helper](#api-service), you can execute queries against the Admin GraphQL API via Craft’s CLI:
 
 ```bash
-php craft shopify/api/query 'query { app { title } }'
+php artisan craft:shopify:api:query 'query { app { title } }'
 # -> Running query... done! (0.463021s)
 #    Response:
 #    [

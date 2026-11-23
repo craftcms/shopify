@@ -9,8 +9,6 @@ namespace craft\shopify\elements;
 
 use Craft;
 use craft\base\Element;
-use craft\elements\conditions\ElementConditionInterface;
-use craft\elements\User;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -29,13 +27,15 @@ use craft\shopify\models\Variant;
 use craft\shopify\Plugin;
 use craft\shopify\records\Product as ProductRecord;
 use craft\shopify\web\assets\shopifycp\ShopifyCpAsset;
-use craft\web\CpScreenResponseBehavior;
+use CraftCms\Cms\Element\Conditions\Contracts\ElementConditionInterface;
+use CraftCms\Cms\Http\Responses\CpScreenResponse;
+use CraftCms\Cms\User\Elements\User;
 use DateTime;
 use Exception;
 use Illuminate\Support\Collection;
+use Symfony\Component\HttpFoundation\Response;
 use yii\base\InvalidConfigException;
 use yii\helpers\Html as HtmlHelper;
-use yii\web\Response;
 
 /**
  * Product element.
@@ -199,10 +199,10 @@ class Product extends Element
     /**
      * @inheritdoc
      */
-    public function init(): void
+    public function __construct($config = [])
     {
+        parent::__construct($config);
         $this->title = $this->title ? StringHelper::shortcodesToEmoji($this->title) : null;
-        parent::init();
     }
 
     /**
@@ -227,9 +227,9 @@ class Product extends Element
     /**
      * @inheritdoc
      */
-    public static function searchableAttributes(): array
+    protected static function defineSearchableAttributes(): array
     {
-        return array_merge(parent::searchableAttributes(), [
+        return array_merge(parent::defineSearchableAttributes(), [
             'descriptionHtml',
             'handle',
             'vendor',
@@ -611,17 +611,18 @@ class Product extends Element
     /**
      * @inheritdoc
      */
-    public function prepareEditScreen(Response $response, string $containerId): void
+    public function prepareEditScreen(Response|CpScreenResponse $response, string $containerId): void
     {
-        $crumbs = [
+        if (!$response instanceof CpScreenResponse) {
+            return;
+        }
+
+        $response->crumbs([
             [
                 'label' => Craft::t('shopify', 'Products'),
                 'url' => 'shopify/products',
             ],
-        ];
-
-        /** @var Response|CpScreenResponseBehavior $response */
-        $response->crumbs($crumbs);
+        ]);
     }
 
     /**
@@ -631,6 +632,9 @@ class Product extends Element
     {
         if ($uriFormat = Plugin::getInstance()->getSettings()->uriFormat) {
             return [[
+                'label' => Craft::t('app', 'Primary {type} page', [
+                    'type' => static::lowerDisplayName(),
+                ]),
                 'urlFormat' => $uriFormat,
             ]];
         }

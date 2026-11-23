@@ -4,7 +4,6 @@ namespace craft\shopify\migrations;
 
 use craft\db\Migration;
 use craft\db\Table as CraftTable;
-use craft\helpers\MigrationHelper;
 use craft\shopify\db\Table;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\enums\BulkOperationStatus;
@@ -223,7 +222,6 @@ class Install extends Migration
     {
         if ($this->_tableExists($tableName)) {
             $this->dropAllForeignKeysToTable($tableName);
-            MigrationHelper::dropAllForeignKeysOnTable($tableName, $this);
         }
     }
 

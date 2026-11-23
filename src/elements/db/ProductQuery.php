@@ -7,13 +7,13 @@
 
 namespace craft\shopify\elements\db;
 
-use craft\db\QueryAbortedException;
+use Closure;
 use craft\elements\db\ElementQuery;
-use craft\helpers\Db;
-use craft\shopify\db\Table;
 use craft\shopify\elements\Product;
 use craft\shopify\Plugin;
-use yii\db\Expression;
+use CraftCms\Cms\Element\Queries\Exceptions\QueryAbortedException;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Collection;
 
 /**
  * ProductQuery represents a SELECT SQL statement for entries in a way that is independent of DBMS.
@@ -193,6 +193,11 @@ class ProductQuery extends ElementQuery
     /**
      * @inheritdoc
      */
+    protected string $table = 'shopify_products';
+
+    /**
+     * @inheritdoc
+     */
     protected array $defaultOrderBy = ['shopify_products.shopifyId' => SORT_ASC];
 
     /**
@@ -206,6 +211,49 @@ class ProductQuery extends ElementQuery
         }
 
         parent::__construct($elementType, $config);
+
+        $this->query
+            ->join('shopify_data as data', 'data.shopifyGid', '=', 'shopify_products.shopifyGid')
+            ->addSelect([
+                'shopify_products.shopifyId',
+                'shopify_products.shopifyGid',
+                'data.shopifyStatus',
+                'data.handle',
+                'data.productType',
+                'data.createdAt',
+                'data.publishedAt',
+                'data.tags',
+                'data.templateSuffix',
+                'data.updatedAt',
+                'data.vendor',
+                'data.options',
+                'data.totalInventory',
+                'data.data',
+            ]);
+
+        $this->beforeQuery(static function(ProductQuery $query): void {
+            if ($query->shopifyId === []) {
+                throw new QueryAbortedException();
+            }
+
+            $params = [
+                'shopify_products.shopifyGid' => $query->shopifyGid,
+                'shopify_products.shopifyId' => $query->shopifyId,
+                'data.productType' => $query->productType,
+                'data.shopifyStatus' => $query->shopifyStatus,
+                'data.handle' => $query->handle,
+                'data.vendor' => $query->vendor,
+                'data.tags' => $query->tags,
+                'data.templateSuffix' => $query->templateSuffix,
+                'data.totalInventory' => $query->totalInventory,
+            ];
+
+            foreach ($params as $column => $value) {
+                if (isset($value)) {
+                    $query->query->whereParam($column, $value);
+                }
+            }
+        });
     }
 
     /**
@@ -331,127 +379,51 @@ class ProductQuery extends ElementQuery
     /**
      * @inheritdoc
      */
-    protected function statusCondition(string $status): mixed
+    protected function statusCondition(string $status): Closure
     {
-        return match ($status) {
-            strtolower(Product::STATUS_LIVE) => [
-                'elements.enabled' => true,
-                'elements_sites.enabled' => true,
-                'data.shopifyStatus' => 'ACTIVE',
-            ],
-            strtolower(Product::STATUS_SHOPIFY_DRAFT) => [
-                'elements.enabled' => true,
-                'elements_sites.enabled' => true,
-                'data.shopifyStatus' => 'DRAFT',
-            ],
-            strtolower(Product::STATUS_SHOPIFY_ARCHIVED) => [
-                'elements.enabled' => true,
-                'elements_sites.enabled' => true,
-                'data.shopifyStatus' => 'ARCHIVED',
-            ],
-            default => parent::statusCondition($status),
+        $shopifyStatus = match (strtolower($status)) {
+            strtolower(Product::STATUS_LIVE) => 'ACTIVE',
+            strtolower(Product::STATUS_SHOPIFY_DRAFT) => 'DRAFT',
+            strtolower(Product::STATUS_SHOPIFY_ARCHIVED) => 'ARCHIVED',
+            default => null,
         };
+
+        if ($shopifyStatus === null) {
+            return parent::statusCondition($status);
+        }
+
+        return fn(Builder $query) => $query
+            ->whereBool('elements.enabled', true)
+            ->whereBool('elements_sites.enabled', true)
+            ->where('data.shopifyStatus', $shopifyStatus);
     }
 
     /**
      * @inheritdoc
      */
-    public function populate($rows): array
+    public function afterHydrate(Collection $elements): Collection
     {
+        $elements = parent::afterHydrate($elements);
+
+        if ($elements->isEmpty()) {
+            return $elements;
+        }
+
         /** @var Product[] $products */
-        $products = parent::populate($rows);
+        $products = $elements->all();
 
-        // Eager-load anything?
-        if (!empty($products) && !$this->asArray) {
-
-            // Eager-load metafields?
-            if ($this->withMetafields === true || $this->withAll) {
-                $products = Plugin::getInstance()->getProducts()->eagerLoadMetafieldsForProducts($products);
-            }
-
-            // Eager-load images?
-            if ($this->withImages === true || $this->withAll) {
-                $products = Plugin::getInstance()->getProducts()->eagerLoadImagesForProducts($products);
-            }
-
-            // Eager-load variants?
-            if ($this->withVariants === true || $this->withAll) {
-                $products = Plugin::getInstance()->getProducts()->eagerLoadVariantsForProducts($products);
-            }
+        if ($this->withMetafields === true || $this->withAll) {
+            $products = Plugin::getInstance()->getProducts()->eagerLoadMetafieldsForProducts($products);
         }
 
-        return $products;
-    }
-
-    /**
-     * @inheritdoc
-     * @throws QueryAbortedException
-     */
-    protected function beforePrepare(): bool
-    {
-        if ($this->shopifyId === []) {
-            return false;
+        if ($this->withImages === true || $this->withAll) {
+            $products = Plugin::getInstance()->getProducts()->eagerLoadImagesForProducts($products);
         }
 
-        // join standard product element table that only contains the shopifyId
-        $this->joinElementTable('shopify_products');
-
-        $this->query->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyGid]] = [[shopify_products.shopifyGid]]'));
-        $this->subQuery->innerJoin(Table::DATA . ' data', new Expression('[[data.shopifyGid]] = [[shopify_products.shopifyGid]]'));
-
-        $this->query->select([
-            'shopify_products.shopifyId',
-            'shopify_products.shopifyGid',
-            'data.shopifyStatus',
-            'data.handle',
-            'data.productType',
-            'data.createdAt',
-            'data.publishedAt',
-            'data.tags',
-            'data.templateSuffix',
-            'data.updatedAt',
-            'data.vendor',
-            'data.options',
-            'data.totalInventory',
-            'data.data',
-        ]);
-
-        if (isset($this->shopifyGid)) {
-            $this->subQuery->andWhere(Db::parseParam('shopify_products.shopifyGid', $this->shopifyGid));
+        if ($this->withVariants === true || $this->withAll) {
+            $products = Plugin::getInstance()->getProducts()->eagerLoadVariantsForProducts($products);
         }
 
-        if (isset($this->shopifyId)) {
-            $this->subQuery->andWhere(Db::parseParam('shopify_products.shopifyId', $this->shopifyId));
-        }
-
-        if (isset($this->productType)) {
-            $this->subQuery->andWhere(Db::parseParam('data.productType', $this->productType));
-        }
-
-        if (isset($this->shopifyStatus)) {
-            $this->subQuery->andWhere(Db::parseParam('data.shopifyStatus', $this->shopifyStatus));
-        }
-
-        if (isset($this->handle)) {
-            $this->subQuery->andWhere(Db::parseParam('data.handle', $this->handle));
-        }
-
-        if (isset($this->vendor)) {
-            $this->subQuery->andWhere(Db::parseParam('data.vendor', $this->vendor));
-        }
-
-        if (isset($this->tags)) {
-            $this->subQuery->andWhere(Db::parseParam('data.tags', $this->tags));
-        }
-
-        if (isset($this->templateSuffix)) {
-            $this->subQuery->andWhere(Db::parseParam('data.templateSuffix', $this->templateSuffix));
-        }
-
-        if (isset($this->totalInventory)) {
-            $this->subQuery->andWhere(Db::parseParam('data.totalInventory', $this->totalInventory));
-        }
-
-        return parent::beforePrepare();
+        return collect($products);
     }
 }

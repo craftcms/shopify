@@ -155,7 +155,7 @@ class Products extends Component
         }
 
         // Set attributes on the element to emulate it having been loaded with JOINed data:
-        $productElement->setAttributes($attributes, false);
+        $productElement->setAttributes($attributes);
 
         $event = new ShopifyProductSyncEvent([
             'element' => $productElement,

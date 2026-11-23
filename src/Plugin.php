@@ -436,7 +436,7 @@ class Plugin extends BasePlugin
 
             /** @var Gc $gc */
             $gc = $event->sender;
-            $gc->deletePartialElements(Product::class, Table::PRODUCTS, 'id');
+            $gc->deletePartialElements(Product::class, 'shopify_products', 'id');
 
             if (Craft::$app instanceof ConsoleApplication) {
                 Console::stdout("done\n", Console::FG_GREEN);
