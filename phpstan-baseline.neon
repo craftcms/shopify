@@ -7,9 +7,33 @@ parameters:
 			path: src/Plugin.php
 
 		-
-			message: '#^Parameter \#1 \$class of static method yii\\base\\Event\:\:on\(\) expects class\-string\<yii\\base\\Component\>, string given\.$#'
-			identifier: argument.type
-			count: 3
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getElements\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Plugin.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getPlugins\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Plugin.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getProjectConfig\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Plugin.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Request\|yii\\web\\Request\:\:getIsCpRequest\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Plugin.php
+
+		-
+			message: '#^Call to an undefined method yii\\web\\User\<yii\\web\\IdentityInterface\>\:\:getIsAdmin\(\)\.$#'
+			identifier: method.notFound
+			count: 1
 			path: src/Plugin.php
 
 		-
@@ -19,10 +43,52 @@ parameters:
 			path: src/Plugin.php
 
 		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getElements\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/console/controllers/DataController.php
+
+		-
 			message: '#^Instanceof between yii\\web\\Cookie and yii\\web\\Cookie will always evaluate to true\.$#'
 			identifier: instanceof.alwaysTrue
 			count: 1
 			path: src/controllers/AuthController.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getConfig\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/controllers/SettingsController.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getFields\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/controllers/SettingsController.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getPlugins\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/controllers/SettingsController.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getProjectConfig\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/controllers/SettingsController.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getQueue\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/controllers/SettingsController.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Request\|yii\\web\\Request\:\:getParam\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/controllers/SettingsController.php
 
 		-
 			message: '#^Property craft\\shopify\\models\\Settings\:\:\$template \(string\) on left side of \?\? is not nullable\.$#'
@@ -37,13 +103,25 @@ parameters:
 			path: src/controllers/SettingsController.php
 
 		-
-			message: '#^Method craft\\shopify\\elements\\Product\:\:attributeHtml\(\) should return string but returns int\|null\.$#'
-			identifier: return.type
+			message: '#^Call to an undefined method yii\\console\\Request\|yii\\web\\Request\:\:getRequiredBodyParam\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/controllers/WebhooksController.php
+
+		-
+			message: '#^Access to an undefined property yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:\$fields\.$#'
+			identifier: property.notFound
 			count: 1
 			path: src/elements/Product.php
 
 		-
-			message: '#^Method craft\\shopify\\elements\\Product\:\:getFieldLayout\(\) should return craft\\models\\FieldLayout\|null but returns CraftCms\\Cms\\FieldLayout\\FieldLayout\|null\.$#'
+			message: '#^Call to an undefined method yii\\base\\View\:\:registerAssetBundle\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/elements/Product.php
+
+		-
+			message: '#^Method craft\\shopify\\elements\\Product\:\:attributeHtml\(\) should return string but returns int\|null\.$#'
 			identifier: return.type
 			count: 1
 			path: src/elements/Product.php
@@ -205,6 +283,54 @@ parameters:
 			path: src/enums/BulkOperationStatus.php
 
 		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getGql\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/gql/arguments/elements/Product.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getGql\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/gql/interfaces/elements/Product.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getGql\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/gql/types/Image.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getGql\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/gql/types/Metafield.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getGql\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/gql/types/Option.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getGql\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/gql/types/Variant.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getFields\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/gql/types/generators/ProductType.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getGql\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/gql/types/generators/ProductType.php
+
+		-
 			message: '#^Access to undefined constant craft\\enums\\Color\:\:Green\.$#'
 			identifier: classConstant.notFound
 			count: 1
@@ -223,10 +349,52 @@ parameters:
 			path: src/helpers/Product.php
 
 		-
+			message: '#^Call to an undefined method yii\\db\\Connection\:\:getIsPgsql\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/migrations/Install.php
+
+		-
+			message: '#^Call to an undefined method yii\\db\\QueryBuilder\:\:jsonExtract\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/migrations/Install.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getProjectConfig\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/migrations/m221215_010047_store_field_layout_in_project_config.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getProjectConfig\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/migrations/m241218_145031_set_api_version.php
+
+		-
+			message: '#^Access to an undefined property yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:\$fields\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/models/Settings.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getConfig\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/models/Settings.php
+
+		-
 			message: '#^Using nullsafe property access "\?\-\>handle" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
 			path: src/models/Settings.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getConfig\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/services/Api.php
 
 		-
 			message: '#^Deprecated in PHP 8\.4\: Parameter \#3 \$beforeFields \(callable\) is implicitly nullable via default value null\.$#'
@@ -235,7 +403,37 @@ parameters:
 			path: src/services/Api.php
 
 		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getMutex\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: src/services/BulkOperations.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getElements\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/services/Products.php
+
+		-
+			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getFields\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/services/Products.php
+
+		-
 			message: '#^Call to an undefined static method craft\\helpers\\ProjectConfig\:\:ensureAllFieldsProcessed\(\)\.$#'
 			identifier: staticMethod.notFound
 			count: 1
 			path: src/services/Products.php
+
+		-
+			message: '#^Call to an undefined method yii\\base\\View\:\:registerAssetBundle\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/utilities/Sync.php
+
+		-
+			message: '#^Call to an undefined method yii\\base\\View\:\:renderTemplate\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/utilities/Sync.php

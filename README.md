@@ -1360,7 +1360,7 @@ We synchronize all metafield values, by default, so you do not need to modify th
 > The plugin will still generate a bulk operation to fetch _all_ product data.
 
 Preventing a product from synchronizing only means that the plugin takes no action—a product that no longer appears in a synchronization is left as-is.
-As you test synchronization criteria, you can run the `shopify/data/reset` command to delete all imported Product elements and start fresh.
+As you test synchronization criteria, you can run `php artisan craft:shopify:data:reset` to delete all imported Product elements and start fresh.
 
 ### Events
 
