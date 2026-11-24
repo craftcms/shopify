@@ -28,6 +28,7 @@ return [
     'Authorization' => 'Authorization',
     'Authorize' => 'Authorize',
     'Authorize App' => 'Authorize App',
+    'Compare-at price' => 'Compare-at price',
     'Completed' => 'Completed',
     'Configure the product’s front-end routing settings.' => 'Configure the product’s front-end routing settings.',
     'Context Pricing Countries' => 'Context Pricing Countries',

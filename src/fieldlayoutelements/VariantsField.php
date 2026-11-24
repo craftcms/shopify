@@ -67,7 +67,14 @@ class VariantsField extends BaseNativeField
 
             $title = $variant->title;
             $sku = $variant->sku;
-            $price = $variant->price;
+            $price = Html::encode($variant->price);
+            $compareAtPrice = $variant->getData()['compareAtPrice'] ?? null;
+
+            // Variants on sale (compare-at price above the price) show the compare-at price struck through
+            if ($compareAtPrice !== null && (float)$compareAtPrice > (float)$variant->price) {
+                $label = Html::tag('span', Craft::t('shopify', 'Compare-at price') . ' ', ['class' => 'visually-hidden']);
+                $price .= ' ' . Html::tag('s', $label . Html::encode($compareAtPrice), ['class' => 'light']);
+            }
 
             $variantRows[] = [
                 'title' => Html::a(Html::encode($title), $link, [
