@@ -10,6 +10,7 @@
 - Shopify now requires `craftcms/yii2-adapter`.
 - Console commands are now Artisan commands, such as `php artisan shopify:sync:products`. The old command names still work as aliases.
 - Shopify 9.0 can only be installed over Shopify 8.2.1 or later.
+- Shopify must be re-authorized after the upgrade if Shopify 8 stored its access token in the database rather than in the `.env` file, because Craft 6 can’t decrypt it.
 - Shopify’s config file is now `config/craft/shopify.php`.
 
 ### Extensibility
