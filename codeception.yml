@@ -11,11 +11,9 @@ coverage:
   enabled: true
   include:
     - src/*
+    - src-yii2/*
   exclude:
-    - src/migrations/*
-    - src/templates/*
-    - src/translations/*
-    - src/web/assets/*
+    - src-yii2/web/assets/*
     - tests/*
     - vendor/*
 params:

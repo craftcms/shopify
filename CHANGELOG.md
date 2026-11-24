@@ -5,8 +5,16 @@
 - Shopify now requires Craft CMS 6.0 or later.
 - Shopify now requires PHP 8.5 or later.
 - Shopify now requires `craftcms/yii2-adapter`.
-- Console commands are now run with `php artisan`, such as `php artisan craft:shopify:sync:products`.
+- Console commands are now Artisan commands, such as `php artisan shopify:sync:products`. The old command names still work as aliases.
+- Shopify 9.0 can only be installed over Shopify 8.2.1 or later.
+- Shopify’s config file is now `config/craft/shopify.php`.
 - Added translations for every language Craft ships with. ([#248](https://github.com/craftcms/shopify/pull/248))
+- Renamed `craft\shopify\Plugin` to `CraftCms\Shopify\Plugin`. The old class name is a deprecated alias.
+- Renamed `craft\shopify\models\Settings` to `CraftCms\Shopify\Settings`, which now extends `CraftCms\Cms\Plugin\PluginSettings`. The old class name is a deprecated alias.
+- Added `CraftCms\Shopify\Database\Table`.
+- Removed `craft\shopify\models\Settings::setAdditionalFeatures()`, `setApiVersion()`, `setClientId()`, `setClientSecret()`, `setContextualPricingCountries()`, `setCustomScopes()` and `setHostName()`. The settings are public properties now.
+- Removed the `craft\shopify\controllers` and `craft\shopify\console\controllers` classes.
+- Removed the `craft\shopify\migrations` classes.
 - Fixed a bug where some control panel strings couldn’t be translated. ([#248](https://github.com/craftcms/shopify/pull/248))
 
 ## 8.3.1 - 2026-11-17

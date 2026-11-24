@@ -3,8 +3,8 @@
 composer.lock
 cpresources/*
 lib/*
-src/templates/*
-src/web/assets/**/dist/*
+resources/views/*
+src-yii2/web/assets/**/dist/*
 tests/_craft/*
 vendor/*
 .ddev/*
