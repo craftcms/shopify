@@ -69,7 +69,7 @@ class Settings extends PluginSettings
 
     public string $template = '';
 
-    private string $accessToken = '';
+    private ?string $accessToken = null;
 
     private ?FieldLayout $productFieldLayout = null;
 
@@ -214,23 +214,18 @@ class Settings extends PluginSettings
 
     public function getAccessToken(bool $parse = true): string
     {
-        if (!$this->accessToken) {
+        if ($this->accessToken === null) {
             /** @var AccessToken|null $record */
             $record = AccessToken::find()->one();
-            if (!$record?->accessToken) {
-                return '';
-            }
-
-            $accessToken = $record->accessToken;
+            $accessToken = $record?->accessToken ?: '';
 
             // A stored token that isn't an env var reference is encrypted.
-            if (!str_starts_with($accessToken, '$')) {
+            if ($accessToken !== '' && !str_starts_with($accessToken, '$')) {
                 try {
                     $accessToken = Str::decdec($accessToken);
                 } catch (DecryptException) {
                     Log::warning('The stored Shopify access token couldn’t be decrypted, so Shopify needs to be reauthorized. Tokens encrypted by Craft 5 can’t be decrypted by Craft 6.');
-
-                    return '';
+                    $accessToken = '';
                 }
             }
 
