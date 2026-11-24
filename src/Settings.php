@@ -12,11 +12,14 @@ use CraftCms\Cms\Cms;
 use CraftCms\Cms\Cp\RequestedSite;
 use CraftCms\Cms\FieldLayout\FieldLayout;
 use CraftCms\Cms\Plugin\PluginSettings;
+use CraftCms\Cms\Support\Arr;
 use CraftCms\Cms\Support\Env;
 use CraftCms\Cms\Support\Facades\Fields;
 use CraftCms\Cms\Support\Str;
 use CraftCms\Cms\Support\Url;
 use CraftCms\Cms\Validation\Rules\EnvValueRule;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 use function CraftCms\Cms\action_url;
@@ -66,7 +69,7 @@ class Settings extends PluginSettings
 
     public string $template = '';
 
-    private string $accessToken = '';
+    private ?string $accessToken = null;
 
     private ?FieldLayout $productFieldLayout = null;
 
@@ -86,6 +89,18 @@ class Settings extends PluginSettings
             'additionalFeatures.*' => [Rule::in(array_keys($this->getAdditionalFeaturesOptions()))],
             'customScopes' => ['nullable', 'string'],
         ]);
+    }
+
+    /**
+     * Ignores `accessToken`, which was a setting before Shopify 7 and can still be in project config or a config
+     * file. The access token is stored in the `shopify_accesstokens` table.
+     *
+     * @param array<string, mixed> $values
+     */
+    #[\Override]
+    public function setAttributes($values): void
+    {
+        parent::setAttributes(Arr::except($values, ['accessToken']));
     }
 
     #[\Override]
@@ -199,18 +214,19 @@ class Settings extends PluginSettings
 
     public function getAccessToken(bool $parse = true): string
     {
-        if (!$this->accessToken) {
+        if ($this->accessToken === null) {
             /** @var AccessToken|null $record */
             $record = AccessToken::find()->one();
-            if (!$record?->accessToken) {
-                return '';
-            }
-
-            $accessToken = $record->accessToken;
+            $accessToken = $record?->accessToken ?: '';
 
             // A stored token that isn't an env var reference is encrypted.
-            if (!str_starts_with($accessToken, '$')) {
-                $accessToken = Str::decdec($accessToken);
+            if ($accessToken !== '' && !str_starts_with($accessToken, '$')) {
+                try {
+                    $accessToken = Str::decdec($accessToken);
+                } catch (DecryptException) {
+                    Log::warning('The stored Shopify access token couldn’t be decrypted, so Shopify needs to be reauthorized. Tokens encrypted by Craft 5 can’t be decrypted by Craft 6.');
+                    $accessToken = '';
+                }
             }
 
             $this->accessToken = $accessToken;
