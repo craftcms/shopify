@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The Variants table on product edit pages now shows a variant’s compare-at price, struck through, when it’s higher than the price.
 - Added translations for every language Craft ships with. ([#248](https://github.com/craftcms/shopify/pull/248))
 - Fixed a bug where some control panel strings couldn’t be translated. ([#248](https://github.com/craftcms/shopify/pull/248))
 
