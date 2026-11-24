@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace CraftCms\Shopify\Http\Controllers;
 
-use craft\shopify\services\Api;
 use craft\shopify\webhooks\WebhookRegistry;
+use CraftCms\Shopify\Api\Api;
 use CraftCms\Shopify\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

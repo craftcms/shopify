@@ -1,8 +1,8 @@
 <?php
 
-use craft\shopify\services\Api;
 use CraftCms\Cms\Http\Controllers\Elements\EditElementController;
 use CraftCms\Cms\Http\Middleware\RequireAdmin;
+use CraftCms\Shopify\Api\Api;
 use CraftCms\Shopify\Http\Controllers\AuthController;
 use CraftCms\Shopify\Http\Controllers\ProductsController;
 use CraftCms\Shopify\Http\Controllers\SettingsController;

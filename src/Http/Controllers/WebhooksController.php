@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace CraftCms\Shopify\Http\Controllers;
 
 use craft\shopify\exceptions\ShopifyApiException;
-use craft\shopify\services\Api;
 use CraftCms\Cms\Http\RespondsWithFlash;
 use CraftCms\Cms\Http\Responses\CpScreenResponse;
 use CraftCms\Cms\Ui\Nodes\Callout;
 use CraftCms\Cms\Ui\Nodes\Table;
 use CraftCms\Cms\Ui\Ui;
+use CraftCms\Shopify\Api\Api;
 use CraftCms\Shopify\Settings;
 use GraphQL\Mutation;
 use GraphQL\Query;
