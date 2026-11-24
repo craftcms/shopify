@@ -5,7 +5,10 @@ use Symplify\EasyCodingStandard\Config\ECSConfig;
 
 return static function(ECSConfig $ecsConfig): void {
     $ecsConfig->paths([
+        __DIR__ . '/database',
+        __DIR__ . '/routes',
         __DIR__ . '/src',
+        __DIR__ . '/src-yii2',
         __FILE__,
     ]);
 

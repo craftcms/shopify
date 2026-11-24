@@ -1,4 +1,4 @@
-<p align="center"><img src="./src/icon.svg" width="100" height="100" alt="Shopify icon"></p>
+<p align="center"><img src="./resources/icon.svg" width="100" height="100" alt="Shopify icon"></p>
 
 <h1 align="center">Shopify for Craft CMS</h1>
 
@@ -193,7 +193,7 @@ In the control panel, we only display the webhooks relevant to the _current_ env
 You can delete individual webhooks from the control panel, or by using the [CLI GraphQL playground](#graphql-playground)…
 
 ```bash
-php artisan craft:shopify:api:query 'mutation deleteWebhook {
+php artisan shopify:api:query 'mutation deleteWebhook {
   webhookSubscriptionDelete(id: "gid://shopify/WebhookSubscription/123456789") {
     userErrors {
       field
@@ -296,7 +296,7 @@ Products from your Shopify store are represented in Craft as product [elements](
 Once connected to Shopify, you can perform an initial synchronization of all products, from the control panel (via **Utilities** &rarr; **Shopify Sync**) or the command line:
 
 ```sh
-php artisan craft:shopify:sync:products
+php artisan shopify:sync:products
 ```
 
 This adds a [bulk operation](https://shopify.dev/docs/api/usage/bulk-operations/queries) to the plugin’s internal queue. Once Shopify has gathered the data, it will issue a webhook to your project, and the plugin will download and process the payload.
@@ -1258,7 +1258,7 @@ This section describes advanced ways to customize the plugin’s behavior.
 
 ### Settings
 
-The following settings can also be set via a `shopify.php` file in your `config/` directory.
+The following settings can also be set via a `shopify.php` file in your `config/craft/` directory.
 
 | Setting                      | Type       | Default | Description                                                                                                                                                                                                                                                                                                        |
 |------------------------------|------------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1275,7 +1275,7 @@ The following settings can also be set via a `shopify.php` file in your `config/
 
 > [!NOTE]
 > Setting `clientId`, `clientSecret`, `apiVersion`, `accessToken`, or `hostName` via `shopify.php` will override Project Config values set via the control panel during [app setup](#connect-to-shopify).
-> You can still reference environment values from the config file with `craft\helpers\App::env()`.
+> You can still reference environment values from the config file with `env()`.
 
 ### Additional Features
 
@@ -1284,7 +1284,7 @@ Additional features are opt-in capabilities that extend the plugin's default beh
 > [!WARNING]
 > Enabling or disabling additional features may change the required API scopes! After saving the settings, you must update the **Access** &rarr; **Scopes** field in your Shopify app configuration and then re-authorize the app from the Craft control panel, _in each environment_.
 
-Features can also be enabled via `config/shopify.php`:
+Features can also be enabled via `config/craft/shopify.php`:
 
 ```php
 return [
@@ -1360,7 +1360,7 @@ We synchronize all metafield values, by default, so you do not need to modify th
 > The plugin will still generate a bulk operation to fetch _all_ product data.
 
 Preventing a product from synchronizing only means that the plugin takes no action—a product that no longer appears in a synchronization is left as-is.
-As you test synchronization criteria, you can run `php artisan craft:shopify:data:reset` to delete all imported Product elements and start fresh.
+As you test synchronization criteria, you can run `php artisan shopify:data:reset` to delete all imported Product elements and start fresh.
 
 ### Events
 
@@ -1468,7 +1468,7 @@ Using this event, after the queries have been built, you have the opportunity to
 In addition to the [template helper](#api-service), you can execute queries against the Admin GraphQL API via Craft’s CLI:
 
 ```bash
-php artisan craft:shopify:api:query 'query { app { title } }'
+php artisan shopify:api:query 'query { app { title } }'
 # -> Running query... done! (0.463021s)
 #    Response:
 #    [

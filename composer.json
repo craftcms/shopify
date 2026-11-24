@@ -36,7 +36,8 @@
   },
   "autoload": {
     "psr-4": {
-      "craft\\shopify\\": "src/"
+      "CraftCms\\Shopify\\": "src/",
+      "craft\\shopify\\": "src-yii2/"
     }
   },
   "autoload-dev": {
