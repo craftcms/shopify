@@ -14,7 +14,7 @@ use craft\elements\db\ElementQueryInterface;
 use craft\helpers\StringHelper;
 use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\elements\Product;
-use CraftCms\Shopify\Api\Models\ShopifyData;
+use craft\shopify\records\ShopifyData;
 
 /**
  * Product Type condition rule.
@@ -37,7 +37,7 @@ class ProductTypeConditionRule extends BaseMultiSelectConditionRule implements E
      */
     protected function options(): array
     {
-        $values = ShopifyData::query()->where('type', 'Product')->distinct()->pluck('productType')->all();
+        $values = ShopifyData::find()->select('productType')->distinct()->where(['type' => 'Product'])->column();
 
         // If we have current values, make sure they're in the list
         if ($this->values) {

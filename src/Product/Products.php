@@ -7,6 +7,7 @@ namespace CraftCms\Shopify\Product;
 use craft\shopify\collections\VariantCollection;
 use craft\shopify\elements\Product;
 use craft\shopify\models\Variant;
+use craft\shopify\records\ShopifyData;
 use CraftCms\Cms\Element\ElementCaches;
 use CraftCms\Cms\Element\Elements;
 use CraftCms\Cms\Field\Fields;
@@ -16,7 +17,6 @@ use CraftCms\Cms\ProjectConfig\ProjectConfigHelper;
 use CraftCms\Cms\Support\Query;
 use CraftCms\Cms\Support\Str;
 use CraftCms\Shopify\Api\Api;
-use CraftCms\Shopify\Api\Models\ShopifyData;
 use CraftCms\Shopify\BulkOperation\BulkOperations;
 use CraftCms\Shopify\Product\Events\ProductSyncing;
 use GraphQL\QueryBuilder\QueryBuilder;
@@ -215,13 +215,15 @@ class Products
         // Support both numeric ID and GID
         $gid = $this->normalizeShopifyGid($gid);
 
-        $shopifyData = ShopifyData::query()->where('shopifyGid', $gid)->first();
+        /** @var ShopifyData|null $shopifyData */
+        $shopifyData = ShopifyData::find()->where(['shopifyGid' => $gid])->one();
 
         // Delete if possible
         $shopifyData?->delete();
 
         // Delete any child data that may still exist
-        $shopifyData = ShopifyData::query()->where('parentId', $gid)->get();
+        /** @var ShopifyData[] $shopifyData */
+        $shopifyData = ShopifyData::find()->where(['parentId' => $gid])->all();
         $childIds = [];
         foreach ($shopifyData as $data) {
             $childIds[] = $data->shopifyGid;
@@ -231,7 +233,8 @@ class Products
         // Loop through any child data and remove that too
         while (!empty($childIds)) {
             $childId = array_shift($childIds);
-            $shopifyData = ShopifyData::query()->where('parentId', $childId)->get();
+            /** @var ShopifyData[] $shopifyData */
+            $shopifyData = ShopifyData::find()->where(['parentId' => $childId])->all();
             foreach ($shopifyData as $data) {
                 $childIds[] = $data->shopifyGid;
                 $data->delete();

@@ -9,7 +9,7 @@ namespace craft\shopify\models;
 
 use craft\base\Model;
 use craft\shopify\enums\BulkOperationStatus;
-use CraftCms\Shopify\BulkOperation\Models\BulkOperation as BulkOperationRecord;
+use craft\shopify\records\BulkOperation as BulkOperationRecord;
 use DateTime;
 
 /**

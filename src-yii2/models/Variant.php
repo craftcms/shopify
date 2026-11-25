@@ -9,8 +9,8 @@ namespace craft\shopify\models;
 
 use craft\base\Model;
 use craft\helpers\Json;
+use craft\shopify\helpers\Metafield as MetafieldHelper;
 use craft\shopify\Plugin;
-use CraftCms\Shopify\Helpers\Metafield as MetafieldHelper;
 use DateTime;
 use yii\base\InvalidConfigException;
 

@@ -1,13 +1,39 @@
 <?php
+/**
+ * @link https://craftcms.com/
+ * @copyright Copyright (c) Pixel & Tonic, Inc.
+ * @license https://craftcms.github.io/license/
+ */
 
 namespace craft\shopify\records;
 
-/** @deprecated in 9.0.0. Use {@see \CraftCms\Shopify\Api\Models\ShopifyData} instead. */
-class_alias(\CraftCms\Shopify\Api\Models\ShopifyData::class, 'craft\shopify\records\ShopifyData');
+use craft\db\ActiveRecord;
+use craft\shopify\db\Table;
 
-/** @phpstan-ignore-next-line Gives IDEs and static analysis a real symbol. */
-if (false) {
-    class ShopifyData extends \CraftCms\Shopify\Api\Models\ShopifyData
+/**
+ * Shopify Data record.
+ *
+ * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
+ * @since 6.0.0
+ *
+ * @property int $id
+ * @property string $shopifyGid
+ * @property string $shopifyId
+ * @property string $type
+ * @property string|array $data
+ * @property string $parentId
+ * @property int|null $position The line index of the item in its bulk operation file (since 7.3.1)
+ * @property string $dateCreated
+ * @property string $dateUpdated
+ * @property string $uid
+ */
+class ShopifyData extends ActiveRecord
+{
+    /**
+     * @inheritdoc
+     */
+    public static function tableName(): string
     {
+        return Table::DATA;
     }
 }

@@ -16,7 +16,7 @@ use craft\helpers\StringHelper;
 use craft\i18n\Formatter;
 use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\models\Variant;
-use CraftCms\Shopify\Api\Models\ShopifyData;
+use craft\shopify\records\ShopifyData;
 use yii\base\InvalidConfigException;
 
 /**
@@ -130,7 +130,8 @@ class Product
         $metadataHtml = Cp::metadataHtml($meta);
 
         // This is the date updated in the database which represents the last time it was updated from a Shopify webhook or sync.
-        $productData = ShopifyData::query()->where('shopifyGid', $product->shopifyGid)->first();
+        /** @var ShopifyData $productData */
+        $productData = ShopifyData::find()->where(['shopifyGid' => $product->shopifyGid])->one();
         $dateUpdated = DateTimeHelper::toDateTime($productData->dateUpdated);
         $now = new \DateTime();
         $diff = $now->diff($dateUpdated);

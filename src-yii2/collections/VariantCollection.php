@@ -9,7 +9,7 @@ namespace craft\shopify\collections;
 
 use Craft;
 use craft\shopify\models\Variant;
-use CraftCms\Shopify\Api\Models\ShopifyData;
+use craft\shopify\records\ShopifyData;
 use Illuminate\Support\Collection;
 
 /**
