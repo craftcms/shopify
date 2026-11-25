@@ -42,7 +42,7 @@ return new class() extends Migration {
         $this->archiveTableIfExists(Table::ACCESS_TOKENS);
         Schema::create(Table::ACCESS_TOKENS, function(Blueprint $table) {
             $table->integer('id', true);
-            $table->string('accessToken')->nullable();
+            $table->text('accessToken')->nullable();
             $table->dateTime('dateCreated');
             $table->dateTime('dateUpdated');
             $table->char('uid', 36)->default('0');

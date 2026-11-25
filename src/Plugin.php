@@ -60,7 +60,7 @@ class Plugin extends BasePlugin
 {
     public const string PC_PATH_PRODUCT_FIELD_LAYOUTS = 'shopify.productFieldLayout';
 
-    public string $schemaVersion = '9.0.0.0';
+    public string $schemaVersion = '9.0.0.1';
 
     public string $minVersionRequired = '8.2.1';
 
