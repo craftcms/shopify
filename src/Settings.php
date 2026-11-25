@@ -6,8 +6,6 @@ namespace CraftCms\Shopify;
 
 use craft\shopify\elements\Product;
 use craft\shopify\enums\ApiVersion;
-use craft\shopify\helpers\ShopifyHelper;
-use craft\shopify\records\AccessToken;
 use CraftCms\Cms\Cms;
 use CraftCms\Cms\Cp\RequestedSite;
 use CraftCms\Cms\FieldLayout\FieldLayout;
@@ -18,6 +16,8 @@ use CraftCms\Cms\Support\Facades\Fields;
 use CraftCms\Cms\Support\Str;
 use CraftCms\Cms\Support\Url;
 use CraftCms\Cms\Validation\Rules\EnvValueRule;
+use CraftCms\Shopify\Api\Models\AccessToken;
+use CraftCms\Shopify\Helpers\ShopifyHelper;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -215,8 +215,7 @@ class Settings extends PluginSettings
     public function getAccessToken(bool $parse = true): string
     {
         if ($this->accessToken === null) {
-            /** @var AccessToken|null $record */
-            $record = AccessToken::find()->one();
+            $record = AccessToken::query()->first();
             $accessToken = $record?->accessToken ?: '';
 
             // A stored token that isn't an env var reference is encrypted.

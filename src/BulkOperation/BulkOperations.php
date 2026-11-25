@@ -9,9 +9,9 @@ use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\exceptions\ShopifyApiException;
 use craft\shopify\jobs\ProcessBulkOperationData;
 use craft\shopify\models\BulkOperation;
-use craft\shopify\records\BulkOperation as BulkOperationRecord;
 use CraftCms\Cms\Support\Query;
 use CraftCms\Shopify\Api\Api;
+use CraftCms\Shopify\BulkOperation\Models\BulkOperation as BulkOperationRecord;
 use CraftCms\Shopify\Database\Table;
 use GraphQL\InlineFragment;
 use GraphQL\Mutation;
@@ -428,9 +428,9 @@ class BulkOperations
     {
         // Find record if it exists
         if ($bulkOperation->id) {
-            $record = BulkOperationRecord::findOne($bulkOperation->id);
+            $record = BulkOperationRecord::query()->find($bulkOperation->id);
         } elseif ($bulkOperation->shopifyGid) {
-            $record = BulkOperationRecord::findOne(['shopifyGid' => $bulkOperation->shopifyGid]);
+            $record = BulkOperationRecord::query()->where('shopifyGid', $bulkOperation->shopifyGid)->first();
         } else {
             // No `id` and no `shopifyGid` yet (e.g. a newly-created, not-yet-dispatched operation).
             $record = null;
@@ -454,10 +454,7 @@ class BulkOperations
         $record->status = $bulkOperation->getStatus()?->value;
         $record->shopifyStatus = $bulkOperation->shopifyStatus;
 
-        $record->validate();
-        $bulkOperation->addErrors($record->getErrors());
-
-        if (!$record->save(false)) {
+        if (!$record->save()) {
             return false;
         }
 
@@ -473,7 +470,7 @@ class BulkOperations
      */
     public function deleteBulkOperationById(int $id): bool
     {
-        $bulkOperation = BulkOperationRecord::findOne(['id' => $id]);
+        $bulkOperation = BulkOperationRecord::query()->find($id);
         if (!$bulkOperation) {
             return true;
         }

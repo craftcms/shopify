@@ -6,7 +6,6 @@ namespace CraftCms\Shopify\Http\Controllers;
 
 use craft\shopify\auth\OAuthFlow;
 use craft\shopify\exceptions\InvalidOAuthException;
-use craft\shopify\helpers\ShopifyHelper;
 use CraftCms\Cms\Cp\Components\Button;
 use CraftCms\Cms\Cp\Components\EmptyState;
 use CraftCms\Cms\Cp\Enums\ButtonVariant;
@@ -17,6 +16,7 @@ use CraftCms\Cms\Ui\Nodes\Callout;
 use CraftCms\Cms\Ui\Nodes\TemplateContent;
 use CraftCms\Cms\Ui\Ui;
 use CraftCms\Shopify\Api\Api;
+use CraftCms\Shopify\Helpers\ShopifyHelper;
 use CraftCms\Shopify\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;

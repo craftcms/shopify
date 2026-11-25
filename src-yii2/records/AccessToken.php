@@ -1,35 +1,13 @@
 <?php
-/**
- * @link https://craftcms.com/
- * @copyright Copyright (c) Pixel & Tonic, Inc.
- * @license https://craftcms.github.io/license/
- */
 
 namespace craft\shopify\records;
 
-use craft\db\ActiveRecord;
-use craft\shopify\db\Table;
+/** @deprecated in 9.0.0. Use {@see \CraftCms\Shopify\Api\Models\AccessToken} instead. */
+class_alias(\CraftCms\Shopify\Api\Models\AccessToken::class, 'craft\shopify\records\AccessToken');
 
-/**
- * Access Token record.
- *
- * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 7.0.0
- *
- *
- * @property int $id
- * @property string $accessToken
- * @property string $dateCreated
- * @property string $dateUpdated
- * @property string $uid
- */
-class AccessToken extends ActiveRecord
-{
-    /**
-     * @inheritdoc
-     */
-    public static function tableName(): string
+/** @phpstan-ignore-next-line Gives IDEs and static analysis a real symbol. */
+if (false) {
+    class AccessToken extends \CraftCms\Shopify\Api\Models\AccessToken
     {
-        return Table::ACCESS_TOKENS;
     }
 }
