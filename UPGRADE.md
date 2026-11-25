@@ -183,6 +183,14 @@ Event::listen(function(GqlQueryArgumentsResolving $event): void {
 
 Register listeners in a service provider's `boot()` method, or a plugin's.
 
+### Twig
+
+`craft.shopify` and `craft.shopifyProducts()` work the same in templates. They're registered as macros on `CraftCms\Cms\Twig\Variables\CraftVariable` now, so `craft\shopify\web\twig\CraftVariableBehavior` was removed. Code that referenced the behavior should call `craft\shopify\elements\Product::find()` instead.
+
+### Garbage collection
+
+Shopify's garbage collection tasks run from `CraftCms\Shopify\GarbageCollection\Actions\PurgeBulkOperations` and `DeleteRemovedProducts`. `php artisan craft:gc:run` lists them as tasks, along with core’s “deleting partial Shopify product data” task.
+
 ### Controllers
 
 The `craft\shopify\controllers\*` and `craft\shopify\console\controllers\*` classes were removed. The control panel controllers are in `CraftCms\Shopify\Http\Controllers`, and the console commands are in `CraftCms\Shopify\Console\Commands`. The control panel and action URLs are unchanged.

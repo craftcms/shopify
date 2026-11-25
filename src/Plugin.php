@@ -4,25 +4,10 @@ declare(strict_types=1);
 
 namespace CraftCms\Shopify;
 
-use Craft;
-use craft\console\Application as ConsoleApplication;
-use craft\db\Query;
-use craft\events\DefineFieldLayoutFieldsEvent;
-use craft\events\RegisterComponentTypesEvent;
-use craft\events\RegisterGqlQueriesEvent;
-use craft\events\RegisterGqlSchemaComponentsEvent;
-use craft\events\RegisterGqlTypesEvent;
+use Closure;
 use craft\feedme\events\RegisterFeedMeFieldsEvent;
-use craft\fields\Link;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Console;
-use craft\models\FieldLayout;
-use craft\services\Elements;
-use craft\services\Fields;
-use craft\services\Gc;
-use craft\services\Gql;
-use craft\services\Utilities;
-use craft\shopify\db\Table;
+use craft\feedme\services\Fields as FeedMeFields;
+use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\elements\Product;
 use craft\shopify\feedme\fields\Products as FeedMeProductsField;
 use craft\shopify\fieldlayoutelements\MediaField;
@@ -35,13 +20,18 @@ use craft\shopify\gql\queries\Product as GqlProductQueries;
 use craft\shopify\handlers\Webhook;
 use craft\shopify\linktypes\Product as ProductLinkType;
 use craft\shopify\utilities\Sync;
-use craft\shopify\web\twig\CraftVariableBehavior;
 use craft\shopify\webhooks\WebhookRegistry;
-use craft\web\twig\variables\CraftVariable;
 use CraftCms\Cms\Cp\Data\NavItem;
+use CraftCms\Cms\FieldLayout\FieldLayout;
+use CraftCms\Cms\GarbageCollection\Actions\DeletePartialElements;
+use CraftCms\Cms\GarbageCollection\Events\RunningGarbageCollection;
+use CraftCms\Cms\Gql\Events\GqlSchemaComponentsResolving;
 use CraftCms\Cms\Plugin\Plugin as BasePlugin;
+use CraftCms\Cms\Plugin\Plugins;
 use CraftCms\Cms\ProjectConfig\ProjectConfig;
 use CraftCms\Cms\Route\Routes;
+use CraftCms\Cms\Support\Typecast;
+use CraftCms\Cms\Twig\Variables\CraftVariable;
 use CraftCms\Shopify\Api\Api;
 use CraftCms\Shopify\BulkOperation\BulkOperations;
 use CraftCms\Shopify\Console\Commands\ApiQueryCommand;
@@ -49,12 +39,15 @@ use CraftCms\Shopify\Console\Commands\DataResetCommand;
 use CraftCms\Shopify\Console\Commands\ResaveProductsCommand;
 use CraftCms\Shopify\Console\Commands\SyncAllCommand;
 use CraftCms\Shopify\Console\Commands\SyncProductsCommand;
+use CraftCms\Shopify\Database\Table;
+use CraftCms\Shopify\GarbageCollection\Actions\DeleteRemovedProducts;
+use CraftCms\Shopify\GarbageCollection\Actions\PurgeBulkOperations;
 use CraftCms\Shopify\Product\Products;
 use CraftCms\Shopify\Store\Store;
-use GraphQL\Query as GqlQuery;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\RedirectResponse;
-use yii\base\Event;
+use Illuminate\Support\Facades\Event;
+use yii\base\Event as YiiEvent;
 
 use function CraftCms\Cms\cp_url;
 use function CraftCms\Cms\currentUser;
@@ -81,6 +74,30 @@ class Plugin extends BasePlugin
         ResaveProductsCommand::class,
         SyncAllCommand::class,
         SyncProductsCommand::class,
+    ];
+
+    protected array $elementTypes = [
+        Product::class,
+    ];
+
+    protected array $fieldTypes = [
+        ProductsField::class,
+    ];
+
+    protected array $linkTypes = [
+        ProductLinkType::class,
+    ];
+
+    protected array $utilities = [
+        Sync::class,
+    ];
+
+    protected array $gqlTypes = [
+        GqlProductInterface::class,
+    ];
+
+    protected array $gqlQueries = [
+        GqlProductQueries::class,
     ];
 
     #[\Override]
@@ -117,19 +134,24 @@ class Plugin extends BasePlugin
         ]);
     }
 
-    public function boot(ProjectConfig $projectConfig, Products $products, Api $api): void
+    public function boot(ProjectConfig $projectConfig, Products $products, Api $api, Plugins $plugins): void
     {
-        $this->registerElementTypes();
-        $this->registerUtilityTypes();
-        $this->registerFieldTypes();
-        $this->registerFieldLayoutElements();
-        $this->registerLinkTypes();
         $this->registerVariables();
-        $this->registerGarbageCollection();
-        $this->registerFeedMeEvents();
-        $this->registerGqlInterfaces();
-        $this->registerGqlQueries();
-        $this->registerGqlComponents();
+        $this->registerFeedMeFields($plugins);
+
+        Event::listen(function(GqlSchemaComponentsResolving $event): void {
+            $event->queries[t('Shopify Products', category: 'shopify')] = [
+                (new Product())->getGqlTypeName() . ':read' => ['label' => t('View products', category: 'shopify')],
+            ];
+        });
+
+        Event::listen(function(RunningGarbageCollection $event): void {
+            $event->garbageCollection->runActions([
+                PurgeBulkOperations::class,
+                [DeletePartialElements::class, ['elementType' => Product::class, 'table' => Table::PRODUCTS]],
+                DeleteRemovedProducts::class,
+            ]);
+        });
 
         $projectConfig->onAdd(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, $products->handleChangedFieldLayout(...))
             ->onUpdate(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, $products->handleChangedFieldLayout(...))
@@ -183,188 +205,45 @@ class Plugin extends BasePlugin
             ->subnav($subnav);
     }
 
-    private function registerFeedMeEvents(): void
+    #[\Override]
+    protected function getNativeFields(): Closure
     {
-        $feedMePlugin = Craft::$app->getPlugins()->getPlugin('feed-me');
-        if (!class_exists(\craft\feedme\services\Fields::class) || !$feedMePlugin) {
-            return;
-        }
-
-        Event::on(\craft\feedme\services\Fields::class, \craft\feedme\services\Fields::EVENT_REGISTER_FEED_ME_FIELDS, function(RegisterFeedMeFieldsEvent $event) {
-            $event->fields[] = FeedMeProductsField::class;
-        });
-    }
-
-    private function registerUtilityTypes(): void
-    {
-        Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITIES, function(RegisterComponentTypesEvent $event) {
-            $event->types[] = Sync::class;
-        });
-    }
-
-    private function registerElementTypes(): void
-    {
-        Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, static function(RegisterComponentTypesEvent $e) {
-            $e->types[] = Product::class;
-        });
-    }
-
-    private function registerGqlInterfaces(): void
-    {
-        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_TYPES, static function(RegisterGqlTypesEvent $event) {
-            $event->types[] = GqlProductInterface::class;
-        });
-    }
-
-    private function registerGqlQueries(): void
-    {
-        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_QUERIES, static function(RegisterGqlQueriesEvent $event) {
-            $event->queries = array_merge(
-                $event->queries,
-                GqlProductQueries::getQueries(),
-            );
-        });
-    }
-
-    private function registerGqlComponents(): void
-    {
-        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, static function(RegisterGqlSchemaComponentsEvent $event) {
-            $typeName = (new Product())->getGqlTypeName();
-            $event->queries = array_merge($event->queries, [
-                Craft::t('shopify', 'Shopify Products') => [
-                    $typeName . ':read' => ['label' => Craft::t('shopify', 'View products')],
-                ],
-            ]);
-        });
-    }
-
-    private function registerFieldTypes(): void
-    {
-        Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, static function(RegisterComponentTypesEvent $event) {
-            $event->types[] = ProductsField::class;
-        });
-    }
-
-    private function registerFieldLayoutElements(): void
-    {
-        Event::on(FieldLayout::class, FieldLayout::EVENT_DEFINE_NATIVE_FIELDS, static function(DefineFieldLayoutFieldsEvent $e) {
-            /** @var FieldLayout $fieldLayout */
-            $fieldLayout = $e->sender;
-
+        return function(FieldLayout $fieldLayout, array $fields): array {
             if ($fieldLayout->type === Product::class) {
-                $e->fields[] = VariantsField::class;
-                $e->fields[] = OptionsField::class;
-                $e->fields[] = MetafieldsField::class;
-                $e->fields[] = MediaField::class;
+                $fields[] = VariantsField::class;
+                $fields[] = OptionsField::class;
+                $fields[] = MetafieldsField::class;
+                $fields[] = MediaField::class;
             }
-        });
-    }
 
-    private function registerLinkTypes(): void
-    {
-        Event::on(Link::class, Link::EVENT_REGISTER_LINK_TYPES, function(RegisterComponentTypesEvent $event) {
-            $event->types[] = ProductLinkType::class;
-        });
+            return $fields;
+        };
     }
 
     private function registerVariables(): void
     {
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, static function(Event $event) {
-            $event->sender->attachBehavior('shopify', CraftVariableBehavior::class);
+        $plugin = $this;
+        CraftVariable::macro('shopify', fn() => $plugin);
+
+        CraftVariable::macro('shopifyProducts', function(array $criteria = []): ProductQuery {
+            $query = Product::find();
+            Typecast::configure($query, $criteria);
+
+            return $query;
         });
     }
 
-    private function registerGarbageCollection(): void
+    /**
+     * Feed Me doesn’t support Craft 6 yet, so this is untested and stays on its Yii event.
+     */
+    private function registerFeedMeFields(Plugins $plugins): void
     {
-        Event::on(Gc::class, Gc::EVENT_RUN, function(Event $event) {
-            if (Craft::$app instanceof ConsoleApplication) {
-                Console::stdout('    > purging syncs ... ');
-            }
+        if (!class_exists(FeedMeFields::class) || !$plugins->getPlugin('feed-me')) {
+            return;
+        }
 
-            $this->getBulkOperations()->purgeBulkOperations();
-
-            if (Craft::$app instanceof ConsoleApplication) {
-                Console::stdout("done\n", Console::FG_GREEN);
-                Console::stdout('    > deleting partial product elements ... ');
-            }
-
-            /** @var Gc $gc */
-            $gc = $event->sender;
-            $gc->deletePartialElements(Product::class, 'shopify_products', 'id');
-
-            if (Craft::$app instanceof ConsoleApplication) {
-                Console::stdout("done\n", Console::FG_GREEN);
-            }
-
-            // See if there are any orphaned products that no longer exist in Shopify
-            $shopifyProductElementsMissingData = (new Query())
-                ->select([
-                    'products.id',
-                    'products.shopifyId',
-                ])
-                ->from(Table::PRODUCTS . ' products')
-                ->leftJoin(Table::DATA . ' data', '[[data.shopifyGid]] = [[products.shopifyGid]]')
-                ->where(['data.shopifyGid' => null])
-                ->all();
-
-            $shopifyIds = ArrayHelper::getColumn($shopifyProductElementsMissingData, 'shopifyId');
-
-            if (empty($shopifyIds)) {
-                return;
-            }
-
-            if (Craft::$app instanceof ConsoleApplication) {
-                Console::stdout('    > deleting product elements not in Shopify ... ');
-            }
-
-            $startCursor = null;
-            $savedShopifyIds = [];
-
-            // Batch through 100 at a time
-            foreach (array_chunk($shopifyIds, 100) as $ids) {
-                $args = ['first' => 100, 'query' => 'id:' . implode(' OR id:', $ids)];
-                if ($startCursor) {
-                    $args['after'] = $startCursor;
-                }
-
-                // Check with the Shopify API to see if these products still exist
-                $query = (new GqlQuery('products'))
-                    ->setArguments($args)
-                    ->setSelectionSet([
-                        (new GqlQuery('edges'))
-                            ->setSelectionSet([
-                                (new GqlQuery('node'))
-                                    ->setSelectionSet([
-                                        'id',
-                                    ]),
-                            ]),
-                        (new GqlQuery('pageInfo'))
-                            ->setSelectionSet([
-                                'hasNextPage',
-                                'endCursor',
-                            ]),
-                    ]);
-                $response = $this->getApi()->query($query);
-
-                if (!$response) {
-                    continue;
-                }
-
-                $startCursor = $response['pageInfo']['endCursor'];
-
-                $savedShopifyIds = array_merge($savedShopifyIds, array_map(static function($edge) {
-                    return str_replace('gid://shopify/Product/', '', $edge['node']['id']);
-                }, $response['edges']));
-            }
-
-            foreach (array_diff($shopifyIds, $savedShopifyIds) as $deleteId) {
-                $element = ArrayHelper::firstWhere($shopifyProductElementsMissingData, 'shopifyId', $deleteId);
-                Craft::$app->getElements()->deleteElementById($element['id'], Product::class, null, true);
-            }
-
-            if (Craft::$app instanceof ConsoleApplication) {
-                Console::stdout("done\n", Console::FG_GREEN);
-            }
+        YiiEvent::on(FeedMeFields::class, FeedMeFields::EVENT_REGISTER_FEED_ME_FIELDS, function(RegisterFeedMeFieldsEvent $event) {
+            $event->fields[] = FeedMeProductsField::class;
         });
     }
 }
