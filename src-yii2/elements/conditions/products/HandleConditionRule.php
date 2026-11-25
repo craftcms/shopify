@@ -1,58 +1,13 @@
 <?php
-/**
- * @link https://craftcms.com/
- * @copyright Copyright (c) Pixel & Tonic, Inc.
- * @license https://craftcms.github.io/license/
- */
 
 namespace craft\shopify\elements\conditions\products;
 
-use craft\base\conditions\BaseTextConditionRule;
-use craft\base\ElementInterface;
-use craft\elements\conditions\ElementConditionRuleInterface;
-use craft\elements\db\ElementQueryInterface;
-use craft\shopify\elements\db\ProductQuery;
-use craft\shopify\elements\Product;
+/** @deprecated in 9.0.0. Use {@see \CraftCms\Shopify\Product\Conditions\HandleConditionRule} instead. */
+class_alias(\CraftCms\Shopify\Product\Conditions\HandleConditionRule::class, 'craft\shopify\elements\conditions\products\HandleConditionRule');
 
-/**
- * Handle condition rule.
- *
- * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 3.0.0
- */
-class HandleConditionRule extends BaseTextConditionRule implements ElementConditionRuleInterface
-{
-    /**
-     * @inheritDoc
-     */
-    public function getLabel(): string
+/** @phpstan-ignore-next-line Gives IDEs and static analysis a real symbol. */
+if (false) {
+    class HandleConditionRule extends \CraftCms\Shopify\Product\Conditions\HandleConditionRule
     {
-        return \Craft::t('shopify', 'Handle');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getExclusiveQueryParams(): array
-    {
-        return ['handle'];
-    }
-
-    /**
-     * @inheritDoc
-     * @param Product $element
-     */
-    public function matchElement(ElementInterface $element): bool
-    {
-        return $this->matchValue($element->handle);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function modifyQuery(ElementQueryInterface $query): void
-    {
-        /** @var ProductQuery $query */
-        $query->handle($this->paramValue());
     }
 }

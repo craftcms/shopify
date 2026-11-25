@@ -10,7 +10,7 @@ namespace craft\shopify\gql\arguments\elements;
 use Craft;
 use craft\gql\base\ElementArguments;
 use craft\gql\types\QueryArgument;
-use craft\shopify\elements\Product as ProductElement;
+use CraftCms\Shopify\Product\Elements\Product as ProductElement;
 use GraphQL\Type\Definition\Type;
 
 /**

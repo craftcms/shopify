@@ -10,10 +10,10 @@ namespace craft\shopify\fields;
 use Craft;
 use craft\fields\BaseRelationField;
 use craft\helpers\Gql;
-use craft\shopify\elements\Product;
 use craft\shopify\gql\arguments\elements\Product as ProductArguments;
 use craft\shopify\gql\interfaces\elements\Product as ProductInterface;
 use craft\shopify\gql\resolvers\elements\Product as ProductResolver;
+use CraftCms\Shopify\Product\Elements\Product;
 use GraphQL\Type\Definition\Type;
 
 /**

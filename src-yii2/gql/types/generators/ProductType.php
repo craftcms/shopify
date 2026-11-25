@@ -12,9 +12,9 @@ use craft\gql\base\Generator;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\gql\interfaces\elements\Product as ProductInterface;
 use craft\shopify\gql\types\elements\Product;
+use CraftCms\Shopify\Product\Elements\Product as ProductElement;
 use GraphQL\Type\Definition\ObjectType;
 
 /**

@@ -1,58 +1,13 @@
 <?php
-/**
- * @link https://craftcms.com/
- * @copyright Copyright (c) Pixel & Tonic, Inc.
- * @license https://craftcms.github.io/license/
- */
 
 namespace craft\shopify\elements\conditions\products;
 
-use craft\base\conditions\BaseTextConditionRule;
-use craft\base\ElementInterface;
-use craft\elements\conditions\ElementConditionRuleInterface;
-use craft\elements\db\ElementQueryInterface;
-use craft\shopify\elements\db\ProductQuery;
-use craft\shopify\elements\Product;
+/** @deprecated in 9.0.0. Use {@see \CraftCms\Shopify\Product\Conditions\TagsConditionRule} instead. */
+class_alias(\CraftCms\Shopify\Product\Conditions\TagsConditionRule::class, 'craft\shopify\elements\conditions\products\TagsConditionRule');
 
-/**
- * Tags condition rule.
- *
- * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 3.0.0
- */
-class TagsConditionRule extends BaseTextConditionRule implements ElementConditionRuleInterface
-{
-    /**
-     * @inheritDoc
-     */
-    public function getLabel(): string
+/** @phpstan-ignore-next-line Gives IDEs and static analysis a real symbol. */
+if (false) {
+    class TagsConditionRule extends \CraftCms\Shopify\Product\Conditions\TagsConditionRule
     {
-        return \Craft::t('shopify', 'Tags');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getExclusiveQueryParams(): array
-    {
-        return ['tags'];
-    }
-
-    /**
-     * @inheritDoc
-     * @param Product $element
-     */
-    public function matchElement(ElementInterface $element): bool
-    {
-        return $this->matchValue($element->tags);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function modifyQuery(ElementQueryInterface $query): void
-    {
-        /** @var ProductQuery $query */
-        $query->tags($this->paramValue());
     }
 }

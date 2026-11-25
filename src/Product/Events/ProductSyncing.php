@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace CraftCms\Shopify\Product\Events;
 
-use craft\shopify\elements\Product;
 use CraftCms\Cms\Shared\Concerns\ValidatableEvent;
+use CraftCms\Shopify\Product\Elements\Product;
 
 /**
  * Dispatched before a product element is saved with data synchronized from Shopify. Set `$isValid` to `false` to

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace CraftCms\Shopify\Console\Commands;
 
-use craft\shopify\elements\Product;
 use CraftCms\Cms\Console\CraftCommand;
 use CraftCms\Cms\Element\Elements;
 use CraftCms\Shopify\Database\Table;
+use CraftCms\Shopify\Product\Elements\Product;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Support\Facades\DB;

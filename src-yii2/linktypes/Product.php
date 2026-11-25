@@ -8,7 +8,7 @@
 namespace craft\shopify\linktypes;
 
 use craft\fields\linktypes\BaseElementLinkType;
-use craft\shopify\elements\Product as ProductElement;
+use CraftCms\Shopify\Product\Elements\Product as ProductElement;
 
 /**
  * Shopify Product link type.

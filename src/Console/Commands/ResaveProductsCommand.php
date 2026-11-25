@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace CraftCms\Shopify\Console\Commands;
 
-use craft\shopify\elements\Product;
 use CraftCms\Cms\Element\Commands\Resave\ResaveCommand;
 use CraftCms\Cms\Support\Facades\Fields;
+use CraftCms\Shopify\Product\Elements\Product;
 use Override;
 
 class ResaveProductsCommand extends ResaveCommand

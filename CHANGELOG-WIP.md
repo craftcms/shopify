@@ -12,6 +12,10 @@
 - Shopify 9.0 can only be installed over Shopify 8.2.1 or later.
 - Shopify must be re-authorized after the upgrade if Shopify 8 stored its access token in the database rather than in the `.env` file, because Craft 6 can’t decrypt it.
 - Shopify’s config file is now `config/craft/shopify.php`.
+- The product edit screen now shows the Shopify details in the sidebar’s metadata.
+- Syncing products from Shopify no longer creates a revision of each product.
+- Fixed a bug where garbage collection never deleted products that had been removed from Shopify.
+- Fixed a SQL error when the product index was sorted by Variants or Shopify Edit. They’re no longer sort options.
 
 ### Extensibility
 
@@ -49,11 +53,21 @@
 - Removed `craft\shopify\services\Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS`.
 - Removed `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`.
 - Removed `craft\shopify\services\Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT`.
-- `craft\shopify\elements\Product::prepareEditScreen()` now accepts a `Symfony\Component\HttpFoundation\Response` or `CraftCms\Cms\Http\Responses\CpScreenResponse` object.
-- `craft\shopify\elements\db\ProductQuery::statusCondition()` now returns a `Closure`.
+- `CraftCms\Shopify\Product\Queries\ProductQuery::statusCondition()` now returns a `Closure`.
 - `craft\shopify\gql\types\generators\ProductType::generateTypes()` now returns `GraphQL\Type\Definition\ObjectType` objects.
 - `CraftCms\Shopify\BulkOperation\BulkOperations::queueNextBulkOperation()` no longer returns `false` when the processing job can’t be queued.
-- Removed `craft\shopify\elements\Product::init()`.
-- Removed `craft\shopify\elements\Product::searchableAttributes()`. `craft\shopify\elements\Product::defineSearchableAttributes()` is overridden instead.
+- Removed `craft\shopify\elements\Product::init()`, `prepareEditScreen()`, `getSidebarHtml()`, `hasContent()`, `canView()`, `canSave()`, `canDelete()` and `canCreateDrafts()`.
+- Removed `craft\shopify\elements\Product::searchableAttributes()`. `CraftCms\Shopify\Product\Elements\Product::defineSearchableAttributes()` is overridden instead.
 - Removed `craft\shopify\elements\db\ProductQuery::beforePrepare()`.
 - Removed `craft\shopify\elements\db\ProductQuery::populate()`. Shopify data is now eager-loaded from `afterHydrate()`.
+- Renamed `craft\shopify\elements\Product` to `CraftCms\Shopify\Product\Elements\Product`, which now extends `CraftCms\Cms\Element\Element`. The old class name is a deprecated alias.
+- Renamed `craft\shopify\elements\db\ProductQuery` to `CraftCms\Shopify\Product\Queries\ProductQuery`, which now extends `CraftCms\Cms\Element\Queries\ElementQuery`. The old class name is a deprecated alias.
+- Renamed the `craft\shopify\elements\conditions\products` classes to `CraftCms\Shopify\Product\Conditions`. The old class names are deprecated aliases.
+- Renamed `craft\shopify\helpers\Product` to `CraftCms\Shopify\Helpers\Product`. The old class name is a deprecated alias.
+- Added `CraftCms\Shopify\Helpers\Product::metadata()`, which replaces `renderCardHtml()`.
+- Added `CraftCms\Shopify\Product\Policies\ProductPolicy`.
+- Added `CraftCms\Shopify\Product\Elements\Product::$syncing`.
+- Added `CraftCms\Shopify\Product\Queries\ProductQuery::applyHandle()`, `applyProductType()`, `applyShopifyStatus()`, `applyTags()`, `applyTemplateSuffix()` and `applyVendor()`.
+- The `ProductQuery` constructor no longer accepts an element type.
+- Product condition rules now implement `CraftCms\Cms\Element\Conditions\Contracts\ElementQueryConditionRuleInterface`.
+- `CraftCms\Shopify\Product\Elements\Product::getShopifyLink()` now returns an `Illuminate\Support\HtmlString` object.

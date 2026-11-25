@@ -34,7 +34,7 @@ use Illuminate\Support\Facades\Log;
  * 2. A local record is created to track pending synchronizations
  * 3. The plugin checks to see if Shopify is currently processing another bulk operation. If not, we push the query to the API.
  * 4. When a bulk query finishes running on Shopify’s infrastructure, they issue a webhook.
- * 5. In response to the webhook, we store the URL to the operation’s JSONL results and push a {@see ProcessBulkOperationData} to the Craft queue. That job is responsible for actually updating our local {@see craft\shopify\elements\Product} records.
+ * 5. In response to the webhook, we store the URL to the operation’s JSONL results and push a {@see ProcessBulkOperationData} to the Craft queue. That job is responsible for actually updating our local {@see \CraftCms\Shopify\Product\Elements\Product} records.
  * 6. After processing a bulk operation, we return to step #3.
  *
  * The system goes “idle” if there are no operations in our queue, or after adding an operation to the local queue while Shopfiy is still processing a prior one.

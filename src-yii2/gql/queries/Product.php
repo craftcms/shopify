@@ -28,7 +28,7 @@ class Product extends Query
     public static function getQueries(bool $checkToken = true): array
     {
         $entities = Gql::extractAllowedEntitiesFromSchema();
-        $typeName = (new \craft\shopify\elements\Product())->getGqlTypeName();
+        $typeName = (new \CraftCms\Shopify\Product\Elements\Product())->getGqlTypeName();
         if ($checkToken && !isset($entities[$typeName])) {
             return [];
         }
