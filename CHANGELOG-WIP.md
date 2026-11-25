@@ -30,6 +30,13 @@
 - Renamed `craft\shopify\services\Products` to `CraftCms\Shopify\Product\Products`. The old class name is a deprecated alias.
 - Renamed `craft\shopify\services\Store` to `CraftCms\Shopify\Store\Store`. The old class name is a deprecated alias.
 - The Shopify services no longer extend `craft\base\Component`.
+- Renamed `craft\shopify\records\AccessToken` to `CraftCms\Shopify\Api\Models\AccessToken`, which is now an Eloquent model. The old class name is a deprecated alias.
+- Renamed `craft\shopify\records\BulkOperation` to `CraftCms\Shopify\BulkOperation\Models\BulkOperation`, which is now an Eloquent model. The old class name is a deprecated alias.
+- Renamed `craft\shopify\records\Product` to `CraftCms\Shopify\Product\Models\Product`, which is now an Eloquent model. The old class name is a deprecated alias.
+- Renamed `craft\shopify\records\ShopifyData` to `CraftCms\Shopify\Api\Models\ShopifyData`, which is now an Eloquent model. The old class name is a deprecated alias.
+- Renamed `craft\shopify\helpers\Metafield` to `CraftCms\Shopify\Helpers\Metafield`. The old class name is a deprecated alias.
+- Renamed `craft\shopify\helpers\ShopifyHelper` to `CraftCms\Shopify\Helpers\ShopifyHelper`. The old class name is a deprecated alias.
+- `CraftCms\Shopify\Api\Api::getShopifyDataByType()` now returns `CraftCms\Shopify\Api\Models\ShopifyData` models when `$returnRecords` is `true`.
 - `CraftCms\Shopify\Api\Api::getGqlClient()` and `CraftCms\Shopify\Store\Store::getUrl()` now throw a `RuntimeException` instead of `yii\base\InvalidConfigException`.
 - `CraftCms\Shopify\BulkOperation\BulkOperations::MUTEX_NAME` now names a Laravel cache lock.
 - `CraftCms\Shopify\Product\Products::handleChangedFieldLayout()` now accepts a `CraftCms\Cms\ProjectConfig\Events\ConfigEvent` object.

@@ -10,13 +10,12 @@ use craft\shopify\enums\ApiVersion;
 use craft\shopify\enums\WebhookTopics;
 use craft\shopify\exceptions\ShopifyApiCommunicationException;
 use craft\shopify\exceptions\ShopifyApiException;
-use craft\shopify\records\AccessToken;
-use craft\shopify\records\ShopifyData;
 use CraftCms\Cms\Support\Env;
-use CraftCms\Cms\Support\Json;
 use CraftCms\Cms\Support\Str;
 use CraftCms\Shopify\Api\Events\GqlQueryArgumentsResolving;
 use CraftCms\Shopify\Api\Events\ProductGqlFieldsResolving;
+use CraftCms\Shopify\Api\Models\AccessToken;
+use CraftCms\Shopify\Api\Models\ShopifyData;
 use CraftCms\Shopify\Settings;
 use GraphQL\Mutation;
 use GraphQL\Query;
@@ -138,9 +137,9 @@ class Api
         $shop = null;
 
         // Check if the data is synced into the DB
-        $shopRecord = ShopifyData::findOne(['type' => 'Shop']);
+        $shopRecord = ShopifyData::query()->where('type', 'Shop')->first();
         if ($shopRecord && !$update) {
-            return Json::decodeIfJson($shopRecord->data);
+            return $shopRecord->data;
         }
 
         // Sync the data from the API
@@ -159,13 +158,7 @@ class Api
             $shopRecord->type = 'Shop';
             $shopRecord->data = $response;
 
-            if (!$shopRecord->save()) {
-                // Get the first error message from the record, if available:
-                $errors = $shopRecord->getErrors();
-                $firstError = array_shift($errors)[0] ?? ['Unknown error'];
-
-                throw new \Exception('Failed to save shop data: ' . implode(', ', $firstError));
-            }
+            $shopRecord->save();
 
             $shop = $shopRecord->data;
         } catch (\Exception $e) {
@@ -498,15 +491,15 @@ class Api
      */
     public function getShopifyDataByType(string $type, array|string|null|false $parentId = null, bool $returnRecords = false): Collection
     {
-        $criteria = ['type' => $type];
-        if ($parentId !== null) {
-            $criteria['parentId'] = $parentId ?: null;
-        }
-
-        $data = ShopifyData::find()
-            ->where($criteria)
-            ->orderBy(['position' => SORT_ASC, 'id' => SORT_ASC])
-            ->collect();
+        $data = ShopifyData::query()
+            ->where('type', $type)
+            ->when($parentId !== null, function($query) use ($parentId) {
+                $parentId = $parentId ?: null;
+                is_array($parentId) ? $query->whereIn('parentId', $parentId) : $query->where('parentId', $parentId);
+            })
+            ->orderBy('position')
+            ->orderBy('id')
+            ->get();
 
         // The caller can request the raw database rows, instead of just the `data` JSON column:
         if ($returnRecords) {
@@ -597,8 +590,7 @@ class Api
                 throw new \Exception('No access token returned from Shopify.');
             }
 
-            /** @var AccessToken $record */
-            $record = AccessToken::find()->one() ?? new AccessToken();
+            $record = AccessToken::query()->first() ?? new AccessToken();
 
             // If there isn't a `.env` file, let's not try and save it there in case that is by design
             $dotEnvPath = app()->environmentFilePath();
@@ -619,13 +611,7 @@ class Api
 
             $record->accessToken = $isSavedToFile ? '$' . self::API_ACCESS_TOKEN_ENV_VAR : Str::encenc($body['access_token']);
 
-            if (!$record->save()) {
-                // Get the first error message from the record, if available:
-                $errors = $record->getErrors();
-                $firstError = array_shift($errors)[0] ?? ['Unknown error'];
-
-                Log::error('Couldn\'t save the Shopify Access Token in the database. ' . implode(', ', $firstError));
-            }
+            $record->save();
 
             return $body['access_token'];
         } catch (\Exception $e) {

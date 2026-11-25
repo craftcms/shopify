@@ -10,8 +10,8 @@ use craft\queue\BaseBatchedJob;
 use craft\shopify\api\BulkDataBatcher;
 use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\Plugin;
-use craft\shopify\records\BulkOperation as BulkOperationRecord;
-use craft\shopify\records\ShopifyData;
+use CraftCms\Shopify\Api\Models\ShopifyData;
+use CraftCms\Shopify\BulkOperation\Models\BulkOperation as BulkOperationRecord;
 
 /**
  * Process the data from the completed bulk operation.
@@ -114,7 +114,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
 
         // Find data records based on their Shopify ID and parent ID. This is to avoid overwriting
         // records with the same ID but different parents (e.g. Metafields, Images etc).
-        $record = ShopifyData::findOne(['shopifyGid' => $item['id'], 'parentId' => $parentId]);
+        $record = ShopifyData::query()->where('shopifyGid', $item['id'])->where('parentId', $parentId)->first();
         if (!$record) {
             $record = new ShopifyData();
         }
@@ -156,7 +156,7 @@ class ProcessBulkOperationData extends BaseBatchedJob
 
         // Clear data if requested
         if ($this->clearData === BulkOperationRecord::CLEAR_DATA_ALL) {
-            ShopifyData::deleteAll();
+            ShopifyData::query()->delete();
         } elseif ($this->clearData !== BulkOperationRecord::CLEAR_DATA_NONE) {
             Plugin::getInstance()->getProducts()->deleteShopifyDataByShopifyGid($this->clearData);
         }

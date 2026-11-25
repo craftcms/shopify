@@ -21,15 +21,15 @@ use craft\shopify\elements\db\ProductQuery;
 use craft\shopify\fieldlayoutelements\MetafieldsField;
 use craft\shopify\fieldlayoutelements\OptionsField;
 use craft\shopify\fieldlayoutelements\VariantsField;
-use craft\shopify\helpers\Metafield as MetafieldHelper;
 use craft\shopify\helpers\Product as ProductHelper;
 use craft\shopify\models\Variant;
 use craft\shopify\Plugin;
-use craft\shopify\records\Product as ProductRecord;
 use craft\shopify\web\assets\shopifycp\ShopifyCpAsset;
 use CraftCms\Cms\Element\Conditions\Contracts\ElementConditionInterface;
 use CraftCms\Cms\Http\Responses\CpScreenResponse;
 use CraftCms\Cms\User\Elements\User;
+use CraftCms\Shopify\Helpers\Metafield as MetafieldHelper;
+use CraftCms\Shopify\Product\Models\Product as ProductRecord;
 use DateTime;
 use Exception;
 use Illuminate\Support\Collection;
@@ -788,7 +788,7 @@ class Product extends Element
     public function afterSave(bool $isNew): void
     {
         if (!$isNew) {
-            $record = ProductRecord::findOne($this->id);
+            $record = ProductRecord::query()->find($this->id);
 
             if (!$record) {
                 throw new Exception('Invalid product ID: ' . $this->id);
@@ -805,7 +805,7 @@ class Product extends Element
         $record->dateUpdated = $this->dateUpdated;
         $record->dateCreated = $this->dateCreated;
 
-        $record->save(false);
+        $record->save();
 
         parent::afterSave($isNew);
     }

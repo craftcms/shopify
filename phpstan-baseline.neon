@@ -25,18 +25,6 @@ parameters:
 			path: src-yii2/elements/Product.php
 
 		-
-			message: '#^Property craft\\db\\ActiveRecord\:\:\$dateCreated \(DateTime\|string\|null\) does not accept DateTimeInterface\|null\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src-yii2/elements/Product.php
-
-		-
-			message: '#^Property craft\\db\\ActiveRecord\:\:\$dateUpdated \(DateTime\|string\|null\) does not accept DateTimeInterface\|null\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src-yii2/elements/Product.php
-
-		-
 			message: '#^Property craft\\shopify\\elements\\Product\:\:\$_options \(array\) on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.property
 			count: 1
