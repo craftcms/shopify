@@ -66,7 +66,7 @@ class Products
     public function syncProductByInventoryItemId($id): void
     {
         // Make sure the ID has the gql prefix
-        $id = $this->normalizeShopifyGid($id, 'InventoryItem');
+        $id = $this->normalizeShopifyGid((string)$id, 'InventoryItem');
 
         $query = $this->api->createQuery('inventoryItem', [
             'id',
@@ -201,7 +201,7 @@ class Products
             return;
         }
 
-        $this->deleteProductByShopifyGid($id);
+        $this->deleteProductByShopifyGid((string)$id);
     }
 
     /**
