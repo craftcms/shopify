@@ -105,6 +105,41 @@ The services no longer extend `craft\base\Component`, so they have no Yii behavi
 - `Api::getGqlClient()` and `Store::getUrl()` throw a `RuntimeException` instead of a `yii\base\InvalidConfigException` when Shopify isn't configured.
 - `BulkOperations::MUTEX_NAME` names a Laravel cache lock (`Cache::lock()`) instead of a Craft mutex. Use `Cache::lock(BulkOperations::MUTEX_NAME)` if your code needs to hold the same lock.
 
+### Records and helpers
+
+The Active Record classes are Eloquent models now, with new names:
+
+| Before | After |
+| --- | --- |
+| `craft\shopify\records\AccessToken` | `CraftCms\Shopify\Api\Models\AccessToken` |
+| `craft\shopify\records\BulkOperation` | `CraftCms\Shopify\BulkOperation\Models\BulkOperation` |
+| `craft\shopify\records\Product` | `CraftCms\Shopify\Product\Models\Product` |
+| `craft\shopify\records\ShopifyData` | `CraftCms\Shopify\Api\Models\ShopifyData` |
+| `craft\shopify\helpers\Metafield` | `CraftCms\Shopify\Helpers\Metafield` |
+| `craft\shopify\helpers\ShopifyHelper` | `CraftCms\Shopify\Helpers\ShopifyHelper` |
+
+The old class names still work as aliases, but are deprecated. Query the models with Eloquent instead of `find()` and `findOne()`:
+
+Before:
+
+```php
+use craft\shopify\records\ShopifyData;
+
+$shop = ShopifyData::findOne(['type' => 'Shop']);
+$variants = ShopifyData::find()->where(['parentId' => $product->shopifyGid])->all();
+```
+
+After:
+
+```php
+use CraftCms\Shopify\Api\Models\ShopifyData;
+
+$shop = ShopifyData::query()->where('type', 'Shop')->first();
+$variants = ShopifyData::query()->where('parentId', $product->shopifyGid)->get();
+```
+
+`ShopifyData::$data` is still decoded to an array. `Api::getShopifyDataByType()` returns `ShopifyData` models when `$returnRecords` is `true`. The `Product` model's `getElement()` and `getData()` relations are now the `element()` and `data()` Eloquent relations.
+
 ### Events
 
 The plugin's Yii events were replaced by Laravel events. Listen for the event class with `Event::listen()`. There is no `sender`.
