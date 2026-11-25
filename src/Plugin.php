@@ -34,22 +34,23 @@ use craft\shopify\gql\interfaces\elements\Product as GqlProductInterface;
 use craft\shopify\gql\queries\Product as GqlProductQueries;
 use craft\shopify\handlers\Webhook;
 use craft\shopify\linktypes\Product as ProductLinkType;
-use craft\shopify\services\Api;
-use craft\shopify\services\BulkOperations;
-use craft\shopify\services\Products;
-use craft\shopify\services\Store;
 use craft\shopify\utilities\Sync;
 use craft\shopify\web\twig\CraftVariableBehavior;
 use craft\shopify\webhooks\WebhookRegistry;
 use craft\web\twig\variables\CraftVariable;
 use CraftCms\Cms\Cp\Data\NavItem;
 use CraftCms\Cms\Plugin\Plugin as BasePlugin;
+use CraftCms\Cms\ProjectConfig\ProjectConfig;
 use CraftCms\Cms\Route\Routes;
+use CraftCms\Shopify\Api\Api;
+use CraftCms\Shopify\BulkOperation\BulkOperations;
 use CraftCms\Shopify\Console\Commands\ApiQueryCommand;
 use CraftCms\Shopify\Console\Commands\DataResetCommand;
 use CraftCms\Shopify\Console\Commands\ResaveProductsCommand;
 use CraftCms\Shopify\Console\Commands\SyncAllCommand;
 use CraftCms\Shopify\Console\Commands\SyncProductsCommand;
+use CraftCms\Shopify\Product\Products;
+use CraftCms\Shopify\Store\Store;
 use GraphQL\Query as GqlQuery;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\RedirectResponse;
@@ -104,10 +105,6 @@ class Plugin extends BasePlugin
     public function register(): void
     {
         $this->app->singleton(Settings::class, fn() => $this->getSettings());
-        $this->app->singleton(Api::class);
-        $this->app->singleton(BulkOperations::class);
-        $this->app->singleton(Products::class);
-        $this->app->singleton(Store::class);
 
         // Shopify can't send a CSRF token with its webhooks.
         $routes = $this->app->make(Routes::class);
@@ -120,7 +117,7 @@ class Plugin extends BasePlugin
         ]);
     }
 
-    public function boot(): void
+    public function boot(ProjectConfig $projectConfig, Products $products, Api $api): void
     {
         $this->registerElementTypes();
         $this->registerUtilityTypes();
@@ -134,12 +131,11 @@ class Plugin extends BasePlugin
         $this->registerGqlQueries();
         $this->registerGqlComponents();
 
-        $productsService = $this->getProducts();
-        Craft::$app->getProjectConfig()->onAdd(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, [$productsService, 'handleChangedFieldLayout'])
-            ->onUpdate(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, [$productsService, 'handleChangedFieldLayout'])
-            ->onRemove(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, [$productsService, 'handleDeletedFieldLayout']);
+        $projectConfig->onAdd(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, $products->handleChangedFieldLayout(...))
+            ->onUpdate(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, $products->handleChangedFieldLayout(...))
+            ->onRemove(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, $products->handleDeletedFieldLayout(...));
 
-        foreach ($this->getApi()->getWebhookTopics() as $topic) {
+        foreach ($api->getWebhookTopics() as $topic) {
             WebhookRegistry::addHandler($topic, new Webhook());
         }
     }

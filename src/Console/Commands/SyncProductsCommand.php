@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace CraftCms\Shopify\Console\Commands;
 
-use craft\shopify\services\BulkOperations;
 use CraftCms\Cms\Console\CraftCommand;
+use CraftCms\Shopify\BulkOperation\BulkOperations;
 use Illuminate\Console\Command;
 use Override;
 

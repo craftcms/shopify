@@ -1329,7 +1329,7 @@ Both methods depend on setting up signifiers within Shopify, like a special cate
 
 Two [events](#events) are emitted as we build Product GraphQL queries.
 
-The first ([`EVENT_DEFINE_PRODUCT_GQL_FIELDS`](#craftshopifyservicesapievent_define_product_gql_fields)) is used to adjust the _selections_ (the fields that you want returned from the API).
+The first ([`ProductGqlFieldsResolving`](#craftcmsshopifyapieventsproductgqlfieldsresolving)) is used to adjust the _selections_ (the fields that you want returned from the API).
 These are most useful in combination with the [selective synchronization](#selective-sync) strategy, below, when the data you need to determine eligibility is not available in the plugin’s base selection.
 In the event’s example, we add selections for Shopify’s [Standard Product Taxonomy](https://help.shopify.com/en/manual/products/details/product-category).
 
@@ -1344,15 +1344,15 @@ $event->fields['edges']['node']['collections'] = [
 ];
 ```
 
-The second event ([`EVENT_DEFINE_GQL_QUERY_ARGUMENTS`](#craftshopifyservicesapievent_define_gql_query_arguments)) allows you to manipulate _arguments_.
+The second event ([`GqlQueryArgumentsResolving`](#craftcmsshopifyapieventsgqlqueryargumentsresolving)) allows you to manipulate _arguments_.
 Arguments are typically used to narrow the scope of a query, as you would with an element query in Craft.
 Note that Shopify collapses most of its query capabilities into a single string they call the [search syntax](https://shopify.dev/docs/api/usage/search-syntax), and the plugin already uses this when querying specific products by ID.
 
-As the example in the [event section below](#craftshopifyservicesapievent_define_gql_query_arguments) shows, you’ll need to account for an existing `query` argument, concatenating additional conditions when necessary.
+As the example in the [event section below](#craftcmsshopifyapieventsgqlqueryargumentsresolving) shows, you’ll need to account for an existing `query` argument, concatenating additional conditions when necessary.
 
 #### Selective Sync
 
-The [`EVENT_BEFORE_SYNCHRONIZE_PRODUCT` event](#craftshopifyservicesproductsevent_before_synchronize_product) example shows how you would achieve the same result by checking the value of a `do_not_sync` metafield.
+The [`ProductSyncing` event](#craftcmsshopifyproducteventsproductsyncing) example shows how you would achieve the same result by checking the value of a `do_not_sync` metafield.
 We synchronize all metafield values, by default, so you do not need to modify the base product query to fetch additional fields.
 
 > [!WARNING]
@@ -1364,65 +1364,55 @@ As you test synchronization criteria, you can run `php artisan shopify:data:rese
 
 ### Events
 
-Learn about [responding to events](https://craftcms.com/docs/5.x/extend/events.html) in the Craft extension documentation.
+Learn about [responding to events](https://craftcms.com/docs/6.x/extend/events.html) in the Craft extension documentation. Register listeners from a service provider’s or plugin’s `boot()` method.
 
-#### `craft\shopify\services\Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT`
+#### `CraftCms\Shopify\Product\Events\ProductSyncing`
 
-Emitted just prior to a product element is saved with new Shopify data. The `craft\shopify\events\ShopifyProductSyncEvent` extends `craft\events\CancelableEvent`, so setting `$event->isValid` allows you to prevent the new data from being saved.
+Dispatched just before a product element is saved with new Shopify data. Set `$event->isValid` to `false` to prevent the new data from being saved.
 
-The event object has three properties:
+The event object has two properties:
 
 - `element`: The product element being updated.
 - `source`: The Shopify product object that was applied.
 
 ```php
-use craft\base\Event;
-use craft\shopify\events\ShopifyProductSyncEvent;
-use craft\shopify\services\Products;
+use CraftCms\Shopify\Product\Events\ProductSyncing;
+use Illuminate\Support\Facades\Event;
 
-Event::on(
-  Products::class,
-  Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT,
-  function(ShopifyProductSyncEvent $event) {
+Event::listen(function(ProductSyncing $event): void {
     // Example 1: Cancel the sync if a flag is set via a Shopify metafield:
     $metafields = $event->element->getMetafields();
 
     if ($metafields['do_not_sync'] ?? false) {
-      $event->isValid = false;
+        $event->isValid = false;
     }
 
     // Example 2: Set a custom field value from metafield data:
     $event->element->setFieldValue('myNumberFieldHandle', $metafields['cool_factor']);
-  }
-);
+});
 ```
 
 > [!WARNING]
 > Do not manually save changes made in this event handler.
 > If the event is not canceled by a handler (`$event->isValid = false`), the Plugin proceeds to save the element, for you.
 
-#### `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`
+#### `CraftCms\Shopify\Api\Events\ProductGqlFieldsResolving`
 
-Emitted as we build a [`products()`](https://shopify.dev/docs/api/admin-graphql/2026-01/queries/products) GraphQL query to be executed within a bulk operation.
+Dispatched as we build a [`products()`](https://shopify.dev/docs/api/admin-graphql/2026-01/queries/products) GraphQL query to be executed within a bulk operation.
 
 ```php
-use craft\base\Event;
-use craft\shopify\events\DefineGqlFieldsEvent;
-use craft\shopify\services\Api;
+use CraftCms\Shopify\Api\Events\ProductGqlFieldsResolving;
+use Illuminate\Support\Facades\Event;
 
-Event::on(
-    Api::class,
-    Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS,
-    function(DefineGqlFieldsEvent $event) {
-        // Select data for Shopify's Standard Product Taxonomy
-        // https://shopify.github.io/product-taxonomy/releases/2026-02/
-        $event->fields['edges']['node']['category'] = [
-            'fullName',
-            'id',
-            'name',
-        ];
-    }
-);
+Event::listen(function(ProductGqlFieldsResolving $event): void {
+    // Select data for Shopify's Standard Product Taxonomy
+    // https://shopify.github.io/product-taxonomy/releases/2026-02/
+    $event->fields['edges']['node']['category'] = [
+        'fullName',
+        'id',
+        'name',
+    ];
+});
 ```
 
 Due to the way Shopify has structured its API, the main product field selections are always nested within `edges.nodes`.
@@ -1432,33 +1422,28 @@ We do not recommend trying to reduce selection sets, as it can interfere with th
 While the entire selection will be saved in the `shopify_data` table, we only split out specific objects.
 If you add nested selections (like [`combinedListings`](https://shopify.dev/docs/api/admin-graphql/2026-01/objects/Product#field-Product.fields.combinedListing)), they will not be unpacked into additional records.
 
-#### `craft\shopify\services\Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS`
+#### `CraftCms\Shopify\Api\Events\GqlQueryArgumentsResolving`
 
-Emitted as we build _any_ GraphQL query.
+Dispatched as we build _any_ GraphQL query.
 
 ```php
-use craft\base\Event;
-use craft\shopify\events\DefineGqlQueryArgumentsEvent;
-use craft\shopify\services\Api;
+use CraftCms\Shopify\Api\Events\GqlQueryArgumentsResolving;
+use Illuminate\Support\Facades\Event;
 
-Event::on(
-    Api::class,
-    Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS,
-    function(DefineGqlQueryArgumentsEvent $event) {
-        // Skip if we’re not querying products:
-        if ($event->fieldName !== 'products') {
-            return;
-        }
-
-        // For product queries only sync products that belong to a specific collection:
-        $syncCollectionId = 'collection_id:108179161409';
-        if (array_key_exists('query', $event->arguments)) {
-            $event->arguments['query'] .= ", {$syncCollectionId}";
-        } else {
-            $event->arguments['query'] = $syncCollectionId;
-        }
+Event::listen(function(GqlQueryArgumentsResolving $event): void {
+    // Skip if we’re not querying products:
+    if ($event->fieldName !== 'products') {
+        return;
     }
-);
+
+    // For product queries only sync products that belong to a specific collection:
+    $syncCollectionId = 'collection_id:108179161409';
+    if (array_key_exists('query', $event->arguments)) {
+        $event->arguments['query'] .= ", {$syncCollectionId}";
+    } else {
+        $event->arguments['query'] = $syncCollectionId;
+    }
+});
 ```
 
 Using this event, after the queries have been built, you have the opportunity to add custom arguments to the main query. For example, you can tailor a query for products using the [ProductConnection arguments](https://shopify.dev/docs/api/admin-graphql/2026-01/queries/products#arguments) (like `query`, `reverse`, or `savedSearchId`).

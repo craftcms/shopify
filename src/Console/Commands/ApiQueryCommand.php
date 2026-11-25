@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace CraftCms\Shopify\Console\Commands;
 
 use craft\shopify\exceptions\ShopifyApiException;
-use craft\shopify\services\Api;
 use CraftCms\Cms\Console\CraftCommand;
+use CraftCms\Shopify\Api\Api;
 use Illuminate\Console\Command;
 use Override;
 

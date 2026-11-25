@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace CraftCms\Shopify\Http\Controllers;
 
-use craft\shopify\services\BulkOperations;
 use CraftCms\Cms\Http\RespondsWithFlash;
+use CraftCms\Shopify\BulkOperation\BulkOperations;
 use CraftCms\Shopify\Settings;
 use Symfony\Component\HttpFoundation\Response;
 

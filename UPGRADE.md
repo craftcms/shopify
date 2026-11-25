@@ -69,7 +69,119 @@ The old class names still work as aliases, but are deprecated.
 - `setCustomScopes()`
 - `setContextualPricingCountries()`
 
-The plugin's services (`Api`, `BulkOperations`, `Products` and `Store`) are container singletons. `Plugin::getInstance()->getApi()` and the other getters still return them.
+
+### Services
+
+The services are plain classes now, with new names. Resolve them from the container, or type-hint them in a constructor or method that Laravel calls:
+
+| Before | After |
+| --- | --- |
+| `craft\shopify\services\Api` | `CraftCms\Shopify\Api\Api` |
+| `craft\shopify\services\BulkOperations` | `CraftCms\Shopify\BulkOperation\BulkOperations` |
+| `craft\shopify\services\Products` | `CraftCms\Shopify\Product\Products` |
+| `craft\shopify\services\Store` | `CraftCms\Shopify\Store\Store` |
+
+Before:
+
+```php
+use craft\shopify\Plugin;
+
+$shop = Plugin::getInstance()->getApi()->getShop();
+```
+
+After:
+
+```php
+use CraftCms\Shopify\Api\Api;
+
+$shop = app(Api::class)->getShop();
+```
+
+The old class names still work as aliases, but are deprecated. `Plugin::getApi()`, `getBulkOperations()`, `getProducts()` and `getStore()` still return the services.
+
+The services no longer extend `craft\base\Component`, so they have no Yii behaviors, events or `__get()` property access. Other changes:
+
+- `Products::handleChangedFieldLayout()` takes a `CraftCms\Cms\ProjectConfig\Events\ConfigEvent` instead of a `craft\events\ConfigEvent`.
+- `Api::getGqlClient()` and `Store::getUrl()` throw a `RuntimeException` instead of a `yii\base\InvalidConfigException` when Shopify isn't configured.
+- `BulkOperations::MUTEX_NAME` names a Laravel cache lock (`Cache::lock()`) instead of a Craft mutex. Use `Cache::lock(BulkOperations::MUTEX_NAME)` if your code needs to hold the same lock.
+
+### Events
+
+The plugin's Yii events were replaced by Laravel events. Listen for the event class with `Event::listen()`. There is no `sender`.
+
+| Before | After |
+| --- | --- |
+| `Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT` with `craft\shopify\events\ShopifyProductSyncEvent` | `CraftCms\Shopify\Product\Events\ProductSyncing` |
+| `Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS` with `craft\shopify\events\DefineGqlFieldsEvent` | `CraftCms\Shopify\Api\Events\ProductGqlFieldsResolving` |
+| `Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS` with `craft\shopify\events\DefineGqlQueryArgumentsEvent` | `CraftCms\Shopify\Api\Events\GqlQueryArgumentsResolving` |
+
+The event classes have the same properties as before (`$element` and `$source`, `$fields`, and `$fieldName` and `$arguments`). Set `$event->isValid = false` on `ProductSyncing` to skip saving the product, as before.
+
+Before:
+
+```php
+use craft\shopify\events\DefineGqlFieldsEvent;
+use craft\shopify\events\DefineGqlQueryArgumentsEvent;
+use craft\shopify\events\ShopifyProductSyncEvent;
+use craft\shopify\services\Api;
+use craft\shopify\services\Products;
+use yii\base\Event;
+
+Event::on(
+    Products::class,
+    Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT,
+    function(ShopifyProductSyncEvent $event) {
+        if ($event->element->getMetafields()['do_not_sync'] ?? false) {
+            $event->isValid = false;
+        }
+    }
+);
+
+Event::on(
+    Api::class,
+    Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS,
+    function(DefineGqlFieldsEvent $event) {
+        $event->fields['edges']['node']['category'] = ['id', 'name'];
+    }
+);
+
+Event::on(
+    Api::class,
+    Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS,
+    function(DefineGqlQueryArgumentsEvent $event) {
+        if ($event->fieldName === 'products') {
+            $event->arguments['query'] = 'collection_id:108179161409';
+        }
+    }
+);
+```
+
+After:
+
+```php
+use CraftCms\Shopify\Api\Events\GqlQueryArgumentsResolving;
+use CraftCms\Shopify\Api\Events\ProductGqlFieldsResolving;
+use CraftCms\Shopify\Product\Events\ProductSyncing;
+use Illuminate\Support\Facades\Event;
+
+Event::listen(function(ProductSyncing $event): void {
+    if ($event->element->getMetafields()['do_not_sync'] ?? false) {
+        $event->isValid = false;
+    }
+});
+
+Event::listen(function(ProductGqlFieldsResolving $event): void {
+    $event->fields['edges']['node']['category'] = ['id', 'name'];
+});
+
+Event::listen(function(GqlQueryArgumentsResolving $event): void {
+    if ($event->fieldName === 'products') {
+        $event->arguments['query'] = 'collection_id:108179161409';
+    }
+});
+```
+
+Register listeners in a service provider's `boot()` method, or a plugin's.
 
 ### Controllers
 

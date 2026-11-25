@@ -6,7 +6,6 @@ namespace CraftCms\Shopify\Http\Controllers;
 
 use craft\shopify\elements\Product;
 use craft\shopify\enums\ApiVersion;
-use craft\shopify\services\Api;
 use CraftCms\Cms\Config\GeneralConfig;
 use CraftCms\Cms\Cp\SelectOptions;
 use CraftCms\Cms\Element\Jobs\ResaveElements;
@@ -27,6 +26,7 @@ use CraftCms\Cms\Ui\Nodes\Separator;
 use CraftCms\Cms\Ui\Ui;
 use CraftCms\Cms\Ui\UiContext;
 use CraftCms\Cms\Ui\UiResolver;
+use CraftCms\Shopify\Api\Api;
 use CraftCms\Shopify\Plugin;
 use CraftCms\Shopify\Settings;
 use Illuminate\Http\JsonResponse;
