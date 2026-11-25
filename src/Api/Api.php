@@ -494,8 +494,14 @@ class Api
         $data = ShopifyData::query()
             ->where('type', $type)
             ->when($parentId !== null, function($query) use ($parentId) {
-                $parentId = $parentId ?: null;
-                is_array($parentId) ? $query->whereIn('parentId', $parentId) : $query->where('parentId', $parentId);
+                if (!is_array($parentId) || $parentId === []) {
+                    $query->where('parentId', $parentId ?: null);
+                    return;
+                }
+
+                $query->where(fn($query) => $query
+                    ->whereIn('parentId', array_filter($parentId, fn($id) => $id !== null))
+                    ->when(in_array(null, $parentId, true), fn($query) => $query->orWhereNull('parentId')));
             })
             ->orderBy('position')
             ->orderBy('id')
