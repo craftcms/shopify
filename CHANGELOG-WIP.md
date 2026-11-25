@@ -18,6 +18,10 @@
 - Renamed `craft\shopify\Plugin` to `CraftCms\Shopify\Plugin`. The old class name is a deprecated alias.
 - Renamed `craft\shopify\models\Settings` to `CraftCms\Shopify\Settings`, which now extends `CraftCms\Cms\Plugin\PluginSettings`. The old class name is a deprecated alias.
 - Added `CraftCms\Shopify\Database\Table`.
+- Added `CraftCms\Shopify\GarbageCollection\Actions\DeleteRemovedProducts`.
+- Added `CraftCms\Shopify\GarbageCollection\Actions\PurgeBulkOperations`.
+- `craft.shopify` and `craft.shopifyProducts()` are now `CraftCms\Cms\Twig\Variables\CraftVariable` macros.
+- Removed `craft\shopify\web\twig\CraftVariableBehavior`.
 - Added `CraftCms\Shopify\Api\Events\GqlQueryArgumentsResolving`, which replaces `craft\shopify\services\Api::EVENT_DEFINE_GQL_QUERY_ARGUMENTS`.
 - Added `CraftCms\Shopify\Api\Events\ProductGqlFieldsResolving`, which replaces `craft\shopify\services\Api::EVENT_DEFINE_PRODUCT_GQL_FIELDS`.
 - Added `CraftCms\Shopify\Product\Events\ProductSyncing`, which replaces `craft\shopify\services\Products::EVENT_BEFORE_SYNCHRONIZE_PRODUCT`.

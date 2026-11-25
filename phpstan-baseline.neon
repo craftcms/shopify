@@ -265,14 +265,8 @@ parameters:
 			path: src/Plugin.php
 
 		-
-			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getElements\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Plugin.php
-
-		-
-			message: '#^Call to an undefined method yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:getPlugins\(\)\.$#'
-			identifier: method.notFound
+			message: '#^Property CraftCms\\Shopify\\Plugin\:\:\$linkTypes \(array\<class\-string\<CraftCms\\Cms\\Field\\LinkTypes\\BaseLinkType\>\>\) does not accept default value of type array\<int, string\>\.$#'
+			identifier: property.defaultValue
 			count: 1
 			path: src/Plugin.php
 
