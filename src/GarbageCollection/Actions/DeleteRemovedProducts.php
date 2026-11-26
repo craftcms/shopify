@@ -32,21 +32,23 @@ class DeleteRemovedProducts extends GarbageCollectionAction
 
     public function __invoke(): void
     {
-        /** @var array<int, string> $shopifyIds Shopify IDs, indexed by element ID */
-        $shopifyIds = DB::table(Table::PRODUCTS, 'products')
+        $rows = DB::table(Table::PRODUCTS, 'products')
             ->join(CraftTable::ELEMENTS . ' as elements', 'elements.id', '=', 'products.id')
             ->leftJoin(Table::DATA . ' as data', 'data.shopifyGid', '=', 'products.shopifyGid')
             ->whereNull('data.shopifyGid')
             ->whereNull('elements.draftId')
             ->whereNull('elements.revisionId')
-            ->pluck('products.shopifyId', 'products.id')
-            ->all();
+            ->get(['products.id', 'products.shopifyId', 'products.shopifyGid'])
+            ->keyBy('id');
+
+        /** @var array<int, string> $shopifyIds Shopify IDs, indexed by element ID */
+        $shopifyIds = $rows->pluck('shopifyId', 'id')->all();
 
         if (empty($shopifyIds)) {
             return;
         }
 
-        $this->components->task('deleting Shopify products that no longer exist in Shopify', function() use ($shopifyIds): void {
+        $this->components->task('deleting Shopify products that no longer exist in Shopify', function() use ($rows, $shopifyIds): void {
             $savedShopifyIds = [];
 
             foreach (array_chunk($shopifyIds, 100) as $ids) {
@@ -89,6 +91,8 @@ class DeleteRemovedProducts extends GarbageCollectionAction
                 ->all();
 
             foreach ($products as $product) {
+                // afterDelete() needs the GID to delete any variants, media or metafields left behind
+                $product->shopifyGid = $rows[$product->id]->shopifyGid;
                 $this->elements->deleteElement($product, true);
             }
         });

@@ -39,8 +39,8 @@ return new class() extends Migration {
         }
 
         foreach ([CraftTable::FIELDLAYOUTS => 'config', CraftTable::FIELDS => 'settings'] as $table => $column) {
-            foreach (DB::table($table)->whereNotNull($column)->where($column, 'like', '%shopify%')->lazyById() as $row) {
-                $config = json_decode($row->$column, true, flags: JSON_THROW_ON_ERROR);
+            foreach (DB::table($table)->whereNotNull($column)->lazyById() as $row) {
+                $config = json_decode($row->$column, flags: JSON_THROW_ON_ERROR);
                 $updated = $this->updateConfig($config);
 
                 if ($updated !== $config) {
@@ -85,7 +85,7 @@ return new class() extends Migration {
             }
 
             if (str_starts_with(ltrim($config), '{') && str_contains($config, 'shopify') && json_validate($config)) {
-                $decoded = json_decode($config, true, flags: JSON_THROW_ON_ERROR);
+                $decoded = json_decode($config, flags: JSON_THROW_ON_ERROR);
                 $updated = $this->updateConfig($decoded);
 
                 return $updated !== $decoded ? json_encode($updated, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION) : $config;
@@ -94,11 +94,17 @@ return new class() extends Migration {
             return $config;
         }
 
-        if (!is_array($config)) {
+        if (!is_array($config) && !$config instanceof stdClass) {
             return $config;
         }
 
-        return array_map($this->updateConfig(...), $config);
+        $values = array_map($this->updateConfig(...), (array)$config);
+
+        if ($config instanceof stdClass) {
+            return $values === (array)$config ? $config : (object)$values;
+        }
+
+        return $values;
     }
 
     /**
