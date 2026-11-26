@@ -36,7 +36,7 @@ return [
     'Failed' => 'Başarısız',
     'Failed to create products sync' => 'Ürün senkronizasyonu oluşturulamadı',
     'Failed to delete sync' => 'Senkronizasyon silinemedi',
-    'Handle' => 'Simge',
+    'Handle' => 'Tanımlayıcı',
     'Has variants' => 'Varyantları var',
     'Images' => 'Resimler',
     'Invalid or missing HMAC. Please try re-installing the app.' => 'Geçersiz veya eksik HMAC. Lütfen uygulamayı yeniden yüklemeyi deneyin.',
