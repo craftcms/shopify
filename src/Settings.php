@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace CraftCms\Shopify;
 
-use craft\shopify\elements\Product;
 use craft\shopify\enums\ApiVersion;
 use CraftCms\Cms\Cms;
 use CraftCms\Cms\Cp\RequestedSite;
@@ -18,6 +17,7 @@ use CraftCms\Cms\Support\Url;
 use CraftCms\Cms\Validation\Rules\EnvValueRule;
 use CraftCms\Shopify\Api\Models\AccessToken;
 use CraftCms\Shopify\Helpers\ShopifyHelper;
+use CraftCms\Shopify\Product\Elements\Product;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;

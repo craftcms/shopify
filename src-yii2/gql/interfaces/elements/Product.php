@@ -12,12 +12,12 @@ use craft\gql\GqlEntityRegistry;
 use craft\gql\interfaces\Element;
 use craft\gql\types\DateTime;
 use craft\helpers\Json;
-use craft\shopify\elements\Product as ProductElement;
 use craft\shopify\gql\types\generators\ProductType;
 use craft\shopify\gql\types\Image;
 use craft\shopify\gql\types\Metafield;
 use craft\shopify\gql\types\Option;
 use craft\shopify\gql\types\Variant;
+use CraftCms\Shopify\Product\Elements\Product as ProductElement;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
 
@@ -148,7 +148,7 @@ class Product extends Element
                 'name' => 'metafields',
                 'type' => Type::listOf(Metafield::getType()),
                 'description' => 'The product’s metafields in Shopify.',
-                'resolve' => function(\craft\shopify\elements\Product $source) {
+                'resolve' => function(\CraftCms\Shopify\Product\Elements\Product $source) {
                     // Remap metafields to be an array of key/value pairs instead of an associative array
                     return collect($source->getMetafields())
                         // Ensure value is encoded as we aren't sure of its type

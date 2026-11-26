@@ -7,8 +7,6 @@ namespace CraftCms\Shopify;
 use Closure;
 use craft\feedme\events\RegisterFeedMeFieldsEvent;
 use craft\feedme\services\Fields as FeedMeFields;
-use craft\shopify\elements\db\ProductQuery;
-use craft\shopify\elements\Product;
 use craft\shopify\feedme\fields\Products as FeedMeProductsField;
 use craft\shopify\fieldlayoutelements\MediaField;
 use craft\shopify\fieldlayoutelements\MetafieldsField;
@@ -42,11 +40,15 @@ use CraftCms\Shopify\Console\Commands\SyncProductsCommand;
 use CraftCms\Shopify\Database\Table;
 use CraftCms\Shopify\GarbageCollection\Actions\DeleteRemovedProducts;
 use CraftCms\Shopify\GarbageCollection\Actions\PurgeBulkOperations;
+use CraftCms\Shopify\Product\Elements\Product;
+use CraftCms\Shopify\Product\Policies\ProductPolicy;
 use CraftCms\Shopify\Product\Products;
+use CraftCms\Shopify\Product\Queries\ProductQuery;
 use CraftCms\Shopify\Store\Store;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use yii\base\Event as YiiEvent;
 
 use function CraftCms\Cms\cp_url;
@@ -60,7 +62,7 @@ class Plugin extends BasePlugin
 {
     public const string PC_PATH_PRODUCT_FIELD_LAYOUTS = 'shopify.productFieldLayout';
 
-    public string $schemaVersion = '9.0.0.1';
+    public string $schemaVersion = '9.0.0.2';
 
     public string $minVersionRequired = '8.2.1';
 
@@ -138,6 +140,8 @@ class Plugin extends BasePlugin
     {
         $this->registerVariables();
         $this->registerFeedMeFields($plugins);
+
+        Gate::policy(Product::class, ProductPolicy::class);
 
         Event::listen(function(GqlSchemaComponentsResolving $event): void {
             $event->queries[t('Shopify Products', category: 'shopify')] = [

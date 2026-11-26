@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace CraftCms\Shopify\Product;
 
 use craft\shopify\collections\VariantCollection;
-use craft\shopify\elements\Product;
 use craft\shopify\models\Variant;
 use CraftCms\Cms\Element\ElementCaches;
 use CraftCms\Cms\Element\Elements;
@@ -18,6 +17,7 @@ use CraftCms\Cms\Support\Str;
 use CraftCms\Shopify\Api\Api;
 use CraftCms\Shopify\Api\Models\ShopifyData;
 use CraftCms\Shopify\BulkOperation\BulkOperations;
+use CraftCms\Shopify\Product\Elements\Product;
 use CraftCms\Shopify\Product\Events\ProductSyncing;
 use GraphQL\QueryBuilder\QueryBuilder;
 use Illuminate\Container\Attributes\Singleton;
@@ -131,6 +131,7 @@ class Products
 
         // Set attributes on the element to emulate it having been loaded with JOINed data:
         $productElement->setAttributes($attributes);
+        $productElement->syncing = true;
 
         event($event = new ProductSyncing($productElement, $product));
 

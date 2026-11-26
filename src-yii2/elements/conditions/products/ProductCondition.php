@@ -1,34 +1,13 @@
 <?php
-/**
- * @link https://craftcms.com/
- * @copyright Copyright (c) Pixel & Tonic, Inc.
- * @license https://craftcms.github.io/license/
- */
 
 namespace craft\shopify\elements\conditions\products;
 
-use craft\elements\conditions\ElementCondition;
+/** @deprecated in 9.0.0. Use {@see \CraftCms\Shopify\Product\Conditions\ProductCondition} instead. */
+class_alias(\CraftCms\Shopify\Product\Conditions\ProductCondition::class, 'craft\shopify\elements\conditions\products\ProductCondition');
 
-/**
- * Product query condition.
- *
- * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 3.0.0
- */
-class ProductCondition extends ElementCondition
-{
-    /**
-     * @inheritdoc
-     */
-    protected function selectableConditionRules(): array
+/** @phpstan-ignore-next-line Gives IDEs and static analysis a real symbol. */
+if (false) {
+    class ProductCondition extends \CraftCms\Shopify\Product\Conditions\ProductCondition
     {
-        return array_merge(parent::selectableConditionRules(), [
-            ProductTypeConditionRule::class,
-            ShopifyStatusConditionRule::class,
-            VendorConditionRule::class,
-            HandleConditionRule::class,
-            TagsConditionRule::class,
-            TemplateSuffixConditionRule::class,
-        ]);
     }
 }

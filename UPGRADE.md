@@ -220,7 +220,7 @@ Register listeners in a service provider's `boot()` method, or a plugin's.
 
 ### Twig
 
-`craft.shopify` and `craft.shopifyProducts()` work the same in templates. They're registered as macros on `CraftCms\Cms\Twig\Variables\CraftVariable` now, so `craft\shopify\web\twig\CraftVariableBehavior` was removed. Code that referenced the behavior should call `craft\shopify\elements\Product::find()` instead.
+`craft.shopify` and `craft.shopifyProducts()` work the same in templates. They're registered as macros on `CraftCms\Cms\Twig\Variables\CraftVariable` now, so `craft\shopify\web\twig\CraftVariableBehavior` was removed. Code that referenced the behavior should call `CraftCms\Shopify\Product\Elements\Product::find()` instead.
 
 ### Garbage collection
 
@@ -234,18 +234,45 @@ The `craft\shopify\controllers\*` and `craft\shopify\console\controllers\*` clas
 
 The `craft\shopify\migrations\*` classes were removed. To upgrade to Shopify 9.0, a project must first be on Shopify 8.2.1 or later.
 
-### Product element and query
+### Product element
 
-These only affect custom code that extends `craft\shopify\elements\Product` or `craft\shopify\elements\db\ProductQuery`.
+The product element, its query and its condition rules have new class names:
 
 | Before | After |
 | --- | --- |
-| `Product::searchableAttributes()` | `Product::defineSearchableAttributes()` (protected) |
-| `Product::init()` | `Product::__construct()` |
-| `Product::prepareEditScreen(yii\web\Response $response, …)` | `Product::prepareEditScreen(Symfony\Component\HttpFoundation\Response\|CraftCms\Cms\Http\Responses\CpScreenResponse $response, …)` |
+| `craft\shopify\elements\Product` | `CraftCms\Shopify\Product\Elements\Product` |
+| `craft\shopify\elements\db\ProductQuery` | `CraftCms\Shopify\Product\Queries\ProductQuery` |
+| `craft\shopify\elements\conditions\products\ProductCondition` | `CraftCms\Shopify\Product\Conditions\ProductCondition` |
+| `craft\shopify\elements\conditions\products\HandleConditionRule` | `CraftCms\Shopify\Product\Conditions\HandleConditionRule` |
+| `craft\shopify\elements\conditions\products\ProductTypeConditionRule` | `CraftCms\Shopify\Product\Conditions\ProductTypeConditionRule` |
+| `craft\shopify\elements\conditions\products\ShopifyStatusConditionRule` | `CraftCms\Shopify\Product\Conditions\ShopifyStatusConditionRule` |
+| `craft\shopify\elements\conditions\products\TagsConditionRule` | `CraftCms\Shopify\Product\Conditions\TagsConditionRule` |
+| `craft\shopify\elements\conditions\products\TemplateSuffixConditionRule` | `CraftCms\Shopify\Product\Conditions\TemplateSuffixConditionRule` |
+| `craft\shopify\elements\conditions\products\VendorConditionRule` | `CraftCms\Shopify\Product\Conditions\VendorConditionRule` |
+| `craft\shopify\helpers\Product` | `CraftCms\Shopify\Helpers\Product` |
+
+The old class names still work as aliases, but are deprecated. `php artisan craft:up` renames the element type stored in the database and project config, so existing products, relations, field layouts, element index sources and saved conditions keep working.
+
+`craft.shopifyProducts()`, the product query params, statuses and element properties work as before. These changes only affect custom code that extends or calls the classes above:
+
+| Before | After |
+| --- | --- |
+| `new ProductQuery(Product::class, $config)` | `new ProductQuery($config)`, or `Product::find()` |
 | `ProductQuery::beforePrepare()` | Removed. The query joins its tables in the constructor and applies its params in a `beforeQuery()` callback. |
 | `ProductQuery::populate()` | Removed. Shopify data is eager-loaded in `ProductQuery::afterHydrate()`. |
 | `ProductQuery::statusCondition()` returning a condition array | `ProductQuery::statusCondition()` returning a `Closure` that modifies the query builder |
+| Condition rules’ `modifyQuery(ElementQueryInterface $query)` and `getExclusiveQueryParams()` | `modifyQuery(Illuminate\Database\Query\Builder $query, ElementQueryInterface $elementQuery)`, which calls the new static `ProductQuery::applyProductType()`, `applyShopifyStatus()`, `applyHandle()`, `applyVendor()`, `applyTags()` and `applyTemplateSuffix()` methods |
+| `Product::canView()`, `canSave()`, `canDelete()` and `canCreateDrafts()` | `CraftCms\Shopify\Product\Policies\ProductPolicy`. Check permissions with `$user->can('save', $product)`. |
+| `Product::prepareEditScreen()` | `Product::crumbs()` |
+| `Product::getSidebarHtml()` with `helpers\Product::renderCardHtml()` | The Shopify details are a metadata group, from `Product::getMetadataGroups()` and `CraftCms\Shopify\Helpers\Product::metadata()` |
+| `Product::getShopifyLink()` returning `Twig\Markup` | `Product::getShopifyLink()` returning `Illuminate\Support\HtmlString` |
+| `Product::init()` | `Product::__construct()` |
+| `Product::searchableAttributes()` | `Product::defineSearchableAttributes()` (protected) |
+| `Product::hasContent()` | Removed. Craft 6 elements have no such method. |
+
+Syncs and webhooks no longer create product revisions. A revision only kept the product’s title, slug, status and custom fields, and the next sync replaced them, so saves from Shopify set the new `Product::$syncing` property, and `Product::hasRevisions()` returns `false` while it’s set. Saving a product in the control panel still creates a revision. Existing revisions are kept.
+
+The product edit screen shows the Shopify details in the sidebar’s metadata, below the product’s own, instead of in a card with its own styles.
 
 ### GraphQL
 

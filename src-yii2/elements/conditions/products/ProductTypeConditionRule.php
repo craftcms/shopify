@@ -1,77 +1,13 @@
 <?php
-/**
- * @link https://craftcms.com/
- * @copyright Copyright (c) Pixel & Tonic, Inc.
- * @license https://craftcms.github.io/license/
- */
 
 namespace craft\shopify\elements\conditions\products;
 
-use craft\base\conditions\BaseMultiSelectConditionRule;
-use craft\base\ElementInterface;
-use craft\elements\conditions\ElementConditionRuleInterface;
-use craft\elements\db\ElementQueryInterface;
-use craft\helpers\StringHelper;
-use craft\shopify\elements\db\ProductQuery;
-use craft\shopify\elements\Product;
-use CraftCms\Shopify\Api\Models\ShopifyData;
+/** @deprecated in 9.0.0. Use {@see \CraftCms\Shopify\Product\Conditions\ProductTypeConditionRule} instead. */
+class_alias(\CraftCms\Shopify\Product\Conditions\ProductTypeConditionRule::class, 'craft\shopify\elements\conditions\products\ProductTypeConditionRule');
 
-/**
- * Product Type condition rule.
- *
- * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
- * @since 6.0.0
- */
-class ProductTypeConditionRule extends BaseMultiSelectConditionRule implements ElementConditionRuleInterface
-{
-    /**
-     * @inheritDoc
-     */
-    public function getLabel(): string
+/** @phpstan-ignore-next-line Gives IDEs and static analysis a real symbol. */
+if (false) {
+    class ProductTypeConditionRule extends \CraftCms\Shopify\Product\Conditions\ProductTypeConditionRule
     {
-        return \Craft::t('shopify', 'Product Type');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function options(): array
-    {
-        $values = ShopifyData::query()->where('type', 'Product')->distinct()->pluck('productType')->all();
-
-        // If we have current values, make sure they're in the list
-        if ($this->values) {
-            $values = array_merge($values, $this->values);
-        }
-
-        return collect($values)->unique()->map(function($type) {
-            return ['value' => $type, 'label' => StringHelper::titleize($type)];
-        })->all();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getExclusiveQueryParams(): array
-    {
-        return ['productType'];
-    }
-
-    /**
-     * @inheritDoc
-     * @param Product $element
-     */
-    public function matchElement(ElementInterface $element): bool
-    {
-        return $this->matchValue($element->productType);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function modifyQuery(ElementQueryInterface $query): void
-    {
-        /** @var ProductQuery $query */
-        $query->productType($this->paramValue());
     }
 }

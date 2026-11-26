@@ -10,8 +10,8 @@ namespace craft\shopify\fieldlayoutelements;
 use Craft;
 use craft\fieldlayoutelements\BaseNativeField;
 use craft\helpers\Html;
-use craft\shopify\elements\Product;
 use CraftCms\Cms\Element\Contracts\ElementInterface;
+use CraftCms\Shopify\Product\Elements\Product;
 use yii\base\InvalidArgumentException;
 
 /**

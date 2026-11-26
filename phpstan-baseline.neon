@@ -7,138 +7,6 @@ parameters:
 			path: database/migrations/Install.php
 
 		-
-			message: '#^Access to an undefined property yii\\console\\Application\|yii\\web\\Application\<yii\\web\\IdentityInterface\>\:\:\$fields\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src-yii2/elements/Product.php
-
-		-
-			message: '#^Call to an undefined method yii\\base\\View\:\:registerAssetBundle\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src-yii2/elements/Product.php
-
-		-
-			message: '#^Method craft\\shopify\\elements\\Product\:\:attributeHtml\(\) should return string but returns int\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src-yii2/elements/Product.php
-
-		-
-			message: '#^Property craft\\shopify\\elements\\Product\:\:\$_options \(array\) on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.property
-			count: 1
-			path: src-yii2/elements/Product.php
-
-		-
-			message: '#^Property craft\\shopify\\elements\\Product\:\:\$_tags \(array\) on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.property
-			count: 1
-			path: src-yii2/elements/Product.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between null and null will always evaluate to true\.$#'
-			identifier: identical.alwaysTrue
-			count: 1
-			path: src-yii2/elements/Product.php
-
-		-
-			message: '#^PHPDoc tag @param for parameter \$element with type craft\\shopify\\elements\\Product is not subtype of native type craft\\base\\ElementInterface\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: src-yii2/elements/conditions/products/HandleConditionRule.php
-
-		-
-			message: '#^PHPDoc tag @var with type craft\\shopify\\elements\\db\\ProductQuery is not subtype of native type craft\\elements\\db\\ElementQueryInterface\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: src-yii2/elements/conditions/products/HandleConditionRule.php
-
-		-
-			message: '#^PHPDoc tag @param for parameter \$element with type craft\\shopify\\elements\\Product is not subtype of native type craft\\base\\ElementInterface\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: src-yii2/elements/conditions/products/ProductTypeConditionRule.php
-
-		-
-			message: '#^PHPDoc tag @var with type craft\\shopify\\elements\\db\\ProductQuery is not subtype of native type craft\\elements\\db\\ElementQueryInterface\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: src-yii2/elements/conditions/products/ProductTypeConditionRule.php
-
-		-
-			message: '#^PHPDoc tag @param for parameter \$element with type craft\\shopify\\elements\\Product is not subtype of native type craft\\base\\ElementInterface\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: src-yii2/elements/conditions/products/ShopifyStatusConditionRule.php
-
-		-
-			message: '#^PHPDoc tag @var with type craft\\shopify\\elements\\db\\ProductQuery is not subtype of native type craft\\elements\\db\\ElementQueryInterface\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: src-yii2/elements/conditions/products/ShopifyStatusConditionRule.php
-
-		-
-			message: '#^PHPDoc tag @param for parameter \$element with type craft\\shopify\\elements\\Product is not subtype of native type craft\\base\\ElementInterface\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: src-yii2/elements/conditions/products/TagsConditionRule.php
-
-		-
-			message: '#^PHPDoc tag @var with type craft\\shopify\\elements\\db\\ProductQuery is not subtype of native type craft\\elements\\db\\ElementQueryInterface\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: src-yii2/elements/conditions/products/TagsConditionRule.php
-
-		-
-			message: '#^PHPDoc tag @param for parameter \$element with type craft\\shopify\\elements\\Product is not subtype of native type craft\\base\\ElementInterface\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: src-yii2/elements/conditions/products/TemplateSuffixConditionRule.php
-
-		-
-			message: '#^PHPDoc tag @param for parameter \$query with type craft\\shopify\\elements\\db\\ProductQuery is not subtype of native type craft\\elements\\db\\ElementQueryInterface\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: src-yii2/elements/conditions/products/TemplateSuffixConditionRule.php
-
-		-
-			message: '#^PHPDoc tag @var with type craft\\shopify\\elements\\db\\ProductQuery is not subtype of native type craft\\elements\\db\\ElementQueryInterface\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: src-yii2/elements/conditions/products/TemplateSuffixConditionRule.php
-
-		-
-			message: '#^PHPDoc tag @param for parameter \$element with type craft\\shopify\\elements\\Product is not subtype of native type craft\\base\\ElementInterface\.$#'
-			identifier: parameter.phpDocType
-			count: 1
-			path: src-yii2/elements/conditions/products/VendorConditionRule.php
-
-		-
-			message: '#^PHPDoc tag @var with type craft\\shopify\\elements\\db\\ProductQuery is not subtype of native type craft\\elements\\db\\ElementQueryInterface\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: src-yii2/elements/conditions/products/VendorConditionRule.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Query\\Builder\:\:whereBool\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src-yii2/elements/db/ProductQuery.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Query\\Builder\:\:whereParam\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src-yii2/elements/db/ProductQuery.php
-
-		-
-			message: '#^PHPDoc tag @method for method craft\\shopify\\elements\\db\\ProductQuery\:\:nth\(\) parameter \#2 \$db contains unknown class craft\\shopify\\elements\\db\\Connection\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src-yii2/elements/db/ProductQuery.php
-
-		-
 			message: '#^Access to undefined constant craft\\enums\\Color\:\:Blue\.$#'
 			identifier: classConstant.notFound
 			count: 1
@@ -217,24 +85,6 @@ parameters:
 			path: src-yii2/gql/types/generators/ProductType.php
 
 		-
-			message: '#^Access to undefined constant craft\\enums\\Color\:\:Green\.$#'
-			identifier: classConstant.notFound
-			count: 1
-			path: src-yii2/helpers/Product.php
-
-		-
-			message: '#^Access to undefined constant craft\\enums\\Color\:\:Orange\.$#'
-			identifier: classConstant.notFound
-			count: 1
-			path: src-yii2/helpers/Product.php
-
-		-
-			message: '#^Access to undefined constant craft\\enums\\Color\:\:Red\.$#'
-			identifier: classConstant.notFound
-			count: 1
-			path: src-yii2/helpers/Product.php
-
-		-
 			message: '#^Call to an undefined method yii\\base\\View\:\:registerAssetBundle\(\)\.$#'
 			identifier: method.notFound
 			count: 1
@@ -253,16 +103,34 @@ parameters:
 			path: src/Plugin.php
 
 		-
+			message: '#^Parameter \$event of anonymous function has invalid type craft\\feedme\\events\\RegisterFeedMeFieldsEvent\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Plugin.php
+
+		-
 			message: '#^Property CraftCms\\Shopify\\Plugin\:\:\$linkTypes \(array\<class\-string\<CraftCms\\Cms\\Field\\LinkTypes\\BaseLinkType\>\>\) does not accept default value of type array\<int, string\>\.$#'
 			identifier: property.defaultValue
 			count: 1
 			path: src/Plugin.php
 
 		-
-			message: '#^Parameter \$event of anonymous function has invalid type craft\\feedme\\events\\RegisterFeedMeFieldsEvent\.$#'
-			identifier: class.notFound
+			message: '#^Call to an undefined method CraftCms\\Shopify\\Product\\Queries\\ProductQuery\:\:whereParam\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Product/Queries/ProductQuery.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Database\\Query\\Builder\:\:whereParam\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: src/Product/Queries/ProductQuery.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Query\\Builder\:\:whereBool\(\)\.$#'
+			identifier: method.notFound
 			count: 1
-			path: src/Plugin.php
+			path: src/Product/Queries/ProductQuery.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Http\\Request\:\:isCpRequest\(\)\.$#'

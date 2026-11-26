@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace CraftCms\Shopify\Http\Controllers;
 
-use craft\shopify\elements\Product;
 use craft\shopify\enums\ApiVersion;
 use CraftCms\Cms\Config\GeneralConfig;
 use CraftCms\Cms\Cp\SelectOptions;
@@ -28,6 +27,7 @@ use CraftCms\Cms\Ui\UiContext;
 use CraftCms\Cms\Ui\UiResolver;
 use CraftCms\Shopify\Api\Api;
 use CraftCms\Shopify\Plugin;
+use CraftCms\Shopify\Product\Elements\Product;
 use CraftCms\Shopify\Settings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

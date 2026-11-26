@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use craft\shopify\elements\Product;
 use craft\shopify\enums\BulkOperationStatus;
 use CraftCms\Cms\Database\Expressions\JsonExtract;
 use CraftCms\Cms\Database\Migration;
@@ -10,6 +9,7 @@ use CraftCms\Cms\Database\Table as CraftTable;
 use CraftCms\Cms\Support\Facades\ProjectConfig;
 use CraftCms\Shopify\BulkOperation\Models\BulkOperation;
 use CraftCms\Shopify\Database\Table;
+use CraftCms\Shopify\Product\Elements\Product;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -32,7 +32,7 @@ return new class() extends Migration {
 
         Schema::enableForeignKeyConstraints();
 
-        DB::table(CraftTable::FIELDLAYOUTS)->where('type', Product::class)->delete();
+        DB::table(CraftTable::FIELDLAYOUTS)->whereIn('type', [Product::class, 'craft\\shopify\\elements\\Product'])->delete();
 
         ProjectConfig::remove('shopify');
     }
