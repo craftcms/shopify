@@ -697,8 +697,9 @@ class ProcessBulkOperationDataTest extends Unit
     }
 
     /**
-     * A worker that is killed (e.g. by a time or memory limit) never reports an error. Once the job has
-     * used up its attempts, the queue drops it when it is next reserved, and the operation should fail.
+     * A worker that is killed (e.g. by a time or memory limit) never reports an error. When the job is reserved
+     * again after its last attempt, yii2-queue 2.3.8+ drops it, and older versions (allowed by Craft 4) run it
+     * once more. Either way, the operation should fail and the job shouldn’t be left waiting.
      */
     public function testJobDroppedAfterItsWorkerDiedFailsItsOperation(): void
     {
@@ -706,8 +707,8 @@ class ProcessBulkOperationDataTest extends Unit
         $this->_saveProcessingOperation();
         $this->_stubBulkOperationStart();
 
-        // The job must not run again
-        $this->_mockDataFileResponses([]);
+        // If the job runs again, its download fails
+        $this->_mockDataFileResponses([new Response(500)]);
 
         $jobId = QueueHelper::push($this->_makeQueueJob());
 
@@ -719,7 +720,8 @@ class ProcessBulkOperationDataTest extends Unit
         ], ['id' => $jobId]);
         $this->_executeJobAfterTtr($jobId);
 
-        self::assertNull($this->_jobRow($jobId), 'The queue should have dropped the job without failing it.');
+        $row = $this->_jobRow($jobId);
+        self::assertTrue($row === null || $row['fail'], 'The job should have been dropped or failed.');
         self::assertEquals(BulkOperationStatus::Failed, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
     }
 
