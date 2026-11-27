@@ -274,6 +274,80 @@ Syncs and webhooks no longer create product revisions. A revision only kept the 
 
 The product edit screen shows the Shopify details in the sidebar’s metadata, below the product’s own, instead of in a card with its own styles.
 
+### Queue job
+
+The job that processes a sync's data is a Laravel job now, with a new name:
+
+| Before | After |
+| --- | --- |
+| `craft\shopify\jobs\ProcessBulkOperationData` | `CraftCms\Shopify\BulkOperation\Jobs\ProcessBulkOperationData` |
+| `craft\shopify\api\BulkDataBatcher` | `CraftCms\Shopify\BulkOperation\BulkDataBatcher` |
+
+The job extends `CraftCms\Cms\Queue\BatchedJob`, and takes its data as constructor arguments instead of a config array. It still processes the data in batches of 100 objects.
+
+Before:
+
+```php
+use craft\helpers\Queue;
+use craft\shopify\jobs\ProcessBulkOperationData;
+
+Queue::push(new ProcessBulkOperationData([
+    'bulkOperationShopifyGid' => $gid,
+    'dataUrl' => $url,
+    'objectCount' => $objectCount,
+]));
+```
+
+After:
+
+```php
+use CraftCms\Shopify\BulkOperation\Jobs\ProcessBulkOperationData;
+
+dispatch(new ProcessBulkOperationData(
+    bulkOperationShopifyGid: $gid,
+    dataUrl: $url,
+    objectCount: $objectCount,
+));
+```
+
+The old job class still exists, but is deprecated. When it runs, it dispatches the new job at the same batch.
+
+`BulkDataBatcher` now extends Craft's `CraftCms\Cms\Queue\JsonlBatcher`, which reads the file from the end and decodes each line. Its old name is a deprecated alias. It takes the file path, object count and position as constructor arguments, and `getSlice()` returns decoded objects instead of JSON strings. The `filePath`, `total`, `reverse` and `reversePosition` properties and `getReversePositionAfter()` were removed. Use the `path`, `total` and `position` properties instead.
+
+Craft 6's upgrade deletes the Craft 5 queue, so a sync that was still processing when you upgraded never finishes. Its bulk operation stays in the Processing status, and blocks later syncs until the plugin marks it Failed, 24 hours after its last update. That's why [the upgrade steps](#upgrade-steps) ask you to empty the queue first.
+
+### Webhooks
+
+The webhook classes have new names:
+
+| Before | After |
+| --- | --- |
+| `craft\shopify\webhooks\WebhookRegistry` | `CraftCms\Shopify\Webhook\WebhookRegistry` |
+| `craft\shopify\handlers\Webhook` | `CraftCms\Shopify\Webhook\WebhookHandler` |
+| `craft\shopify\enums\WebhookTopics` | `CraftCms\Shopify\Webhook\Enums\WebhookTopics` |
+
+`WebhookRegistry` is a singleton with instance methods now, and it registers `WebhookHandler` for every topic itself. To replace the handler for a topic, call `addHandler()` from a service provider's `boot()` method.
+
+Before:
+
+```php
+use craft\shopify\enums\WebhookTopics;
+use craft\shopify\webhooks\WebhookRegistry;
+
+WebhookRegistry::addHandler(WebhookTopics::ProductsUpdate, new MyHandler());
+```
+
+After:
+
+```php
+use CraftCms\Shopify\Webhook\Enums\WebhookTopics;
+use CraftCms\Shopify\Webhook\WebhookRegistry;
+
+app(WebhookRegistry::class)->addHandler(WebhookTopics::ProductsUpdate, new MyHandler());
+```
+
+The old registry class forwards its static methods to the new one, and the old handler and enum names are aliases. All three are deprecated. `WebhookHandler` takes the Shopify services as constructor arguments, so resolve it with `app(WebhookHandler::class)` instead of `new`.
+
 ### GraphQL
 
 `craft\shopify\gql\types\generators\ProductType::generateTypes()` returns `GraphQL\Type\Definition\ObjectType` objects instead of `craft\gql\base\ObjectType` objects. The GraphQL schema itself is unchanged.

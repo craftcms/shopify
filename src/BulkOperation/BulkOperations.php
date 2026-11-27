@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace CraftCms\Shopify\BulkOperation;
 
-use craft\helpers\Queue;
 use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\exceptions\ShopifyApiException;
-use craft\shopify\jobs\ProcessBulkOperationData;
 use craft\shopify\models\BulkOperation;
 use CraftCms\Cms\Support\Query;
 use CraftCms\Shopify\Api\Api;
+use CraftCms\Shopify\BulkOperation\Jobs\ProcessBulkOperationData;
 use CraftCms\Shopify\BulkOperation\Models\BulkOperation as BulkOperationRecord;
 use CraftCms\Shopify\Database\Table;
 use GraphQL\InlineFragment;
@@ -399,12 +398,12 @@ class BulkOperations
             }
 
             $bulkOperation = new BulkOperation((array)$nextToProcess);
-            Queue::push(new ProcessBulkOperationData([
-                'bulkOperationShopifyGid' => $bulkOperation->shopifyGid,
-                'dataUrl' => $bulkOperation->url,
-                'objectCount' => $bulkOperation->objectCount,
-                'clearData' => $bulkOperation->clearData,
-            ]));
+            dispatch(new ProcessBulkOperationData(
+                bulkOperationShopifyGid: $bulkOperation->shopifyGid,
+                dataUrl: $bulkOperation->url,
+                objectCount: (int)$bulkOperation->objectCount,
+                clearData: $bulkOperation->clearData,
+            ));
 
             $bulkOperation->setStatus(BulkOperationStatus::Processing);
 
