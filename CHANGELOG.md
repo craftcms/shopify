@@ -1,5 +1,13 @@
 # Release Notes for Shopify
 
+## Unreleased
+
+- Bulk operation processing jobs are now retried up to three times. ([#242](https://github.com/craftcms/shopify/issues/242))
+- Added `craft\shopify\jobs\ProcessBulkOperationData::MAX_ATTEMPTS`.
+- Added `craft\shopify\services\BulkOperations::failProcessingBulkOperation()`.
+- Fixed a bug where a failed bulk operation processing job blocked the sync queue for 24 hours. ([#242](https://github.com/craftcms/shopify/issues/242))
+- Fixed a bug where a finished bulk operation could block the sync queue for 24 hours. ([#242](https://github.com/craftcms/shopify/issues/242))
+
 ## 7.4.1 - 2026-11-17
 
 - Fixed a bug where bulk operations could fail if the temp directory didn’t exist. ([#243](https://github.com/craftcms/shopify/issues/243))

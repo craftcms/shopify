@@ -8,9 +8,14 @@
 namespace craft\shopify\tests\unit\jobs;
 
 use Codeception\Test\Unit;
+use Composer\InstalledVersions;
 use Craft;
 use craft\base\Batchable;
+use craft\db\Query;
+use craft\db\Table as CraftTable;
 use craft\helpers\Assets;
+use craft\helpers\Db;
+use craft\helpers\Queue as QueueHelper;
 use craft\queue\BaseBatchedJob;
 use craft\queue\Queue;
 use craft\shopify\api\BulkDataBatcher;
@@ -20,6 +25,7 @@ use craft\shopify\jobs\ProcessBulkOperationData;
 use craft\shopify\models\BulkOperation;
 use craft\shopify\Plugin;
 use craft\shopify\records\ShopifyData;
+use craft\shopify\services\Api;
 use craft\shopify\services\Products;
 use craft\shopify\tests\fixtures\BulkOperationsFixture;
 use GuzzleHttp\Client;
@@ -49,6 +55,7 @@ class ProcessBulkOperationDataTest extends Unit
     protected function _after(): void
     {
         Plugin::getInstance()->set('products', Products::class);
+        Plugin::getInstance()->set('api', Api::class);
 
         if ($this->_originalUriFormat !== null) {
             Plugin::getInstance()->getSettings()->uriFormat = $this->_originalUriFormat;
@@ -633,6 +640,186 @@ class ProcessBulkOperationDataTest extends Unit
     }
 
     // -------------------------------------------------------------------------
+    // Failures, run through the real queue
+    // -------------------------------------------------------------------------
+
+    /**
+     * Regression coverage for craftcms/shopify#242: a failed job left its operation `processing`, which
+     * blocked the sync queue for 24 hours. It should now be retried, and fail the operation once it gives up.
+     */
+    public function testFailingJobIsRetriedThenFailsItsOperationAndStartsTheNext(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $this->_saveProcessingOperation();
+        $nextId = $this->_saveQueuedOperation('query { next }');
+        $sentQueries = $this->_stubBulkOperationStart();
+
+        // Every download attempt fails
+        $this->_mockDataFileResponses(array_fill(0, ProcessBulkOperationData::MAX_ATTEMPTS, new Response(500)));
+
+        $jobId = QueueHelper::push($this->_makeQueueJob());
+
+        for ($attempt = 1; $attempt < ProcessBulkOperationData::MAX_ATTEMPTS; $attempt++) {
+            $this->_executeJobAfterTtr($jobId);
+
+            self::assertFalse($this->_jobRow($jobId)['fail'], "Attempt $attempt should be retried, not failed.");
+            self::assertEquals(BulkOperationStatus::Processing, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+            self::assertSame([], $sentQueries->getArrayCopy(), 'The next operation should wait while this one is being retried.');
+        }
+
+        $this->_executeJobAfterTtr($jobId);
+
+        self::assertTrue($this->_jobRow($jobId)['fail'], 'The job should fail after its last attempt.');
+        self::assertEquals(BulkOperationStatus::Failed, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+        self::assertSame(['query { next }'], $sentQueries->getArrayCopy(), 'The next operation should have been sent to Shopify.');
+        self::assertEquals(BulkOperationStatus::Created, $service->getAllBulkOperations()->firstWhere('id', $nextId)->getStatus());
+    }
+
+    public function testRetriedJobCompletesItsOperation(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $this->_saveProcessingOperation();
+        $this->_stubBulkOperationStart();
+
+        Plugin::getInstance()->set('products', $this->makeEmpty(Products::class, [
+            'createOrUpdateProduct' => true,
+        ]));
+
+        // The first download fails, the retry succeeds
+        $this->_mockDataFileResponses([new Response(500), new Response(200, [], file_get_contents($this->_fixturePath()))]);
+
+        $jobId = QueueHelper::push($this->_makeQueueJob('all'));
+        $this->_executeJobAfterTtr($jobId);
+        $this->_executeJobAfterTtr($jobId);
+
+        self::assertNull($this->_jobRow($jobId), 'The job should have finished.');
+        self::assertEquals(BulkOperationStatus::Completed, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+        self::assertEquals(60, ShopifyData::find()->count());
+    }
+
+    /**
+     * A worker that is killed (e.g. by a time or memory limit) never reports an error. When the job is reserved
+     * again after its last attempt, yii2-queue 2.3.8+ drops it, and older versions (allowed by Craft 4) run it
+     * once more. Either way, the operation should fail and the job shouldn’t be left waiting.
+     */
+    public function testJobDroppedAfterItsWorkerDiedFailsItsOperation(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $this->_saveProcessingOperation();
+        $this->_stubBulkOperationStart();
+
+        // If the job runs again, its download fails
+        $this->_mockDataFileResponses([new Response(500)]);
+
+        $jobId = QueueHelper::push($this->_makeQueueJob());
+
+        // Simulate a worker that reserved the job for its last attempt and then died
+        Db::update(CraftTable::QUEUE, [
+            'attempt' => ProcessBulkOperationData::MAX_ATTEMPTS,
+            'dateReserved' => Db::prepareDateForDb(new \DateTime()),
+            'timeUpdated' => time(),
+        ], ['id' => $jobId]);
+        $this->_executeJobAfterTtr($jobId);
+
+        $row = $this->_jobRow($jobId);
+        self::assertTrue($row === null || $row['fail'], 'The job should have been dropped or failed.');
+        self::assertEquals(BulkOperationStatus::Failed, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+    }
+
+    public function testJobReservedAgainAfterItsWorkerDiedIsRetried(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $this->_saveProcessingOperation();
+
+        $this->_mockDataFileResponses([new Response(500)]);
+
+        $jobId = QueueHelper::push($this->_makeQueueJob());
+
+        // A worker reserved the first attempt and died; the second attempt should still run
+        Db::update(CraftTable::QUEUE, [
+            'attempt' => 1,
+            'dateReserved' => Db::prepareDateForDb(new \DateTime()),
+            'timeUpdated' => time(),
+        ], ['id' => $jobId]);
+        $this->_executeJobAfterTtr($jobId);
+
+        $row = $this->_jobRow($jobId);
+        self::assertNotNull($row, 'The job should still be in the queue.');
+        self::assertEquals(2, $row['attempt']);
+        self::assertFalse($row['fail']);
+        self::assertEquals(BulkOperationStatus::Processing, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+    }
+
+    /**
+     * yii2-queue older than 2.3.8 (allowed by Craft 4) runs a job reserved again after its last attempt instead of
+     * dropping it. When that run succeeds and queues the next batch, the operation is still processing.
+     */
+    public function testSuccessfulRunAfterItsWorkerDiedOnTheLastAttemptKeepsProcessing(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $this->_saveProcessingOperation();
+        $this->_stubBulkOperationStart();
+
+        Plugin::getInstance()->set('products', $this->makeEmpty(Products::class, [
+            'createOrUpdateProduct' => true,
+        ]));
+        $this->_mockDataFileResponses([new Response(200, [], file_get_contents($this->_fixturePath()))]);
+
+        $jobId = QueueHelper::push($this->_makeQueueJob('all', batchSize: 10));
+
+        // Simulate a worker that reserved the job for its last attempt and then died
+        Db::update(CraftTable::QUEUE, [
+            'attempt' => ProcessBulkOperationData::MAX_ATTEMPTS,
+            'dateReserved' => Db::prepareDateForDb(new \DateTime()),
+            'timeUpdated' => time(),
+        ], ['id' => $jobId]);
+        $this->_executeJobAfterTtr($jobId);
+
+        if (version_compare(InstalledVersions::getVersion('yiisoft/yii2-queue'), '2.3.8', '>=')) {
+            self::assertEquals(BulkOperationStatus::Failed, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+            return;
+        }
+
+        self::assertEquals(BulkOperationStatus::Processing, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+
+        $this->_runQueue();
+
+        self::assertEquals(BulkOperationStatus::Completed, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+        self::assertEquals(60, ShopifyData::find()->count());
+    }
+
+    /**
+     * A batch that fails partway through is retried from where it started, keeping the earlier batches’ data.
+     */
+    public function testBatchThatFailsPartwayIsRetriedFromItsStart(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $this->_saveProcessingOperation();
+        $this->_stubBulkOperationStart();
+
+        // The product is the last line read, so the first save fails after the rest of its batch is written
+        $productSaves = 0;
+        Plugin::getInstance()->set('products', $this->makeEmpty(Products::class, [
+            'createOrUpdateProduct' => function() use (&$productSaves) {
+                if (++$productSaves === 1) {
+                    throw new \yii\db\Exception('Deadlock found when trying to get lock');
+                }
+                return true;
+            },
+        ]));
+        $this->_mockDataFileResponses([new Response(200, [], file_get_contents($this->_fixturePath()))]);
+
+        QueueHelper::push($this->_makeQueueJob('all', batchSize: 25));
+        $this->_runQueue();
+
+        self::assertSame(2, $productSaves);
+        self::assertEquals(BulkOperationStatus::Completed, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+        self::assertEquals(60, ShopifyData::find()->count());
+        self::assertEquals(58, ShopifyData::find()->where(['parentId' => 'gid://shopify/Product/6656149192755'])->count());
+        self::assertFalse((new Query())->from(CraftTable::QUEUE)->exists(), 'No jobs should be left or failed.');
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
@@ -679,6 +866,116 @@ class ProcessBulkOperationDataTest extends Unit
         while ($next = $queue->popJob()) {
             $next->execute($queue);
         }
+    }
+
+    private function _saveProcessingOperation(): void
+    {
+        $bulkOperation = new BulkOperation();
+        $bulkOperation->shopifyId = self::BULK_OP_GID;
+        $bulkOperation->query = 'query {}';
+        $bulkOperation->clearData = 'none';
+        $bulkOperation->url = 'https://storage.example.com/data.jsonl';
+        $bulkOperation->objectCount = 60;
+        $bulkOperation->shopifyStatus = 'COMPLETED';
+        $bulkOperation->setStatus(BulkOperationStatus::Processing);
+        Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
+    }
+
+    private function _makeQueueJob(string $clearData = 'none', int $batchSize = 100): ProcessBulkOperationData
+    {
+        return new ProcessBulkOperationData([
+            'bulkOperationShopifyId' => self::BULK_OP_GID,
+            'dataUrl' => 'https://storage.example.com/data.jsonl',
+            'objectCount' => 60,
+            'clearData' => $clearData,
+            'batchSize' => $batchSize,
+        ]);
+    }
+
+    /**
+     * Runs every job in the queue until none are left, releasing jobs held for a retry, as a worker would.
+     */
+    private function _runQueue(): void
+    {
+        for ($i = 0; $i < 50; $i++) {
+            Db::update(CraftTable::QUEUE, ['dateReserved' => null, 'timeUpdated' => null], ['fail' => false]);
+
+            if (!Craft::$app->getQueue()->executeJob()) {
+                return;
+            }
+        }
+
+        self::fail('The queue didn’t finish.');
+    }
+
+    private function _saveQueuedOperation(string $query): int
+    {
+        $bulkOperation = new BulkOperation();
+        $bulkOperation->query = $query;
+        $bulkOperation->clearData = 'none';
+        $bulkOperation->setStatus(BulkOperationStatus::Queued);
+        Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
+
+        return $bulkOperation->id;
+    }
+
+    /**
+     * Stubs the Shopify API so starting the next operation succeeds, recording the queries sent.
+     */
+    private function _stubBulkOperationStart(): \ArrayObject
+    {
+        $sentQueries = new \ArrayObject();
+        Plugin::getInstance()->set('api', $this->makeEmpty(Api::class, [
+            'query' => function($query, $variables = null) use ($sentQueries) {
+                if (is_array($variables) && array_key_exists('query', $variables)) {
+                    $sentQueries[] = $variables['query'];
+                    return [
+                        'bulkOperation' => ['id' => 'gid://shopify/BulkOperation/next-started-001', 'status' => 'CREATED', 'type' => 'QUERY'],
+                        'userErrors' => [],
+                    ];
+                }
+
+                return ['edges' => []];
+            },
+        ]));
+
+        return $sentQueries;
+    }
+
+    /**
+     * Runs the job with the real queue. A job that is still reserved (being retried, or left by a dead worker)
+     * is released first, as the queue does once its TTR has passed.
+     */
+    private function _executeJobAfterTtr(string $jobId): void
+    {
+        Db::update(CraftTable::QUEUE, ['dateReserved' => null, 'timeUpdated' => null], ['id' => $jobId, 'fail' => false]);
+        Craft::$app->getQueue()->executeJob($jobId);
+    }
+
+    private function _jobRow(string $jobId): ?array
+    {
+        $row = (new Query())->from(CraftTable::QUEUE)->where(['id' => $jobId])->one();
+
+        if (!$row) {
+            return null;
+        }
+
+        $row['fail'] = (bool)$row['fail'];
+        $row['attempt'] = (int)$row['attempt'];
+
+        return $row;
+    }
+
+    /**
+     * @param Response[] $responses
+     */
+    private function _mockDataFileResponses(array $responses): void
+    {
+        $handler = HandlerStack::create(new MockHandler($responses));
+
+        Craft::$container->set(Client::class, function($container, array $params) use ($handler): Client {
+            return new Client(['handler' => $handler] + ($params[0] ?? []));
+        });
     }
 
     private function _mockDataFileResponse(string $body): void
