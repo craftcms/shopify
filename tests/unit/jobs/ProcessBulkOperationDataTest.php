@@ -8,6 +8,7 @@
 namespace craft\shopify\tests\unit\jobs;
 
 use Codeception\Test\Unit;
+use Composer\InstalledVersions;
 use Craft;
 use craft\base\Batchable;
 use craft\db\Query;
@@ -749,6 +750,75 @@ class ProcessBulkOperationDataTest extends Unit
         self::assertEquals(BulkOperationStatus::Processing, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
     }
 
+    /**
+     * yii2-queue older than 2.3.8 (allowed by Craft 4) runs a job reserved again after its last attempt instead of
+     * dropping it. When that run succeeds and queues the next batch, the operation is still processing.
+     */
+    public function testSuccessfulRunAfterItsWorkerDiedOnTheLastAttemptKeepsProcessing(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $this->_saveProcessingOperation();
+        $this->_stubBulkOperationStart();
+
+        Plugin::getInstance()->set('products', $this->makeEmpty(Products::class, [
+            'createOrUpdateProduct' => true,
+        ]));
+        $this->_mockDataFileResponses([new Response(200, [], file_get_contents($this->_fixturePath()))]);
+
+        $jobId = QueueHelper::push($this->_makeQueueJob('all', batchSize: 10));
+
+        // Simulate a worker that reserved the job for its last attempt and then died
+        Db::update(CraftTable::QUEUE, [
+            'attempt' => ProcessBulkOperationData::MAX_ATTEMPTS,
+            'dateReserved' => Db::prepareDateForDb(new \DateTime()),
+            'timeUpdated' => time(),
+        ], ['id' => $jobId]);
+        $this->_executeJobAfterTtr($jobId);
+
+        if (version_compare(InstalledVersions::getVersion('yiisoft/yii2-queue'), '2.3.8', '>=')) {
+            self::assertEquals(BulkOperationStatus::Failed, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+            return;
+        }
+
+        self::assertEquals(BulkOperationStatus::Processing, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+
+        $this->_runQueue();
+
+        self::assertEquals(BulkOperationStatus::Completed, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+        self::assertEquals(60, ShopifyData::find()->count());
+    }
+
+    /**
+     * A batch that fails partway through is retried from where it started, keeping the earlier batches’ data.
+     */
+    public function testBatchThatFailsPartwayIsRetriedFromItsStart(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+        $this->_saveProcessingOperation();
+        $this->_stubBulkOperationStart();
+
+        // The product is the last line read, so the first save fails after the rest of its batch is written
+        $productSaves = 0;
+        Plugin::getInstance()->set('products', $this->makeEmpty(Products::class, [
+            'createOrUpdateProduct' => function() use (&$productSaves) {
+                if (++$productSaves === 1) {
+                    throw new \yii\db\Exception('Deadlock found when trying to get lock');
+                }
+                return true;
+            },
+        ]));
+        $this->_mockDataFileResponses([new Response(200, [], file_get_contents($this->_fixturePath()))]);
+
+        QueueHelper::push($this->_makeQueueJob('all', batchSize: 25));
+        $this->_runQueue();
+
+        self::assertSame(2, $productSaves);
+        self::assertEquals(BulkOperationStatus::Completed, $service->getBulkOperationByShopifyId(self::BULK_OP_GID)->getStatus());
+        self::assertEquals(60, ShopifyData::find()->count());
+        self::assertEquals(58, ShopifyData::find()->where(['parentId' => 'gid://shopify/Product/6656149192755'])->count());
+        self::assertFalse((new Query())->from(CraftTable::QUEUE)->exists(), 'No jobs should be left or failed.');
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -811,14 +881,31 @@ class ProcessBulkOperationDataTest extends Unit
         Plugin::getInstance()->getBulkOperations()->saveBulkOperation($bulkOperation, false);
     }
 
-    private function _makeQueueJob(string $clearData = 'none'): ProcessBulkOperationData
+    private function _makeQueueJob(string $clearData = 'none', int $batchSize = 100): ProcessBulkOperationData
     {
         return new ProcessBulkOperationData([
             'bulkOperationShopifyId' => self::BULK_OP_GID,
             'dataUrl' => 'https://storage.example.com/data.jsonl',
             'objectCount' => 60,
             'clearData' => $clearData,
+            'batchSize' => $batchSize,
         ]);
+    }
+
+    /**
+     * Runs every job in the queue until none are left, releasing jobs held for a retry, as a worker would.
+     */
+    private function _runQueue(): void
+    {
+        for ($i = 0; $i < 50; $i++) {
+            Db::update(CraftTable::QUEUE, ['dateReserved' => null, 'timeUpdated' => null], ['fail' => false]);
+
+            if (!Craft::$app->getQueue()->executeJob()) {
+                return;
+            }
+        }
+
+        self::fail('The queue didn’t finish.');
     }
 
     private function _saveQueuedOperation(string $query): int

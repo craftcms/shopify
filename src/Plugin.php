@@ -10,6 +10,7 @@
 
 namespace craft\shopify;
 
+use Composer\InstalledVersions;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin as BasePlugin;
@@ -63,6 +64,7 @@ use Shopify\Webhooks\Registry;
 use yii\base\Event;
 use yii\base\InvalidConfigException;
 use yii\queue\ExecEvent;
+use yii\queue\Queue as BaseQueue;
 
 /**
  * Class Shopify
@@ -423,14 +425,20 @@ class Plugin extends BasePlugin
     private function _registerQueueEvents(): void
     {
         // The job threw on its last attempt
-        Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
+        Event::on(BaseQueue::class, BaseQueue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
             if ($event->job instanceof ProcessBulkOperationData && !$event->retry) {
                 $this->getBulkOperations()->failProcessingBulkOperation($event->job->bulkOperationShopifyId);
             }
         });
 
-        // The worker died without reporting an error (e.g. it hit a time or memory limit). When the job is
-        // reserved again after its last attempt, the queue drops it without running it or triggering an error.
+        // The worker died without reporting an error (e.g. it hit a time or memory limit). When the job is reserved
+        // again after its last attempt, yii2-queue 2.3.8+ drops it without running it or triggering an error.
+        // Older versions run it once more instead, so a failure is handled above, and a successful run may
+        // have queued the next batch, so the operation must not be failed here.
+        if (version_compare(InstalledVersions::getVersion('yiisoft/yii2-queue') ?? '0', '2.3.8', '<')) {
+            return;
+        }
+
         Event::on(Queue::class, Queue::EVENT_AFTER_EXEC_AND_RELEASE, function(ExecEvent $event) {
             if (
                 $event->job instanceof ProcessBulkOperationData &&
