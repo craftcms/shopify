@@ -55,6 +55,10 @@ class ProcessBulkOperationData extends BaseJob
         $job->tempFilePath = $this->tempFilePath;
         $job->dataFilePosition = $this->dataFilePosition;
 
+        if ($this->ttr !== null) {
+            $job->timeout = $this->ttr;
+        }
+
         dispatch($job);
     }
 }
