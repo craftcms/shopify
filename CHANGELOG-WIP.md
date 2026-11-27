@@ -71,3 +71,8 @@
 - The `ProductQuery` constructor no longer accepts an element type.
 - Product condition rules now implement `CraftCms\Cms\Element\Conditions\Contracts\ElementQueryConditionRuleInterface`.
 - `CraftCms\Shopify\Product\Elements\Product::getShopifyLink()` now returns an `Illuminate\Support\HtmlString` object.
+- Renamed `craft\shopify\jobs\ProcessBulkOperationData` to `CraftCms\Shopify\BulkOperation\Jobs\ProcessBulkOperationData`, which now extends `CraftCms\Cms\Queue\BatchedJob` and takes its data as constructor arguments. The old class is deprecated, and dispatches the new job when it runs.
+- Renamed `craft\shopify\api\BulkDataBatcher` to `CraftCms\Shopify\BulkOperation\BulkDataBatcher`, which now extends `CraftCms\Cms\Queue\JsonlBatcher`. Its `getSlice()` method returns decoded objects, and its `filePath`, `reverse` and `reversePosition` properties and `getReversePositionAfter()` method were removed. The old class name is a deprecated alias.
+- Renamed `craft\shopify\webhooks\WebhookRegistry` to `CraftCms\Shopify\Webhook\WebhookRegistry`, which is now a singleton with instance methods. The old class is deprecated, and forwards its static methods to the new one.
+- Renamed `craft\shopify\handlers\Webhook` to `CraftCms\Shopify\Webhook\WebhookHandler`, which now takes the Shopify services as constructor arguments. The old class name is a deprecated alias.
+- Renamed `craft\shopify\enums\WebhookTopics` to `CraftCms\Shopify\Webhook\Enums\WebhookTopics`. The old enum name is a deprecated alias.

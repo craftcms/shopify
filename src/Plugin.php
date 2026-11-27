@@ -15,10 +15,8 @@ use craft\shopify\fieldlayoutelements\VariantsField;
 use craft\shopify\fields\Products as ProductsField;
 use craft\shopify\gql\interfaces\elements\Product as GqlProductInterface;
 use craft\shopify\gql\queries\Product as GqlProductQueries;
-use craft\shopify\handlers\Webhook;
 use craft\shopify\linktypes\Product as ProductLinkType;
 use craft\shopify\utilities\Sync;
-use craft\shopify\webhooks\WebhookRegistry;
 use CraftCms\Cms\Cp\Data\NavItem;
 use CraftCms\Cms\FieldLayout\FieldLayout;
 use CraftCms\Cms\GarbageCollection\Actions\DeletePartialElements;
@@ -136,7 +134,7 @@ class Plugin extends BasePlugin
         ]);
     }
 
-    public function boot(ProjectConfig $projectConfig, Products $products, Api $api, Plugins $plugins): void
+    public function boot(ProjectConfig $projectConfig, Products $products, Plugins $plugins): void
     {
         $this->registerVariables();
         $this->registerFeedMeFields($plugins);
@@ -160,10 +158,6 @@ class Plugin extends BasePlugin
         $projectConfig->onAdd(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, $products->handleChangedFieldLayout(...))
             ->onUpdate(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, $products->handleChangedFieldLayout(...))
             ->onRemove(self::PC_PATH_PRODUCT_FIELD_LAYOUTS, $products->handleDeletedFieldLayout(...));
-
-        foreach ($api->getWebhookTopics() as $topic) {
-            WebhookRegistry::addHandler($topic, new Webhook());
-        }
     }
 
     public function getBulkOperations(): BulkOperations

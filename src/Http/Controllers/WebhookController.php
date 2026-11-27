@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace CraftCms\Shopify\Http\Controllers;
 
-use craft\shopify\webhooks\WebhookRegistry;
 use CraftCms\Shopify\Api\Api;
 use CraftCms\Shopify\Settings;
+use CraftCms\Shopify\Webhook\WebhookRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -17,12 +17,12 @@ use Throwable;
  */
 readonly class WebhookController
 {
-    public function __invoke(Request $request, Api $api, Settings $settings): Response
+    public function __invoke(Request $request, Api $api, Settings $settings, WebhookRegistry $webhookRegistry): Response
     {
         abort_unless($api->connect(), 405, 'No Shopify API session found, check credentials in settings.');
 
         try {
-            WebhookRegistry::process(
+            $webhookRegistry->process(
                 $request->headers->all(),
                 $request->getContent(),
                 $settings->getClientSecret(),

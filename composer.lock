@@ -556,12 +556,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/craftcms/cms.git",
-                "reference": "4e454905af1934d4211610a151523ae873104c0c"
+                "reference": "db166f24029a4a4da7d8bbb0377bc192554dc045"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/craftcms/cms/zipball/4e454905af1934d4211610a151523ae873104c0c",
-                "reference": "4e454905af1934d4211610a151523ae873104c0c",
+                "url": "https://api.github.com/repos/craftcms/cms/zipball/db166f24029a4a4da7d8bbb0377bc192554dc045",
+                "reference": "db166f24029a4a4da7d8bbb0377bc192554dc045",
                 "shasum": ""
             },
             "require": {
@@ -612,7 +612,7 @@
                 "symfony/yaml": "^7.0|^8.0",
                 "theiconic/name-parser": "^1.2",
                 "tpetry/laravel-query-expressions": "^1.5",
-                "twig/twig": "~3.30.0",
+                "twig/twig": "~3.31.1",
                 "voku/portable-ascii": "^2.0",
                 "web-auth/webauthn-lib": "~5.3.9",
                 "webonyx/graphql-php": "~15.33.1",
@@ -748,8 +748,8 @@
                 "rss": "https://github.com/craftcms/cms/releases.atom",
                 "source": "https://github.com/craftcms/cms"
             },
-            "time": "2026-11-23T10:59:52+00:00",
-            "published-time": "2026-11-23T11:00:03+00:00"
+            "time": "2026-11-27T14:21:40+00:00",
+            "published-time": "2026-11-27T14:21:51+00:00"
         },
         {
             "name": "craftcms/cms-assets",
@@ -757,12 +757,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/craftcms/cms-assets.git",
-                "reference": "c970b6f9265aaaa9b033b18c45c2e25ef391db1f"
+                "reference": "67acf6aec46c4dd95b91a1aad4ade0aca00f2237"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/craftcms/cms-assets/zipball/c970b6f9265aaaa9b033b18c45c2e25ef391db1f",
-                "reference": "c970b6f9265aaaa9b033b18c45c2e25ef391db1f",
+                "url": "https://api.github.com/repos/craftcms/cms-assets/zipball/67acf6aec46c4dd95b91a1aad4ade0aca00f2237",
+                "reference": "67acf6aec46c4dd95b91a1aad4ade0aca00f2237",
                 "shasum": ""
             },
             "default-branch": true,
@@ -775,8 +775,8 @@
             "support": {
                 "source": "https://github.com/craftcms/cms-assets/tree/6.x"
             },
-            "time": "2026-11-23T10:24:59+00:00",
-            "published-time": "2026-11-23T10:25:06+00:00"
+            "time": "2026-11-27T12:49:49+00:00",
+            "published-time": "2026-11-27T12:49:57+00:00"
         },
         {
             "name": "craftcms/laravel-aliases",
@@ -1151,12 +1151,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/craftcms/yii2-adapter.git",
-                "reference": "ddc9393eafa2aeaadaafb07bc3c58144e6cbecff"
+                "reference": "1141c7424ecc3bfd8adecbb2915c44bc685dd648"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/craftcms/yii2-adapter/zipball/ddc9393eafa2aeaadaafb07bc3c58144e6cbecff",
-                "reference": "ddc9393eafa2aeaadaafb07bc3c58144e6cbecff",
+                "url": "https://api.github.com/repos/craftcms/yii2-adapter/zipball/1141c7424ecc3bfd8adecbb2915c44bc685dd648",
+                "reference": "1141c7424ecc3bfd8adecbb2915c44bc685dd648",
                 "shasum": ""
             },
             "require": {
@@ -1255,8 +1255,8 @@
                 "rss": "https://github.com/craftcms/cms/releases.atom",
                 "source": "https://github.com/craftcms/cms"
             },
-            "time": "2026-11-23T08:56:26+00:00",
-            "published-time": "2026-11-23T08:56:31+00:00"
+            "time": "2026-11-27T11:45:13+00:00",
+            "published-time": "2026-11-27T11:45:19+00:00"
         },
         {
             "name": "creocoder/yii2-nested-sets",
@@ -11181,16 +11181,16 @@
         },
         {
             "name": "twig/twig",
-            "version": "v3.30.0",
+            "version": "v3.31.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/Twig.git",
-                "reference": "8c737079b726af72ff8ef3c595be9f6a810ea1ef"
+                "reference": "6f6ec372231b53d1d564567a78beb8844cafa132"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/Twig/zipball/8c737079b726af72ff8ef3c595be9f6a810ea1ef",
-                "reference": "8c737079b726af72ff8ef3c595be9f6a810ea1ef",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/6f6ec372231b53d1d564567a78beb8844cafa132",
+                "reference": "6f6ec372231b53d1d564567a78beb8844cafa132",
                 "shasum": ""
             },
             "require": {
@@ -11245,7 +11245,7 @@
             ],
             "support": {
                 "issues": "https://github.com/twigphp/Twig/issues",
-                "source": "https://github.com/twigphp/Twig/tree/v3.30.0"
+                "source": "https://github.com/twigphp/Twig/tree/v3.31.1"
             },
             "funding": [
                 {
@@ -11257,8 +11257,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-25T13:20:01+00:00",
-            "published-time": "2026-09-25T13:20:14+00:00"
+            "time": "2026-11-24T12:48:40+00:00",
+            "published-time": "2026-11-24T12:48:53+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
