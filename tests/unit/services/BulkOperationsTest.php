@@ -564,6 +564,48 @@ class BulkOperationsTest extends Unit
         self::assertEquals(BulkOperationStatus::Created, $reloadedQueued->getStatus());
     }
 
+    /**
+     * Regression test for craftcms/shopify#242: an operation that finished on Shopify stayed `created` if it
+     * couldn’t be sent for processing when its webhook arrived, blocking the sync until it was failed as stuck.
+     */
+    public function testNextBulkOperationSendsAFinishedCreatedOperationForProcessing(): void
+    {
+        $service = Plugin::getInstance()->getBulkOperations();
+
+        $finishedGid = 'gid://shopify/BulkOperation/stranded-created-001';
+        $finished = $this->_makeCreatedOp($finishedGid);
+        $finished->shopifyStatus = 'COMPLETED';
+        $finished->url = 'https://storage.example.com/stranded.jsonl';
+        $finished->objectCount = 5;
+        $service->saveBulkOperation($finished, false);
+
+        $queued = $this->_makeFreshQueuedOp('query { waiting }');
+        $service->saveBulkOperation($queued, false);
+        $queuedId = $queued->id;
+
+        $pushedJobs = [];
+        Craft::$app->set('queue', $this->make(Queue::class, [
+            'push' => function($job) use (&$pushedJobs) {
+                $pushedJobs[] = $job;
+                return 'fake-queue-id';
+            },
+        ]));
+
+        Plugin::getInstance()->set('api', $this->makeEmpty(Api::class, [
+            'query' => function() {
+                self::fail('Nothing should be sent to Shopify while an operation is processing.');
+            },
+        ]));
+
+        $result = $service->nextBulkOperation();
+
+        self::assertFalse($result);
+        self::assertCount(1, $pushedJobs);
+        self::assertEquals($finishedGid, $pushedJobs[0]->bulkOperationShopifyId);
+        self::assertEquals(BulkOperationStatus::Processing, $service->getBulkOperationByShopifyId($finishedGid)->getStatus());
+        self::assertEquals(BulkOperationStatus::Queued, $service->getAllBulkOperations()->firstWhere('id', $queuedId)->getStatus());
+    }
+
     // -------------------------------------------------------------------------
     // purgeBulkOperations
     // -------------------------------------------------------------------------

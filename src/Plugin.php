@@ -30,6 +30,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
+use craft\queue\Queue;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Gc;
@@ -46,6 +47,7 @@ use craft\shopify\fields\Products as ProductsField;
 use craft\shopify\gql\interfaces\elements\Product as GqlProductInterface;
 use craft\shopify\gql\queries\Product as GqlProductQueries;
 use craft\shopify\handlers\Webhook;
+use craft\shopify\jobs\ProcessBulkOperationData;
 use craft\shopify\linktypes\Product as ProductLinkType;
 use craft\shopify\models\Settings;
 use craft\shopify\services\Api;
@@ -60,6 +62,7 @@ use GraphQL\Query as GqlQuery;
 use Shopify\Webhooks\Registry;
 use yii\base\Event;
 use yii\base\InvalidConfigException;
+use yii\queue\ExecEvent;
 
 /**
  * Class Shopify
@@ -142,6 +145,7 @@ class Plugin extends BasePlugin
         $this->_registerVariables();
         $this->_registerResaveCommands();
         $this->_registerGarbageCollection();
+        $this->_registerQueueEvents();
         $this->_registerFeedMeEvents();
         $this->_registerGqlInterfaces();
         $this->_registerGqlQueries();
@@ -409,6 +413,32 @@ class Plugin extends BasePlugin
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $event->rules['shopify/webhook/handle'] = 'shopify/webhook/handle';
+        });
+    }
+
+    /**
+     * Fails a bulk operation once its data job has run out of attempts. Otherwise the operation stays
+     * `processing`, which blocks the sync queue until it’s failed as stuck.
+     */
+    private function _registerQueueEvents(): void
+    {
+        // The job threw on its last attempt
+        Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
+            if ($event->job instanceof ProcessBulkOperationData && !$event->retry) {
+                $this->getBulkOperations()->failProcessingBulkOperation($event->job->bulkOperationShopifyId);
+            }
+        });
+
+        // The worker died without reporting an error (e.g. it hit a time or memory limit). When the job is
+        // reserved again after its last attempt, the queue drops it without running it or triggering an error.
+        Event::on(Queue::class, Queue::EVENT_AFTER_EXEC_AND_RELEASE, function(ExecEvent $event) {
+            if (
+                $event->job instanceof ProcessBulkOperationData &&
+                $event->attempt > 1 &&
+                !$event->job->canRetry($event->attempt - 1, $event->error)
+            ) {
+                $this->getBulkOperations()->failProcessingBulkOperation($event->job->bulkOperationShopifyId);
+            }
         });
     }
 

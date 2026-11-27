@@ -12,14 +12,23 @@ use craft\shopify\enums\BulkOperationStatus;
 use craft\shopify\Plugin;
 use craft\shopify\records\BulkOperation as BulkOperationRecord;
 use craft\shopify\records\ShopifyData;
+use yii\queue\RetryableJobInterface;
 
 /**
  * Process the data from the completed bulk operation.
  *
  * @since 6.0.0
  */
-class ProcessBulkOperationData extends BaseBatchedJob
+class ProcessBulkOperationData extends BaseBatchedJob implements RetryableJobInterface
 {
+    /**
+     * How many times a batch is attempted before the job fails. Items are saved by their Shopify ID,
+     * so a retried batch updates whatever the failed attempt already saved.
+     *
+     * @since 7.5.0
+     */
+    public const MAX_ATTEMPTS = 3;
+
     /**
      * @var string
      */
@@ -68,6 +77,22 @@ class ProcessBulkOperationData extends BaseBatchedJob
     protected function defaultDescription(): ?string
     {
         return Craft::t('shopify', 'Processing bulk operation data');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getTtr(): int
+    {
+        return $this->ttr ?: Craft::$app->getQueue()->ttr;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canRetry($attempt, $error): bool
+    {
+        return $attempt < self::MAX_ATTEMPTS;
     }
 
     /**

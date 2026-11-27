@@ -177,6 +177,10 @@ class BulkOperations extends Component
             // call—without this, an abandoned row would sit here until Craft's GC happens to run.
             $this->_failStuckBulkOperations();
 
+            // An operation that finished on Shopify stays `created` if it couldn’t be sent for processing when
+            // its webhook arrived (e.g. the lock was busy). Send it now, or it would block the sync until it’s failed as stuck.
+            $this->_queueCreatedBulkOperation();
+
             // If we are processing the data of a bulk op or a bulk op query has been sent to Shopify, we can't start another one
             $hasBulkOpsInProgress = $this->_createBulkOperationQuery()
                 ->andWhere([
@@ -386,49 +390,33 @@ class BulkOperations extends Component
             // See the matching comment in nextBulkOperation().
             $this->_failStuckBulkOperations();
 
-            $hasBulkOpsInProgress = $this->_createBulkOperationQuery()
-                ->andWhere([
-                    'status' => [BulkOperationStatus::Processing->value],
-                ])
-                ->exists();
-
-            if ($hasBulkOpsInProgress) {
-                return false;
-            }
-
-            // Oldest first, same reasoning as nextBulkOperation() above.
-            $nextToProcess = $this->_createBulkOperationQuery()
-                ->andWhere(['status' => BulkOperationStatus::Created->value])
-                ->andWhere(['not', ['url' => null]])
-                ->orderBy(['id' => SORT_ASC])
-                ->one();
-
-            if (!$nextToProcess) {
-                return true;
-            }
-
-            /** @var BulkOperation $bulkOperation */
-            $bulkOperation = Craft::createObject(array_merge($nextToProcess, ['class' => BulkOperation::class]));
-            if (!Queue::push(new ProcessBulkOperationData([
-                'bulkOperationShopifyId' => $bulkOperation->shopifyId,
-                'dataUrl' => $bulkOperation->url,
-                'objectCount' => $bulkOperation->objectCount,
-                'clearData' => $bulkOperation->clearData,
-            ]))) {
-                return false;
-            }
-
-            $bulkOperation->setStatus(BulkOperationStatus::Processing);
-
-            if (!$this->saveBulkOperation($bulkOperation)) {
-                Craft::error('Could not save bulk operation data.', __METHOD__);
-                return false;
-            }
-
-            return true;
+            return $this->_queueCreatedBulkOperation();
         } finally {
             $mutex->release(self::MUTEX_NAME);
         }
+    }
+
+    /**
+     * Marks a `processing` bulk operation as failed, and moves the sync queue on to the next operation.
+     *
+     * This is called when its {@see ProcessBulkOperationData} job has failed and won’t be retried.
+     *
+     * @param string $shopifyId
+     * @since 7.5.0
+     */
+    public function failProcessingBulkOperation(string $shopifyId): void
+    {
+        $bulkOperation = $this->getBulkOperationByShopifyId($shopifyId);
+
+        if (!$bulkOperation || $bulkOperation->getStatus() !== BulkOperationStatus::Processing) {
+            return;
+        }
+
+        $bulkOperation->setStatus(BulkOperationStatus::Failed);
+        $this->saveBulkOperation($bulkOperation, false);
+
+        $this->queueNextBulkOperation();
+        $this->nextBulkOperation();
     }
 
     /**
@@ -551,6 +539,54 @@ class BulkOperations extends Component
             $bulkOperation->setStatus(BulkOperationStatus::Failed);
             $this->saveBulkOperation($bulkOperation, false);
         }
+    }
+
+    /**
+     * Sends the oldest finished (`created`, with a data URL) bulk operation to the Craft queue for processing,
+     * unless another operation is already processing. Callers must hold the {@see MUTEX_NAME} lock.
+     */
+    private function _queueCreatedBulkOperation(): bool
+    {
+        $hasBulkOpsInProgress = $this->_createBulkOperationQuery()
+            ->andWhere([
+                'status' => [BulkOperationStatus::Processing->value],
+            ])
+            ->exists();
+
+        if ($hasBulkOpsInProgress) {
+            return false;
+        }
+
+        // Oldest first, same reasoning as nextBulkOperation().
+        $nextToProcess = $this->_createBulkOperationQuery()
+            ->andWhere(['status' => BulkOperationStatus::Created->value])
+            ->andWhere(['not', ['url' => null]])
+            ->orderBy(['id' => SORT_ASC])
+            ->one();
+
+        if (!$nextToProcess) {
+            return true;
+        }
+
+        /** @var BulkOperation $bulkOperation */
+        $bulkOperation = Craft::createObject(array_merge($nextToProcess, ['class' => BulkOperation::class]));
+        if (!Queue::push(new ProcessBulkOperationData([
+            'bulkOperationShopifyId' => $bulkOperation->shopifyId,
+            'dataUrl' => $bulkOperation->url,
+            'objectCount' => $bulkOperation->objectCount,
+            'clearData' => $bulkOperation->clearData,
+        ]))) {
+            return false;
+        }
+
+        $bulkOperation->setStatus(BulkOperationStatus::Processing);
+
+        if (!$this->saveBulkOperation($bulkOperation)) {
+            Craft::error('Could not save bulk operation data.', __METHOD__);
+            return false;
+        }
+
+        return true;
     }
 
     /**
