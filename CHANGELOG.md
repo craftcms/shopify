@@ -3,7 +3,12 @@
 ## Unreleased
 
 - Added translations for every language Craft ships with. ([#248](https://github.com/craftcms/shopify/pull/248))
+- Bulk operation processing jobs are now retried up to three times. ([#242](https://github.com/craftcms/shopify/issues/242))
+- Added `craft\shopify\jobs\ProcessBulkOperationData::MAX_ATTEMPTS`.
+- Added `craft\shopify\services\BulkOperations::failProcessingBulkOperation()`.
 - Fixed a bug where some control panel strings couldn’t be translated. ([#248](https://github.com/craftcms/shopify/pull/248))
+- Fixed a bug where a failed bulk operation processing job blocked the sync queue for 24 hours. ([#242](https://github.com/craftcms/shopify/issues/242))
+- Fixed a bug where a finished bulk operation could block the sync queue for 24 hours. ([#242](https://github.com/craftcms/shopify/issues/242))
 
 ## 8.3.1 - 2026-11-17
 
