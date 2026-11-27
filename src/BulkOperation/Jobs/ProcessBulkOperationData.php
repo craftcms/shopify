@@ -182,7 +182,9 @@ class ProcessBulkOperationData extends BatchedJob
         File::ensureDirectoryExists(dirname($downloadPath));
 
         try {
-            Http::sink($downloadPath)->timeout($this->timeout)->throw()->get($this->dataUrl);
+            // Http::create() applies the `craft.guzzle` config and the `httpProxy` setting.
+            /** @phpstan-ignore staticMethod.notFound (Craft registers `create()` as a macro.) */
+            Http::create()->sink($downloadPath)->timeout($this->timeout)->get($this->dataUrl);
             File::move($downloadPath, $this->tempFilePath);
         } finally {
             File::delete($downloadPath);
